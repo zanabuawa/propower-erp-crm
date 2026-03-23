@@ -9,13 +9,19 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('warehouses', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+public function up(): void
+{
+    Schema::create('warehouses', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+        $table->foreignId('branch_id')->constrained()->cascadeOnDelete();
+        $table->string('name');
+        $table->string('code', 20)->nullable();
+        $table->string('location')->nullable();
+        $table->boolean('is_active')->default(true);
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.

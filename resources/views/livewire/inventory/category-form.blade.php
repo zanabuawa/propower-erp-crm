@@ -1,0 +1,59 @@
+<div class="max-w-lg">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{{ route('inventory.categories.index') }}" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
+        <h1 class="text-xl font-medium text-gray-900">
+            {{ $category?->exists ? 'Editar categoría' : 'Nueva categoría' }}
+        </h1>
+    </div>
+
+    <form wire:submit="save" class="space-y-5">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Nombre *</label>
+                <input wire:model="name" type="text" value="{{ $name }}"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                @error('name') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Categoría padre</label>
+                <select wire:model="parent_id"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <option value="">— Sin categoría padre —</option>
+                    @foreach($parents as $parent)
+                        <option value="{{ $parent->id }}" {{ $parent_id == $parent->id ? 'selected' : '' }}>
+                            {{ $parent->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Color</label>
+                <div class="flex items-center gap-3">
+                    <input wire:model="color" type="color" value="{{ $color }}"
+                        class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer">
+                    <span class="text-sm text-gray-600">{{ $color }}</span>
+                </div>
+            </div>
+            <div>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input wire:model="is_active" type="checkbox" class="w-4 h-4 rounded text-indigo-600"
+                        {{ $is_active ? 'checked' : '' }}>
+                    <span class="text-sm text-gray-700">Categoría activa</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pb-6">
+            <a href="{{ route('inventory.categories.index') }}"
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">Cancelar</a>
+            <button type="submit"
+                class="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition">
+                {{ $category?->exists ? 'Guardar cambios' : 'Crear categoría' }}
+            </button>
+        </div>
+    </form>
+</div>

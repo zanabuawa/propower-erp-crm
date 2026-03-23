@@ -19,46 +19,49 @@
             {{-- Logo --}}
             @php $company = auth()->user()->company; @endphp
             <div class="border-b border-white/10 overflow-hidden">
-    <div class="p-3 flex items-center justify-center"
-         :style="sidebarOpen ? 'padding: 12px' : 'padding: 8px'">
+                <div class="p-3 flex items-center justify-center"
+                    :style="sidebarOpen ? 'padding: 12px' : 'padding: 8px'">
 
-        {{-- Logo expandido --}}
-        <div class="w-full overflow-hidden transition-all duration-300 ease-in-out"
-             :style="sidebarOpen ? 'max-height: 120px; opacity: 1' : 'max-height: 0; opacity: 0; padding: 0'">
-            @if($company?->logo)
-                <img src="{{ Storage::url($company->logo) }}" alt="{{ $company->name }}"
-                    class="w-full h-auto object-contain transition-all duration-300">
-            @else
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 min-w-[2rem] bg-indigo-500 rounded-lg flex items-center justify-center font-semibold text-sm text-white">
-                        {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
+                    {{-- Logo expandido --}}
+                    <div class="w-full overflow-hidden transition-all duration-300 ease-in-out"
+                        :style="sidebarOpen ? 'max-height: 120px; opacity: 1' : 'max-height: 0; opacity: 0; padding: 0'">
+                        @if($company?->logo)
+                            <img src="{{ Storage::url($company->logo) }}" alt="{{ $company->name }}"
+                                class="w-full h-auto object-contain transition-all duration-300">
+                        @else
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="w-8 h-8 min-w-[2rem] bg-indigo-500 rounded-lg flex items-center justify-center font-semibold text-sm text-white">
+                                    {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-white leading-tight">
+                                        {{ $company?->name ?? config('app.name') }}</p>
+                                    <p class="text-[10px] text-white/40 leading-tight">Sistema ERP</p>
+                                </div>
+                            </div>
+                        @endif
                     </div>
-                    <div>
-                        <p class="text-sm font-medium text-white leading-tight">{{ $company?->name ?? config('app.name') }}</p>
-                        <p class="text-[10px] text-white/40 leading-tight">Sistema ERP</p>
+
+                    {{-- Ícono contraído --}}
+                    <div class="overflow-hidden transition-all duration-300 ease-in-out"
+                        :style="!sidebarOpen ? 'max-width: 100%; max-height: 120px; opacity: 1' : 'max-width: 0; max-height: 0; opacity: 0'">
+                        @if($company?->icon)
+                            <img src="{{ Storage::url($company->icon) }}"
+                                class="w-full h-auto object-contain rounded-lg transition-all duration-300">
+                        @elseif($company?->logo)
+                            <img src="{{ Storage::url($company->logo) }}"
+                                class="w-full h-auto object-contain rounded-lg transition-all duration-300">
+                        @else
+                            <div
+                                class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-semibold text-sm text-white">
+                                {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
+                            </div>
+                        @endif
                     </div>
-                </div>
-            @endif
-        </div>
 
-        {{-- Ícono contraído --}}
-        <div class="overflow-hidden transition-all duration-300 ease-in-out"
-             :style="!sidebarOpen ? 'max-width: 100%; max-height: 120px; opacity: 1' : 'max-width: 0; max-height: 0; opacity: 0'">
-            @if($company?->icon)
-                <img src="{{ Storage::url($company->icon) }}"
-                    class="w-full h-auto object-contain rounded-lg transition-all duration-300">
-            @elseif($company?->logo)
-                <img src="{{ Storage::url($company->logo) }}"
-                    class="w-full h-auto object-contain rounded-lg transition-all duration-300">
-            @else
-                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center font-semibold text-sm text-white">
-                    {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
                 </div>
-            @endif
-        </div>
-
-    </div>
-</div>
+            </div>
 
             {{-- Nav --}}
             <nav class="flex-1 overflow-y-auto py-2">
@@ -67,6 +70,11 @@
 
                 <x-sidebar-section label="ERP" />
                 <x-sidebar-item route="inventory.index" icon="inventory" label="Inventario" />
+                <x-sidebar-item route="inventory.categories.index" icon="dashboard" label="Categorías" :indent="true" />
+                <x-sidebar-item route="inventory.units.index" icon="dashboard" label="Unidades" :indent="true" />
+                <x-sidebar-item route="inventory.warehouses.index" icon="dashboard" label="Almacenes" :indent="true" />
+                <x-sidebar-item route="inventory.movements.index" icon="inventory" label="Movimientos" :indent="true" />
+                
                 <x-sidebar-item route="purchases.index" icon="purchases" label="Compras" />
                 <x-sidebar-item route="sales.index" icon="sales" label="Ventas" />
                 <x-sidebar-item route="accounting.index" icon="accounting" label="Contabilidad" />

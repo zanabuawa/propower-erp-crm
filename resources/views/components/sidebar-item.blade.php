@@ -1,4 +1,4 @@
-@props(['route', 'icon', 'label', 'badge' => null])
+@props(['route', 'icon', 'label', 'badge' => null, 'indent' => false])
 
 @php
     $routeExists = \Illuminate\Support\Facades\Route::has($route);
@@ -7,7 +7,8 @@
 @endphp
 
 <a href="{{ $url }}"
-    class="flex items-center gap-3 px-4 py-2 text-sm transition-colors duration-150
+    class="flex items-center gap-3 py-2 text-sm transition-colors duration-150
+        {{ $indent ? 'pl-10 pr-4' : 'px-4' }}
         {{ $active
             ? 'bg-indigo-500/20 text-indigo-300'
             : 'text-white/60 hover:bg-white/5 hover:text-white' }}"
