@@ -1,0 +1,1 @@
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="1.5"/><path stroke-width="1.5" stroke-linecap="round" d="M12 6v6l4 2"/></svg>
