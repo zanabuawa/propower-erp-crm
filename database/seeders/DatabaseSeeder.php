@@ -13,5 +13,10 @@ class DatabaseSeeder extends Seeder
             CompanySeeder::class,
             UserSeeder::class,
         ]);
+        // Configuración de compras para la empresa de prueba
+        \App\Models\PurchaseSetting::firstOrCreate(
+            ['company_id' => \App\Models\Company::first()->id],
+            ['currency' => 'MXN', 'level1_amount' => 2000, 'level2_amount' => 10000]
+        );
     }
 }

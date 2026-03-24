@@ -52,6 +52,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventario/movimientos/crear', \App\Livewire\Inventory\StockMovementForm::class)->name('inventory.movements.create');
     Route::get('/inventario/movimientos/{stockMovement}', \App\Livewire\Inventory\StockMovementForm::class)->name('inventory.movements.show');
 
+    // Clientes
+    Route::get('/clientes', \App\Livewire\Customers\CustomerIndex::class)->name('contacts.index');
+    Route::get('/clientes/crear', \App\Livewire\Customers\CustomerForm::class)->name('contacts.create');
+    Route::get('/clientes/{customer}/editar', \App\Livewire\Customers\CustomerForm::class)->name('contacts.edit');
+    Route::get('/clientes/{customer}', \App\Livewire\Customers\CustomerShow::class)->name('contacts.show');
+
+    // Proveedores
+    Route::get('/proveedores', \App\Livewire\Suppliers\SupplierIndex::class)->name('suppliers.index');
+    Route::get('/proveedores/crear', \App\Livewire\Suppliers\SupplierForm::class)->name('suppliers.create');
+    Route::get('/proveedores/{supplier}/editar', \App\Livewire\Suppliers\SupplierForm::class)->name('suppliers.edit');
+    Route::get('/proveedores/{supplier}', \App\Livewire\Suppliers\SupplierShow::class)->name('suppliers.show');
+
+    // Compras
+    Route::get('/compras/requisiciones', \App\Livewire\Purchases\RequisitionIndex::class)->name('purchases.index');
+    Route::get('/compras/requisiciones/crear', \App\Livewire\Purchases\RequisitionForm::class)->name('purchases.requisitions.create');
+    Route::get('/compras/requisiciones/{requisition}', \App\Livewire\Purchases\RequisitionShow::class)->name('purchases.requisitions.show');
+
+    Route::get('/compras/ordenes', \App\Livewire\Purchases\OrderIndex::class)->name('purchases.orders.index');
+    Route::get('/compras/ordenes/crear', \App\Livewire\Purchases\OrderForm::class)->name('purchases.orders.create');
+    Route::get('/compras/ordenes/{order}', \App\Livewire\Purchases\OrderShow::class)->name('purchases.orders.show');
+
+    Route::get('/compras/ordenes/{order}/recibir', \App\Livewire\Purchases\ReceiptForm::class)->name('purchases.receipts.create');
+
     Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
 
 });

@@ -36,7 +36,8 @@
                                 </div>
                                 <div>
                                     <p class="text-sm font-medium text-white leading-tight">
-                                        {{ $company?->name ?? config('app.name') }}</p>
+                                        {{ $company?->name ?? config('app.name') }}
+                                    </p>
                                     <p class="text-[10px] text-white/40 leading-tight">Sistema ERP</p>
                                 </div>
                             </div>
@@ -74,9 +75,12 @@
                 <x-sidebar-item route="inventory.units.index" icon="dashboard" label="Unidades" :indent="true" />
                 <x-sidebar-item route="inventory.warehouses.index" icon="dashboard" label="Almacenes" :indent="true" />
                 <x-sidebar-item route="inventory.movements.index" icon="inventory" label="Movimientos" :indent="true" />
-                
+
                 <x-sidebar-item route="purchases.index" icon="purchases" label="Compras" />
-                <x-sidebar-item route="sales.index" icon="sales" label="Ventas" />
+                <x-sidebar-item route="purchases.requisitions.create" icon="dashboard" label="Nueva requisición"
+                    :indent="true" />
+                <x-sidebar-item route="purchases.orders.index" icon="dashboard" label="Órdenes de compra"
+                    :indent="true" /> <x-sidebar-item route="sales.index" icon="sales" label="Ventas" />
                 <x-sidebar-item route="accounting.index" icon="accounting" label="Contabilidad" />
                 <x-sidebar-item route="hr.index" icon="hr" label="Recursos humanos" />
                 <x-sidebar-item route="production.index" icon="production" label="Producción" />
@@ -84,6 +88,7 @@
 
                 <x-sidebar-section label="CRM" />
                 <x-sidebar-item route="contacts.index" icon="contacts" label="Clientes" />
+                <x-sidebar-item route="suppliers.index" icon="purchases" label="Proveedores" />
                 <x-sidebar-item route="opportunities.index" icon="opportunities" label="Oportunidades" />
                 <x-sidebar-item route="tickets.index" icon="tickets" label="Tickets" />
                 <x-sidebar-item route="campaigns.index" icon="campaigns" label="Campañas" />
@@ -122,6 +127,7 @@
                     </svg>
                 </button>
                 <span class="font-medium text-gray-800 flex-1">@yield('title', 'Dashboard')</span>
+                @livewire('shared.notification-bell')
                 @if (auth()->user()->branch)
                     <span class="text-xs bg-gray-100 border border-gray-200 rounded-full px-3 py-1 text-gray-500">
                         {{ auth()->user()->branch->name }}
@@ -131,8 +137,11 @@
 
             {{-- MAIN --}}
             <main class="flex-1 overflow-y-auto p-6">
-                {{ $slot ?? '' }}
-                @yield('content')
+                @hasSection('content')
+                    @yield('content')
+                @else
+                    {{ $slot }}
+                @endif
             </main>
         </div>
     </div>

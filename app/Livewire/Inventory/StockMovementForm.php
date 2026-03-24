@@ -11,7 +11,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\DB;
 
-#[Layout('components.layouts.app')]
+#[Layout('layouts.app')]
 class StockMovementForm extends Component
 {
     public ?StockMovement $stockMovement = null;
