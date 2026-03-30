@@ -14,21 +14,36 @@ class Customer extends Model
     use BelongsToCompany, HasContactInfo, SoftDeletes;
 
     protected $fillable = [
-        'company_id', 'assigned_to', 'type', 'name', 'rfc', 'tax_regime',
-        'birthdate', 'anniversary_date', 'image', 'address', 'city', 'state',
-        'country', 'zip_code', 'website', 'credit_limit', 'payment_terms',
-        'status', 'description',
+        'company_id',
+        'assigned_to',
+        'type',
+        'name',
+        'rfc',
+        'tax_regime',
+        'birthdate',
+        'anniversary_date',
+        'image',
+        'address',
+        'city',
+        'state',
+        'country',
+        'zip_code',
+        'website',
+        'credit_limit',
+        'payment_terms',
+        'status',
+        'description',
     ];
 
     protected $casts = [
-        'birthdate'        => 'date',
+        'birthdate' => 'date',
         'anniversary_date' => 'date',
-        'credit_limit'     => 'decimal:2',
+        'credit_limit' => 'decimal:2',
     ];
 
     const STATUS = [
         'prospect' => 'Prospecto',
-        'active'   => 'Activo',
+        'active' => 'Activo',
         'inactive' => 'Inactivo',
     ];
 
@@ -60,5 +75,9 @@ class Customer extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(CustomerNote::class)->latest('noted_at');
+    }
+    public function priceLists()
+    {
+        return $this->belongsToMany(PriceList::class);
     }
 }

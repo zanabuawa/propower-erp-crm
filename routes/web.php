@@ -75,6 +75,24 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/compras/ordenes/{order}/recibir', \App\Livewire\Purchases\ReceiptForm::class)->name('purchases.receipts.create');
 
+    // Ventas
+    Route::get('/ventas/cotizaciones', \App\Livewire\Sales\QuotationIndex::class)->name('sales.index');
+    Route::get('/ventas/cotizaciones/crear', \App\Livewire\Sales\QuotationForm::class)->name('sales.quotations.create');
+    Route::get('/ventas/cotizaciones/{quotation}', \App\Livewire\Sales\QuotationShow::class)->name('sales.quotations.show');
+
+    Route::get('/ventas/ordenes', \App\Livewire\Sales\OrderIndex::class)->name('sales.orders.index');
+    Route::get('/ventas/ordenes/crear', \App\Livewire\Sales\OrderForm::class)->name('sales.orders.create');
+    Route::get('/ventas/ordenes/{order}', \App\Livewire\Sales\OrderShow::class)->name('sales.orders.show');
+    Route::get('/ventas/ordenes/{order}/remision', \App\Livewire\Sales\DeliveryForm::class)->name('sales.deliveries.create');
+
+    Route::get('/ventas/facturas', \App\Livewire\Sales\InvoiceIndex::class)->name('sales.invoices.index');
+    Route::get('/ventas/facturas/crear', \App\Livewire\Sales\InvoiceForm::class)->name('sales.invoices.create');
+    Route::get('/ventas/facturas/{invoice}', \App\Livewire\Sales\InvoiceShow::class)->name('sales.invoices.show');
+
+    Route::get('/ventas/listas-precios', \App\Livewire\Sales\PriceListIndex::class)->name('sales.price-lists.index');
+    Route::get('/ventas/listas-precios/crear', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.create');
+    Route::get('/ventas/listas-precios/{priceList}/editar', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.edit');
+
     Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
 
 });
