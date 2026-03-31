@@ -6,7 +6,7 @@
     $url         = $routeExists ? route($route) : '#';
 @endphp
 
-<a href="{{ $url }}"
+<a href="{{ $url }}" @if($routeExists) wire:navigate @endif
     class="flex items-center gap-2 py-1.5 pr-3 text-xs transition-colors duration-150
         {{ $active ? 'text-indigo-300 bg-indigo-500/10' : 'text-white/40 hover:text-white/80 hover:bg-white/4' }}"
     :class="sidebarOpen ? 'pl-11' : 'pl-3 justify-center'"

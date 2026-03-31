@@ -12,8 +12,10 @@
         .sb-nav::-webkit-scrollbar-thumb { background: #37445e; border-radius: 4px; }
         .sb-nav::-webkit-scrollbar-thumb:hover { background: #0a0d1a; }
         .sb-nav { scrollbar-width: thin; scrollbar-color: #0f1120 transparent; }
-        .sb-sub { overflow: hidden; max-height: 0; transition: max-height .25s ease; }
+        /* Sin transición al cargar — se activa después del primer render */
+        .sb-sub { overflow: hidden; max-height: 0; }
         .sb-sub.open { max-height: 400px; }
+        .sb-animated .sb-sub { transition: max-height .25s ease; }
         .sb-chevron { transition: transform .2s; }
         .sb-chevron.open { transform: rotate(90deg); }
     </style>
@@ -25,31 +27,37 @@
     mobileOpen: false,
     openMenus: [],
     saveTimeout: null,
-    
+
     init() {
         this.loadState();
-        
+
+        // Activar transiciones solo después del primer render
+        // para evitar que los menús animen al cargar la página
+        this.$nextTick(() => {
+            this.$el.querySelector('aside').classList.add('sb-animated');
+        });
+
         document.addEventListener('livewire:navigating', () => {
             this.saveState();
         });
-        
+
         window.addEventListener('beforeunload', () => {
             this.saveState();
         });
     },
-    
+
     loadState() {
         const savedSidebarOpen = localStorage.getItem('sidebarOpen');
         if (savedSidebarOpen !== null) {
             this.sidebarOpen = JSON.parse(savedSidebarOpen);
         }
-        
+
         const savedMenus = localStorage.getItem('sidebarOpenMenus');
         if (savedMenus) {
             this.openMenus = JSON.parse(savedMenus);
         }
     },
-    
+
     saveState() {
         clearTimeout(this.saveTimeout);
         this.saveTimeout = setTimeout(() => {
@@ -57,7 +65,7 @@
             localStorage.setItem('sidebarOpenMenus', JSON.stringify(this.openMenus));
         }, 100);
     },
-    
+
     toggleMenu(id) {
         if (this.openMenus.includes(id)) {
             this.openMenus = this.openMenus.filter(m => m !== id);
@@ -66,9 +74,9 @@
         }
         this.saveState();
     },
-    
-    isOpen(id) { 
-        return this.openMenus.includes(id); 
+
+    isOpen(id) {
+        return this.openMenus.includes(id);
     }
 }"
 x-init="init()">
@@ -105,6 +113,7 @@ x-init="init()">
             <div class="flex items-center justify-center p-4"
                 :style="sidebarOpen ? 'padding:16px' : 'padding:8px'">
                 <div class="w-full overflow-hidden transition-all duration-300 ease-in-out"
+                    style="max-height:120px"
                     :style="sidebarOpen ? 'max-height:120px;opacity:1' : 'max-height:0;opacity:0;padding:0'">
                     @if($company?->logo)
                         <img src="{{ Storage::url($company->logo) }}" alt="{{ $company->name }}"
@@ -140,7 +149,7 @@ x-init="init()">
         <nav class="sb-nav flex-1 overflow-y-auto py-2">
 
             {{-- Dashboard --}}
-            <a href="{{ route('dashboard') }}"
+            <a href="{{ route('dashboard') }}" wire:navigate
                 class="flex items-center gap-3 px-3 py-2 text-sm transition-colors duration-150 relative group
                     {{ request()->routeIs('dashboard') ? 'bg-indigo-500/20 text-indigo-300' : 'text-white/55 hover:bg-white/6 hover:text-white' }}">
                 <span class="w-5 h-5 min-w-[1.25rem] flex items-center justify-center">
