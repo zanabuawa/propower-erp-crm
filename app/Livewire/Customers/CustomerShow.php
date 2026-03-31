@@ -24,11 +24,14 @@ class CustomerShow extends Component
     // Contacto
     public bool $showContactForm = false;
     public string $contactFirstName = '';
-    public string $contactLastName = '';
+    public string $contactAlias = '';
+    public string $contactPaternalSurname = '';
+    public string $contactMaternalSurname = '';
     public string $contactPosition = '';
     public string $contactPhone = '';
     public string $contactEmail = '';
     public bool $contactIsPrimary = false;
+    public string $contactDescription = '';
 
     public function mount($customer): void
     {
@@ -67,23 +70,29 @@ class CustomerShow extends Component
     public function saveContact(): void
     {
         $this->validate([
-            'contactFirstName' => 'required|string|max:255',
-            'contactLastName'  => 'nullable|string|max:255',
-            'contactPosition'  => 'nullable|string|max:255',
-            'contactPhone'     => 'nullable|string|max:20',
-            'contactEmail'     => 'nullable|email|max:255',
+            'contactFirstName'       => 'required|string|max:255',
+            'contactAlias'           => 'nullable|string|max:100',
+            'contactPaternalSurname' => 'nullable|string|max:100',
+            'contactMaternalSurname' => 'nullable|string|max:100',
+            'contactPosition'        => 'nullable|string|max:255',
+            'contactPhone'           => 'nullable|string|max:20',
+            'contactEmail'           => 'nullable|email|max:255',
+            'contactDescription'     => 'nullable|string',
         ]);
 
         $this->customer->contacts()->create([
-            'first_name'  => $this->contactFirstName,
-            'last_name'   => $this->contactLastName,
-            'position'    => $this->contactPosition,
-            'phone'       => $this->contactPhone,
-            'email'       => $this->contactEmail,
-            'is_primary'  => $this->contactIsPrimary,
+            'first_name'       => $this->contactFirstName,
+            'alias'            => $this->contactAlias ?: null,
+            'paternal_surname' => $this->contactPaternalSurname ?: null,
+            'maternal_surname' => $this->contactMaternalSurname ?: null,
+            'position'         => $this->contactPosition ?: null,
+            'phone'            => $this->contactPhone ?: null,
+            'email'            => $this->contactEmail ?: null,
+            'is_primary'       => $this->contactIsPrimary,
+            'description'      => $this->contactDescription ?: null,
         ]);
 
-        $this->reset(['contactFirstName', 'contactLastName', 'contactPosition', 'contactPhone', 'contactEmail', 'contactIsPrimary', 'showContactForm']);
+        $this->reset(['contactFirstName', 'contactAlias', 'contactPaternalSurname', 'contactMaternalSurname', 'contactPosition', 'contactPhone', 'contactEmail', 'contactIsPrimary', 'contactDescription', 'showContactForm']);
         $this->customer->load('contacts');
         session()->flash('success', 'Contacto agregado.');
     }

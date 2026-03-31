@@ -16,11 +16,9 @@ class Customer extends Model
     protected $fillable = [
         'company_id',
         'assigned_to',
-        'type',
         'name',
         'rfc',
         'tax_regime',
-        'birthdate',
         'anniversary_date',
         'image',
         'address',
@@ -36,7 +34,6 @@ class Customer extends Model
     ];
 
     protected $casts = [
-        'birthdate' => 'date',
         'anniversary_date' => 'date',
         'credit_limit' => 'decimal:2',
     ];

@@ -61,16 +61,7 @@
                     <input wire:model="address" type="text" value="{{ $address }}"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Ciudad</label>
-                    <input wire:model="city" type="text" value="{{ $city }}"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Estado</label>
-                    <input wire:model="state" type="text" value="{{ $state }}"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                </div>
+                @include('livewire.partials.location-fields')
             </div>
         </div>
 

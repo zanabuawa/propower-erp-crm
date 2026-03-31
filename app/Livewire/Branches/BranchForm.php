@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Branches;
 
+use App\Livewire\Concerns\HasLocationFields;
 use App\Models\Branch;
 use App\Models\Company;
 use Livewire\Component;
@@ -10,6 +11,7 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.app')]
 class BranchForm extends Component
 {
+    use HasLocationFields;
     public ?Branch $branch = null;
     public ?int $company_id = null;
     public string $name = '';
@@ -19,6 +21,7 @@ class BranchForm extends Component
     public string $address = '';
     public string $city = '';
     public string $state = '';
+    public string $country = 'México';
     public bool $is_active = true;
 
     public function mount($branch = null): void
@@ -38,6 +41,8 @@ class BranchForm extends Component
             $this->state      = $this->branch->state ?? '';
             $this->is_active  = $this->branch->is_active;
         }
+
+        $this->initializeLocation();
     }
 
     public function rules(): array

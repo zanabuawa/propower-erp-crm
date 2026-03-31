@@ -154,63 +154,100 @@ x-init="init()">
             </a>
 
             {{-- Inventario --}}
+            @canany(['view inventory', 'create inventory', 'edit inventory', 'delete inventory'])
             <x-sidebar-menu id="inv" label="Inventario" icon="inventory" :routes="['inventory.*']">
+                @can('view inventory')
                 <x-sidebar-subitem route="inventory.index" label="Productos" />
+                <x-sidebar-subitem route="inventory.general" label="Existencias generales" />
+                <x-sidebar-subitem route="inventory.warehouse-stock" label="Existencias por almacén" />
                 <x-sidebar-subitem route="inventory.categories.index" label="Categorías" />
                 <x-sidebar-subitem route="inventory.units.index" label="Unidades" />
                 <x-sidebar-subitem route="inventory.warehouses.index" label="Almacenes" />
                 <x-sidebar-subitem route="inventory.movements.index" label="Movimientos" />
+                @endcan
             </x-sidebar-menu>
+            @endcanany
 
             {{-- Compras --}}
+            @canany(['view purchases', 'create purchases', 'edit purchases', 'delete purchases'])
             <x-sidebar-menu id="buy" label="Compras" icon="purchases" :routes="['purchases.*']">
+                @can('view purchases')
                 <x-sidebar-subitem route="purchases.index" label="Requisiciones" />
                 <x-sidebar-subitem route="purchases.orders.index" label="Órdenes de compra" />
+                <x-sidebar-subitem route="purchases.goods-receipts.index" label="Recepción de mercancías" />
+                @endcan
             </x-sidebar-menu>
+            @endcanany
 
             {{-- Ventas --}}
+            @canany(['view sales', 'create sales', 'edit sales', 'delete sales'])
             <x-sidebar-menu id="sales" label="Ventas" icon="sales" :routes="['sales.*']">
+                @can('view sales')
                 <x-sidebar-subitem route="sales.index" label="Cotizaciones" />
                 <x-sidebar-subitem route="sales.orders.index" label="Órdenes de venta" />
                 <x-sidebar-subitem route="sales.invoices.index" label="Facturas" />
                 <x-sidebar-subitem route="sales.price-lists.index" label="Listas de precios" />
+                @endcan
             </x-sidebar-menu>
+            @endcanany
 
             {{-- CRM --}}
+            @canany(['view contacts', 'create contacts', 'view suppliers', 'create suppliers'])
             <x-sidebar-menu id="crm" label="CRM" icon="contacts" :routes="['contacts.*','suppliers.*','opportunities.*','tickets.*','campaigns.*']">
+                @can('view contacts')
                 <x-sidebar-subitem route="contacts.index" label="Clientes" />
+                @endcan
+                @can('view suppliers')
                 <x-sidebar-subitem route="suppliers.index" label="Proveedores" />
+                @endcan
                 <x-sidebar-subitem route="opportunities.index" label="Oportunidades" />
                 <x-sidebar-subitem route="tickets.index" label="Tickets" />
                 <x-sidebar-subitem route="campaigns.index" label="Campañas" />
             </x-sidebar-menu>
+            @endcanany
 
             {{-- Recursos Humanos --}}
+            @canany(['view hr', 'create hr', 'edit hr', 'delete hr'])
             <x-sidebar-menu id="hr" label="Recursos humanos" icon="hr" :routes="['hr.*']">
                 <x-sidebar-subitem route="hr.index" label="Empleados" />
             </x-sidebar-menu>
+            @endcanany
 
             {{-- Contabilidad --}}
+            @canany(['view accounting', 'create accounting', 'edit accounting', 'delete accounting'])
             <x-sidebar-menu id="acc" label="Contabilidad" icon="accounting" :routes="['accounting.*']">
                 <x-sidebar-subitem route="accounting.index" label="Cuentas" />
             </x-sidebar-menu>
+            @endcanany
 
             {{-- Proyectos --}}
+            @canany(['view projects', 'create projects', 'edit projects', 'delete projects'])
             <x-sidebar-menu id="proj" label="Proyectos" icon="projects" :routes="['projects.*']">
                 <x-sidebar-subitem route="projects.index" label="Mis proyectos" />
             </x-sidebar-menu>
+            @endcanany
 
             {{-- Licitaciones --}}
+            @canany(['view projects', 'create projects'])
             <x-sidebar-menu id="lic" label="Licitaciones e ingeniería" icon="inventory" :routes="['licitaciones.*']">
                 <x-sidebar-subitem route="projects.index" label="Licitaciones" />
             </x-sidebar-menu>
+            @endcanany
 
             {{-- Administración --}}
+            @canany(['view companies', 'view branches', 'view users'])
             <x-sidebar-menu id="adm" label="Administración" icon="companies" :routes="['companies.*','branches.*','users.*']">
+                @can('view companies')
                 <x-sidebar-subitem route="companies.index" label="Empresas" />
+                @endcan
+                @can('view branches')
                 <x-sidebar-subitem route="branches.index" label="Sucursales" />
+                @endcan
+                @can('view users')
                 <x-sidebar-subitem route="users.index" label="Usuarios" />
+                @endcan
             </x-sidebar-menu>
+            @endcanany
 
         </nav>
 

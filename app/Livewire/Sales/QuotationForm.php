@@ -26,7 +26,7 @@ class QuotationForm extends Component
 
     public function mount(): void
     {
-        $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'notes' => '']];
+        $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100]];
     }
 
     public function updatedCustomerId(): void
@@ -61,36 +61,44 @@ class QuotationForm extends Component
     public function addProduct(int $productId): void
     {
         $product = Product::find($productId);
-        if (!$product)
-            return;
+        if (!$product) return;
 
-        $price = $product->sale_price;
+        $price = (float) $product->sale_price;
 
         if ($this->price_list_id) {
             $priceList = PriceList::with('items')->find($this->price_list_id);
             $listPrice = $priceList?->getPriceForProduct($productId);
-            if ($listPrice)
-                $price = $listPrice;
+            if ($listPrice) $price = $listPrice;
         }
 
+        // Precio mínimo = costo * (1 + gastos_op% / 100)
+        $cost         = (float) $product->purchase_price;
+        $minSalePrice = round($cost * (1 + (float)$product->operational_costs / 100), 2);
+        // Descuento máximo en % sobre el precio de venta normal
+        $maxDiscountPct = $price > 0
+            ? round(max(0, ($price - $minSalePrice) / $price * 100), 4)
+            : 0;
+
         $this->items[] = [
-            'product_id' => $product->id,
-            'description' => $product->name,
-            'quantity' => 1,
-            'unit_price' => $price,
-            'discount_pct' => 0,
-            'tax_rate' => 16,
-            'unit' => '',
-            'notes' => '',
+            'product_id'      => $product->id,
+            'description'     => $product->name,
+            'quantity'        => 1,
+            'unit_price'      => $price,
+            'discount_pct'    => 0,
+            'tax_rate'        => 16,
+            'unit'            => '',
+            'notes'           => '',
+            'min_sale_price'  => $minSalePrice,
+            'max_discount_pct' => $maxDiscountPct,
         ];
 
-        $this->productSearch = '';
+        $this->productSearch  = '';
         $this->productResults = [];
     }
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'notes' => ''];
+        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100];
     }
 
     public function removeItem(int $index): void
@@ -130,22 +138,38 @@ class QuotationForm extends Component
     public function rules(): array
     {
         return [
-            'customer_id' => 'required|exists:customers,id',
-            'currency' => 'required|in:MXN,USD',
-            'valid_days' => 'required|integer|min:1',
-            'global_discount' => 'required|numeric|min:0|max:100',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string|max:255',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
+            'customer_id'          => 'required|exists:customers,id',
+            'currency'             => 'required|in:MXN,USD',
+            'valid_days'           => 'required|integer|min:1',
+            'global_discount'      => 'required|numeric|min:0|max:100',
+            'items'                => 'required|array|min:1',
+            'items.*.description'  => 'required|string|max:255',
+            'items.*.quantity'     => 'required|numeric|min:0.01',
+            'items.*.unit_price'   => 'required|numeric|min:0',
             'items.*.discount_pct' => 'required|numeric|min:0|max:100',
-            'items.*.tax_rate' => 'required|numeric|min:0|max:100',
+            'items.*.tax_rate'     => 'required|numeric|min:0|max:100',
         ];
     }
 
     public function save(): void
     {
         $this->validate();
+
+        // Validar que el precio con descuento no sea menor al precio mínimo (costo + gastos op.)
+        foreach ($this->items as $index => $item) {
+            $minPrice   = (float) ($item['min_sale_price'] ?? 0);
+            $unitPrice  = (float) ($item['unit_price'] ?? 0);
+            $discPct    = (float) ($item['discount_pct'] ?? 0);
+            $finalPrice = round($unitPrice * (1 - $discPct / 100), 2);
+
+            if ($minPrice > 0 && $finalPrice < $minPrice) {
+                $maxPct = round(max(0, ($unitPrice - $minPrice) / $unitPrice * 100), 2);
+                $this->addError("items.{$index}.discount_pct",
+                    "Descuento excede el máximo permitido ({$maxPct}%). Precio mínimo: \${$minPrice}."
+                );
+                return;
+            }
+        }
 
         DB::transaction(function () {
             $folio = 'COT-' . str_pad(

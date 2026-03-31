@@ -67,10 +67,7 @@ class WarehouseForm extends Component
     public function render()
     {
         return view('livewire.inventory.warehouse-form', [
-            'branches' => Branch::where('is_active', true)
-                ->where('company_id', auth()->user()->company_id)
-                ->orderBy('name')
-                ->get(),
+            'branches' => Branch::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 }

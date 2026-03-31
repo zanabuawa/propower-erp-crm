@@ -20,12 +20,6 @@
         <input wire:model.live.debounce.300ms="search" type="text"
             placeholder="Buscar por nombre o RFC..."
             class="flex-1 min-w-[200px] border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-        <select wire:model.live="filterType"
-            class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-            <option value="">Todos los tipos</option>
-            <option value="person">Persona física</option>
-            <option value="company">Empresa</option>
-        </select>
         <select wire:model.live="filterStatus"
             class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
             <option value="">Todos los estados</option>
@@ -40,7 +34,6 @@
             <thead>
                 <tr class="border-b border-gray-100 bg-gray-50">
                     <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Cliente</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Tipo</th>
                     <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">RFC</th>
                     <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Teléfono</th>
                     <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Contactos</th>
@@ -66,11 +59,6 @@
                                     <p class="text-xs text-gray-400">{{ $customer->primary_email ?? $customer->city }}</p>
                                 </div>
                             </div>
-                        </td>
-                        <td class="px-5 py-3">
-                            <span class="text-xs {{ $customer->type === 'company' ? 'text-blue-600' : 'text-purple-600' }}">
-                                {{ $customer->type === 'company' ? 'Empresa' : 'Persona' }}
-                            </span>
                         </td>
                         <td class="px-5 py-3 font-mono text-xs text-gray-600">{{ $customer->rfc ?? '—' }}</td>
                         <td class="px-5 py-3 text-gray-600">{{ $customer->primary_phone ?? '—' }}</td>
@@ -100,7 +88,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm">
+                        <td colspan="6" class="px-5 py-10 text-center text-gray-400 text-sm">
                             No se encontraron clientes.
                         </td>
                     </tr>

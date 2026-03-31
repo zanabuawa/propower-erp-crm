@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Companies;
 
+use App\Livewire\Concerns\HasLocationFields;
 use App\Models\Company;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -10,7 +11,7 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.app')]
 class CompanyForm extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, HasLocationFields;
 
     public ?Company $company = null;
     public string $name = '';
@@ -44,6 +45,8 @@ class CompanyForm extends Component
             $this->country = $this->company->country ?? 'México';
             $this->is_active = $this->company->is_active ?? true;
         }
+
+        $this->initializeLocation();
     }
 
     public function rules(): array

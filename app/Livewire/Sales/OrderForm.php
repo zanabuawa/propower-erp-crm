@@ -38,20 +38,31 @@ class OrderForm extends Component
                 $this->customer_id     = $quotation->customer_id;
                 $this->price_list_id   = $quotation->price_list_id;
                 $this->currency        = $quotation->currency;
-                $this->items           = $quotation->items->map(fn($i) => [
-                    'product_id'   => $i->product_id,
-                    'description'  => $i->description,
-                    'quantity'     => $i->quantity,
-                    'unit_price'   => $i->unit_price,
-                    'discount_pct' => $i->discount_pct,
-                    'tax_rate'     => $i->tax_rate,
-                    'unit'         => $i->unit ?? '',
-                ])->toArray();
+                $this->items = $quotation->items->map(function ($i) {
+                    $price        = (float) $i->unit_price;
+                    $minSalePrice = $i->product
+                        ? round((float)$i->product->purchase_price * (1 + (float)$i->product->operational_costs / 100), 2)
+                        : 0;
+                    $maxDiscPct   = ($price > 0 && $minSalePrice > 0)
+                        ? round(max(0, ($price - $minSalePrice) / $price * 100), 4)
+                        : 100;
+                    return [
+                        'product_id'       => $i->product_id,
+                        'description'      => $i->description,
+                        'quantity'         => $i->quantity,
+                        'unit_price'       => $price,
+                        'discount_pct'     => $i->discount_pct,
+                        'tax_rate'         => $i->tax_rate,
+                        'unit'             => $i->unit ?? '',
+                        'min_sale_price'   => $minSalePrice,
+                        'max_discount_pct' => $maxDiscPct,
+                    ];
+                })->toArray();
             }
         }
 
         if (empty($this->items)) {
-            $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '']];
+            $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100]];
         }
     }
 
@@ -89,21 +100,29 @@ class OrderForm extends Component
         $product = Product::find($productId);
         if (!$product) return;
 
-        $price = $product->sale_price;
+        $price = (float) $product->sale_price;
         if ($this->price_list_id) {
             $priceList = PriceList::with('items')->find($this->price_list_id);
             $listPrice = $priceList?->getPriceForProduct($productId);
             if ($listPrice) $price = $listPrice;
         }
 
+        $cost           = (float) $product->purchase_price;
+        $minSalePrice   = round($cost * (1 + (float)$product->operational_costs / 100), 2);
+        $maxDiscountPct = $price > 0
+            ? round(max(0, ($price - $minSalePrice) / $price * 100), 4)
+            : 0;
+
         $this->items[] = [
-            'product_id'   => $product->id,
-            'description'  => $product->name,
-            'quantity'     => 1,
-            'unit_price'   => $price,
-            'discount_pct' => 0,
-            'tax_rate'     => 16,
-            'unit'         => '',
+            'product_id'       => $product->id,
+            'description'      => $product->name,
+            'quantity'         => 1,
+            'unit_price'       => $price,
+            'discount_pct'     => 0,
+            'tax_rate'         => 16,
+            'unit'             => '',
+            'min_sale_price'   => $minSalePrice,
+            'max_discount_pct' => $maxDiscountPct,
         ];
 
         $this->productSearch  = '';
@@ -112,7 +131,7 @@ class OrderForm extends Component
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => ''];
+        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100];
     }
 
     public function removeItem(int $index): void
@@ -169,6 +188,21 @@ class OrderForm extends Component
     public function save(): void
     {
         $this->validate();
+
+        foreach ($this->items as $index => $item) {
+            $minPrice   = (float) ($item['min_sale_price'] ?? 0);
+            $unitPrice  = (float) ($item['unit_price'] ?? 0);
+            $discPct    = (float) ($item['discount_pct'] ?? 0);
+            $finalPrice = round($unitPrice * (1 - $discPct / 100), 2);
+
+            if ($minPrice > 0 && $finalPrice < $minPrice) {
+                $maxPct = round(max(0, ($unitPrice - $minPrice) / $unitPrice * 100), 2);
+                $this->addError("items.{$index}.discount_pct",
+                    "Descuento excede el máximo permitido ({$maxPct}%). Precio mínimo: \${$minPrice}."
+                );
+                return;
+            }
+        }
 
         DB::transaction(function () {
             $folio = 'OV-' . str_pad(

@@ -23,7 +23,7 @@
                 </span>
             </div>
             <p class="text-sm text-gray-500">
-                {{ $customer->type === 'company' ? 'Empresa' : 'Persona física' }}
+                Empresa
                 @if($customer->rfc) · RFC: {{ $customer->rfc }} @endif
             </p>
         </div>
@@ -79,15 +79,7 @@
                             <span>{{ $customer->address }}, {{ $customer->city }}, {{ $customer->state }}</span>
                         </div>
                     @endif
-                    @if($customer->type === 'person' && $customer->birthdate)
-                        <div class="flex items-center gap-2 text-gray-700">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                            Nacimiento: {{ $customer->birthdate->format('d/m/Y') }}
-                        </div>
-                    @endif
-                    @if($customer->type === 'company' && $customer->anniversary_date)
+                    @if($customer->anniversary_date)
                         <div class="flex items-center gap-2 text-gray-700">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
@@ -140,24 +132,32 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-sm font-medium text-gray-700">Contactos vinculados</h2>
-                        @if($customer->type === 'company')
-                            <button wire:click="$set('showContactForm', true)"
-                                class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Agregar contacto</button>
-                        @endif
+                        <button wire:click="$set('showContactForm', true)"
+                            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Agregar contacto</button>
                     </div>
 
                     @if($showContactForm)
                         <div class="border border-indigo-100 bg-indigo-50/30 rounded-lg p-4 mb-4 space-y-3">
                             <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs text-gray-500 mb-1">Nombre *</label>
+                                <div class="col-span-2 sm:col-span-1">
+                                    <label class="block text-xs text-gray-500 mb-1">Nombre(s) *</label>
                                     <input wire:model="contactFirstName" type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                                     @error('contactFirstName') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
                                 <div>
-                                    <label class="block text-xs text-gray-500 mb-1">Apellido</label>
-                                    <input wire:model="contactLastName" type="text"
+                                    <label class="block text-xs text-gray-500 mb-1">Alias</label>
+                                    <input wire:model="contactAlias" type="text"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Apellido paterno</label>
+                                    <input wire:model="contactPaternalSurname" type="text"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Apellido materno</label>
+                                    <input wire:model="contactMaternalSurname" type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                                 </div>
                                 <div>
@@ -175,6 +175,11 @@
                                     <input wire:model="contactEmail" type="email"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                                 </div>
+                                <div class="col-span-2">
+                                    <label class="block text-xs text-gray-500 mb-1">Notas / descripción</label>
+                                    <textarea wire:model="contactDescription" rows="2"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"></textarea>
+                                </div>
                             </div>
                             <div class="flex justify-end gap-2">
                                 <button type="button" wire:click="$set('showContactForm', false)"
@@ -188,11 +193,23 @@
                     @forelse($customer->contacts as $contact)
                         <div class="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
                             <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium text-xs">
-                                {{ strtoupper(substr($contact->first_name, 0, 1) . substr($contact->last_name ?? '', 0, 1)) }}
+                                {{ strtoupper(substr($contact->first_name, 0, 1) . substr($contact->paternal_surname ?? '', 0, 1)) }}
                             </div>
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-gray-900">{{ $contact->full_name }}</p>
-                                <p class="text-xs text-gray-400">{{ $contact->position ?? '' }} {{ $contact->phone ? '· ' . $contact->phone : '' }}</p>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ $contact->full_name }}
+                                    @if($contact->alias)
+                                        <span class="text-xs text-gray-400 font-normal">({{ $contact->alias }})</span>
+                                    @endif
+                                </p>
+                                <p class="text-xs text-gray-400">
+                                    {{ $contact->position ?? '' }}
+                                    {{ $contact->phone ? '· ' . $contact->phone : '' }}
+                                    {{ $contact->email ? '· ' . $contact->email : '' }}
+                                </p>
+                                @if($contact->description)
+                                    <p class="text-xs text-gray-500 mt-1 italic">{{ $contact->description }}</p>
+                                @endif
                             </div>
                             @if($contact->is_primary)
                                 <span class="text-xs text-indigo-500">Principal</span>
@@ -205,9 +222,7 @@
                             </button>
                         </div>
                     @empty
-                        <p class="text-sm text-gray-400 text-center py-4">
-                            {{ $customer->type === 'company' ? 'No hay contactos vinculados.' : 'Los contactos aplican solo para empresas.' }}
-                        </p>
+                        <p class="text-sm text-gray-400 text-center py-4">No hay contactos vinculados.</p>
                     @endforelse
                 </div>
             @endif

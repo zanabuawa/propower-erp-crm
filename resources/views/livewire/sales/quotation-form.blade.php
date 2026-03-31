@@ -110,7 +110,17 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach($items as $index => $item)
-                            <tr>
+                            @php
+                                $unitPrice    = (float)($item['unit_price'] ?? 0);
+                                $discPct      = (float)($item['discount_pct'] ?? 0);
+                                $minPrice     = (float)($item['min_sale_price'] ?? 0);
+                                $maxDiscPct   = (float)($item['max_discount_pct'] ?? 100);
+                                $finalPrice   = round($unitPrice * (1 - $discPct / 100), 2);
+                                $discExceeded = $minPrice > 0 && $finalPrice < $minPrice;
+                                $sub  = ($item['quantity'] ?? 0) * $unitPrice;
+                                $disc = $sub * ($discPct / 100);
+                            @endphp
+                            <tr class="{{ $discExceeded ? 'bg-red-50' : '' }}">
                                 <td class="px-4 py-2">
                                     <input wire:model="items.{{ $index }}.description" type="text"
                                         class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
@@ -127,18 +137,25 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-2">
-                                    <input wire:model.live="items.{{ $index }}.discount_pct" type="number" step="0.01" min="0" max="100"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                    <input wire:model.live="items.{{ $index }}.discount_pct" type="number" step="0.01" min="0"
+                                        max="{{ $maxDiscPct }}"
+                                        class="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:ring-1
+                                            {{ $discExceeded ? 'border-red-400 focus:ring-red-300' : 'border-gray-200 focus:ring-indigo-300' }}">
+                                    @if($minPrice > 0)
+                                        <p class="text-[10px] mt-0.5 {{ $discExceeded ? 'text-red-500 font-medium' : 'text-gray-400' }}">
+                                            Máx: {{ number_format($maxDiscPct, 2) }}%
+                                            @if($discExceeded) · mín ${{ number_format($minPrice, 2) }} @endif
+                                        </p>
+                                    @endif
+                                    @error("items.{$index}.discount_pct")
+                                        <p class="text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
                                 </td>
                                 <td class="px-4 py-2">
                                     <input wire:model.live="items.{{ $index }}.tax_rate" type="number" step="0.01" min="0" max="100"
                                         class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
                                 </td>
-                                <td class="px-4 py-2 text-gray-700 font-medium text-xs">
-                                    @php
-                                        $sub = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
-                                        $disc = $sub * (($item['discount_pct'] ?? 0) / 100);
-                                    @endphp
+                                <td class="px-4 py-2 font-medium text-xs {{ $discExceeded ? 'text-red-600' : 'text-gray-700' }}">
                                     ${{ number_format($sub - $disc, 2) }}
                                 </td>
                                 <td class="px-4 py-2">

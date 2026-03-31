@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Purchases;
 
+use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseReceipt;
@@ -38,24 +39,27 @@ class ReceiptForm extends Component
         $this->items = $this->order->items
             ->filter(fn($i) => $i->pending_quantity > 0)
             ->map(fn($i) => [
-                'order_item_id' => $i->id,
-                'product_id' => $i->product_id,
-                'product_name' => $i->description,
-                'warehouse_id' => $defaultWarehouse,
-                'quantity_ordered' => $i->quantity,
+                'order_item_id'    => $i->id,
+                'product_id'       => $i->product_id,
+                'product_name'     => $i->description,
+                'purchase_price'   => $i->unit_price,
+                'warehouse_id'     => $defaultWarehouse,
+                'quantity_ordered'  => $i->quantity,
                 'quantity_received' => $i->pending_quantity,
-                'quantity_pending' => $i->pending_quantity,
-                'notes' => '',
+                'quantity_pending'  => $i->pending_quantity,
+                'operational_cost' => '0',
+                'notes'            => '',
             ])->values()->toArray();
     }
 
     public function rules(): array
     {
         return [
-            'warehouse_id' => 'required|exists:warehouses,id',
-            'items' => 'required|array|min:1',
-            'items.*.quantity_received' => 'required|numeric|min:0',
-            'items.*.warehouse_id' => 'required|exists:warehouses,id',
+            'warehouse_id'               => 'required|exists:warehouses,id',
+            'items'                      => 'required|array|min:1',
+            'items.*.quantity_received'  => 'required|numeric|min:0',
+            'items.*.warehouse_id'       => 'required|exists:warehouses,id',
+            'items.*.operational_cost'   => 'required|numeric|min:0',
         ];
     }
 
@@ -106,7 +110,7 @@ class ReceiptForm extends Component
                 $orderItem = PurchaseOrderItem::find($item['order_item_id']);
                 $orderItem->increment('quantity_received', $item['quantity_received']);
 
-                // Actualizar stock
+                // Actualizar stock y costos del producto
                 if ($item['product_id']) {
                     $stock = Stock::firstOrCreate(
                         ['product_id' => $item['product_id'], 'warehouse_id' => $item['warehouse_id']],
@@ -115,26 +119,44 @@ class ReceiptForm extends Component
                     $quantityBefore = $stock->quantity;
                     $stock->increment('quantity', $item['quantity_received']);
 
+                    // Actualizar precio de obtención y gastos de operación en el producto
+                    $product = Product::find($item['product_id']);
+                    if ($product) {
+                        $newPurchasePrice = (float) $item['purchase_price'];
+                        $newOpCostPct     = (float) ($item['operational_cost'] ?? 0); // porcentaje
+                        $profitMargin     = (float) $product->profit_margin;
+
+                        // Los gastos de operación se reemplazan (no acumulan): son el % actual de esta recepción
+                        // sale_price = costo * (1 + margen% / 100)
+                        $newSalePrice = round($newPurchasePrice * (1 + $profitMargin / 100), 2);
+
+                        $product->update([
+                            'purchase_price'    => $newPurchasePrice,
+                            'operational_costs' => $newOpCostPct,
+                            'sale_price'        => $newSalePrice,
+                        ]);
+                    }
+
                     // Registrar movimiento de stock
                     $movement = StockMovement::create([
-                        'company_id' => auth()->user()->company_id,
+                        'company_id'  => auth()->user()->company_id,
                         'warehouse_id' => $item['warehouse_id'],
-                        'user_id' => auth()->id(),
-                        'type' => 'entry',
-                        'folio' => $folio,
-                        'status' => 'confirmed',
-                        'reference' => $this->order->folio,
-                        'notes' => 'Recepción de orden de compra',
-                        'moved_at' => now(),
+                        'user_id'     => auth()->id(),
+                        'type'        => 'entry',
+                        'folio'       => $folio,
+                        'status'      => 'confirmed',
+                        'reference'   => $this->order->folio,
+                        'notes'       => 'Recepción de orden de compra',
+                        'moved_at'    => now(),
                     ]);
 
                     $movement->items()->create([
-                        'product_id' => $item['product_id'],
-                        'warehouse_id' => $item['warehouse_id'],
-                        'quantity' => $item['quantity_received'],
-                        'unit_price' => 0,
-                        'quantity_before' => $quantityBefore,
-                        'quantity_after' => $stock->fresh()->quantity,
+                        'product_id'        => $item['product_id'],
+                        'warehouse_id'      => $item['warehouse_id'],
+                        'quantity'          => $item['quantity_received'],
+                        'unit_price'        => $item['purchase_price'] ?? 0,
+                        'quantity_before'   => $quantityBefore,
+                        'quantity_after'    => $stock->fresh()->quantity,
                     ]);
                 }
             }
@@ -158,11 +180,7 @@ class ReceiptForm extends Component
     public function render()
     {
         return view('livewire.purchases.receipt-form', [
-            'warehouses' => Warehouse::where('company_id', auth()->user()->company_id)
-                ->where('is_active', true)
-                ->with('branch')
-                ->orderBy('name')
-                ->get(),
+            'warehouses' => Warehouse::where('is_active', true)->with('branch')->orderBy('name')->get(),
         ]);
     }
 }

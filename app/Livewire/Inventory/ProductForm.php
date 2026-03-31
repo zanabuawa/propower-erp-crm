@@ -5,6 +5,7 @@ namespace App\Livewire\Inventory;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\Supplier;
 use App\Models\UnitOfMeasure;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,36 +17,91 @@ class ProductForm extends Component
     use WithFileUploads;
 
     public ?Product $product = null;
-    public string $name = '';
-    public ?int $category_id = null;
-    public ?int $unit_of_measure_id = null;
-    public string $sku = '';
-    public string $barcode = '';
-    public string $description = '';
-    public string $purchase_price = '0';
-    public string $sale_price = '0';
-    public string $min_stock = '0';
-    public string $max_stock = '0';
-    public bool $is_active = true;
+    public string  $name               = '';
+    public ?int    $category_id        = null;
+    public ?int    $unit_of_measure_id = null;
+    public ?int    $supplier_id        = null;
+    public string  $sku                = '';
+    public string  $barcode            = '';
+    public string  $description        = '';
+    public string  $purchase_price     = '0';
+    public string  $profit_margin      = '0';
+    public string  $operational_costs  = '0';
+    public string  $min_stock          = '0';
+    public string  $max_stock          = '0';
+    public bool    $is_active          = true;
     public $images = [];
-    public array $existingImages = [];
+    public array   $existingImages     = [];
+
+    // Computed display helpers (recalculated in real time via blade)
+    public function getNormalSalePriceProperty(): float
+    {
+        $p = (float) $this->purchase_price;
+        $m = (float) $this->profit_margin;
+        return round($p * (1 + $m / 100), 2);
+    }
+
+    public function getMinSalePriceProperty(): float
+    {
+        $p  = (float) $this->purchase_price;
+        $op = (float) $this->operational_costs;
+        return round($p * (1 + $op / 100), 2);
+    }
+
+    public function getMaxDiscountProperty(): float
+    {
+        return max(0, round($this->normalSalePrice - $this->minSalePrice, 2));
+    }
 
     public function mount($product = null): void
     {
+        $companyId = auth()->user()->company_id;
+
         if ($product) {
             $this->product            = $product instanceof Product ? $product : Product::findOrFail($product);
             $this->name               = $this->product->name;
             $this->category_id        = $this->product->category_id;
             $this->unit_of_measure_id = $this->product->unit_of_measure_id;
+            $this->supplier_id        = $this->product->supplier_id;
             $this->sku                = $this->product->sku ?? '';
             $this->barcode            = $this->product->barcode ?? '';
             $this->description        = $this->product->description ?? '';
             $this->purchase_price     = $this->product->purchase_price;
-            $this->sale_price         = $this->product->sale_price;
+            $this->profit_margin      = $this->product->profit_margin ?? '0';
+            $this->operational_costs  = $this->product->operational_costs ?? '0';
             $this->min_stock          = $this->product->min_stock;
             $this->max_stock          = $this->product->max_stock;
             $this->is_active          = $this->product->is_active;
             $this->existingImages     = $this->product->images->toArray();
+        } else {
+            // Auto-generate barcode for new product
+            if ($companyId) {
+                $this->barcode = Product::generateBarcode($companyId);
+            }
+        }
+    }
+
+    public function updatedName(): void
+    {
+        $companyId = auth()->user()->company_id;
+        if (! $this->product?->exists && $companyId && strlen($this->name) >= 3) {
+            $this->sku = Product::generateSku($this->name, $companyId);
+        }
+    }
+
+    public function regenerateSku(): void
+    {
+        $companyId = auth()->user()->company_id;
+        if ($companyId && strlen($this->name) >= 1) {
+            $this->sku = Product::generateSku($this->name, $companyId);
+        }
+    }
+
+    public function regenerateBarcode(): void
+    {
+        $companyId = auth()->user()->company_id;
+        if ($companyId) {
+            $this->barcode = Product::generateBarcode($companyId);
         }
     }
 
@@ -71,11 +127,13 @@ class ProductForm extends Component
             'name'               => 'required|string|max:255',
             'category_id'        => 'nullable|exists:categories,id',
             'unit_of_measure_id' => 'nullable|exists:unit_of_measures,id',
+            'supplier_id'        => 'nullable|exists:suppliers,id',
             'sku'                => 'nullable|string|max:100',
             'barcode'            => 'nullable|string|max:100',
             'description'        => 'nullable|string',
             'purchase_price'     => 'required|numeric|min:0',
-            'sale_price'         => 'required|numeric|min:0',
+            'profit_margin'      => 'required|numeric|min:0|max:999',
+            'operational_costs'  => 'required|numeric|min:0|max:999',
             'min_stock'          => 'required|numeric|min:0',
             'max_stock'          => 'required|numeric|min:0',
             'is_active'          => 'boolean',
@@ -86,16 +144,24 @@ class ProductForm extends Component
     {
         $this->validate();
 
+        // sale_price = purchase_price * (1 + profit_margin% / 100)
+        $purchasePrice = (float) $this->purchase_price;
+        $profitMargin  = (float) $this->profit_margin;
+        $salePrice     = round($purchasePrice * (1 + $profitMargin / 100), 2);
+
         $data = [
             'company_id'         => auth()->user()->company_id,
             'name'               => $this->name,
             'category_id'        => $this->category_id,
             'unit_of_measure_id' => $this->unit_of_measure_id,
+            'supplier_id'        => $this->supplier_id,
             'sku'                => $this->sku ?: null,
             'barcode'            => $this->barcode ?: null,
             'description'        => $this->description,
             'purchase_price'     => $this->purchase_price,
-            'sale_price'         => $this->sale_price,
+            'profit_margin'      => $this->profit_margin,
+            'operational_costs'  => $this->operational_costs,
+            'sale_price'         => $salePrice,
             'min_stock'          => $this->min_stock,
             'max_stock'          => $this->max_stock,
             'is_active'          => $this->is_active,
@@ -132,6 +198,8 @@ class ProductForm extends Component
         return view('livewire.inventory.product-form', [
             'categories' => Category::where('is_active', true)->orderBy('name')->get(),
             'units'      => UnitOfMeasure::where('is_active', true)->orderBy('name')->get(),
+            'suppliers'  => Supplier::where('company_id', auth()->user()->company_id)
+                ->where('status', 'active')->orderBy('name')->get(),
         ]);
     }
 }

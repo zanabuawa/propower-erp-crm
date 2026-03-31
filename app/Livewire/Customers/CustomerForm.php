@@ -2,10 +2,11 @@
 
 namespace App\Livewire\Customers;
 
+use App\Livewire\Concerns\HasLocationFields;
 use App\Models\Customer;
+use App\Models\CustomerContact;
 use App\Models\CustomerPhone;
 use App\Models\CustomerEmail;
-use App\Models\User;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
@@ -13,14 +14,12 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.app')]
 class CustomerForm extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, HasLocationFields;
 
     public ?Customer $customer = null;
-    public string $type = 'company';
     public string $name = '';
     public string $rfc = '';
     public string $tax_regime = '';
-    public string $birthdate = '';
     public string $anniversary_date = '';
     public $image = null;
     public string $address = '';
@@ -36,32 +35,49 @@ class CustomerForm extends Component
 
     public array $phones = [];
     public array $emails = [];
+    public array $contacts = [];
 
     public function mount($customer = null): void
     {
         if ($customer) {
-            $this->customer       = $customer instanceof Customer ? $customer : Customer::with('phones', 'emails')->findOrFail($customer);
-            $this->type           = $this->customer->type;
-            $this->name           = $this->customer->name;
-            $this->rfc            = $this->customer->rfc ?? '';
-            $this->tax_regime     = $this->customer->tax_regime ?? '';
-            $this->birthdate      = $this->customer->birthdate?->format('Y-m-d') ?? '';
+            $this->customer = $customer instanceof Customer
+                ? $customer
+                : Customer::with('phones', 'emails', 'contacts')->findOrFail($customer);
+
+            $this->name             = $this->customer->name;
+            $this->rfc              = $this->customer->rfc ?? '';
+            $this->tax_regime       = $this->customer->tax_regime ?? '';
             $this->anniversary_date = $this->customer->anniversary_date?->format('Y-m-d') ?? '';
-            $this->address        = $this->customer->address ?? '';
-            $this->city           = $this->customer->city ?? '';
-            $this->state          = $this->customer->state ?? '';
-            $this->country        = $this->customer->country ?? 'México';
-            $this->zip_code       = $this->customer->zip_code ?? '';
-            $this->website        = $this->customer->website ?? '';
-            $this->credit_limit   = $this->customer->credit_limit;
-            $this->payment_terms  = $this->customer->payment_terms;
-            $this->status         = $this->customer->status;
-            $this->description    = $this->customer->description ?? '';
-            $this->phones         = $this->customer->phones->map(fn($p) => [
+            $this->address          = $this->customer->address ?? '';
+            $this->city             = $this->customer->city ?? '';
+            $this->state            = $this->customer->state ?? '';
+            $this->country          = $this->customer->country ?? 'México';
+            $this->zip_code         = $this->customer->zip_code ?? '';
+            $this->website          = $this->customer->website ?? '';
+            $this->credit_limit     = $this->customer->credit_limit;
+            $this->payment_terms    = $this->customer->payment_terms;
+            $this->status           = $this->customer->status;
+            $this->description      = $this->customer->description ?? '';
+
+            $this->phones = $this->customer->phones->map(fn($p) => [
                 'id' => $p->id, 'number' => $p->number, 'type' => $p->type, 'is_primary' => $p->is_primary,
             ])->toArray();
-            $this->emails         = $this->customer->emails->map(fn($e) => [
+
+            $this->emails = $this->customer->emails->map(fn($e) => [
                 'id' => $e->id, 'email' => $e->email, 'type' => $e->type, 'is_primary' => $e->is_primary,
+            ])->toArray();
+
+            $this->contacts = $this->customer->contacts->map(fn($c) => [
+                'id'               => $c->id,
+                'first_name'       => $c->first_name,
+                'alias'            => $c->alias ?? '',
+                'paternal_surname' => $c->paternal_surname ?? '',
+                'maternal_surname' => $c->maternal_surname ?? '',
+                'position'         => $c->position ?? '',
+                'phone'            => $c->phone ?? '',
+                'email'            => $c->email ?? '',
+                'is_primary'       => $c->is_primary,
+                'description'      => $c->description ?? '',
             ])->toArray();
         }
 
@@ -71,6 +87,8 @@ class CustomerForm extends Component
         if (empty($this->emails)) {
             $this->emails = [['id' => null, 'email' => '', 'type' => 'work', 'is_primary' => true]];
         }
+
+        $this->initializeLocation();
     }
 
     public function addPhone(): void
@@ -95,14 +113,34 @@ class CustomerForm extends Component
         $this->emails = array_values($this->emails);
     }
 
+    public function addContact(): void
+    {
+        $this->contacts[] = [
+            'id'               => null,
+            'first_name'       => '',
+            'alias'            => '',
+            'paternal_surname' => '',
+            'maternal_surname' => '',
+            'position'         => '',
+            'phone'            => '',
+            'email'            => '',
+            'is_primary'       => empty($this->contacts),
+            'description'      => '',
+        ];
+    }
+
+    public function removeContact(int $index): void
+    {
+        array_splice($this->contacts, $index, 1);
+        $this->contacts = array_values($this->contacts);
+    }
+
     public function rules(): array
     {
         return [
-            'type'             => 'required|in:person,company',
             'name'             => 'required|string|max:255',
             'rfc'              => 'nullable|string|max:13',
             'tax_regime'       => 'nullable|string|max:255',
-            'birthdate'        => 'nullable|date',
             'anniversary_date' => 'nullable|date',
             'address'          => 'nullable|string|max:255',
             'city'             => 'nullable|string|max:100',
@@ -115,6 +153,12 @@ class CustomerForm extends Component
             'status'           => 'required|in:active,inactive,prospect',
             'phones.*.number'  => 'nullable|string|max:20',
             'emails.*.email'   => 'nullable|email|max:255',
+            'contacts.*.first_name'       => 'required_with:contacts.*.paternal_surname|nullable|string|max:255',
+            'contacts.*.alias'            => 'nullable|string|max:100',
+            'contacts.*.paternal_surname' => 'nullable|string|max:100',
+            'contacts.*.maternal_surname' => 'nullable|string|max:100',
+            'contacts.*.phone'            => 'nullable|string|max:20',
+            'contacts.*.email'            => 'nullable|email|max:255',
         ];
     }
 
@@ -124,11 +168,9 @@ class CustomerForm extends Component
 
         $data = [
             'company_id'       => auth()->user()->company_id,
-            'type'             => $this->type,
             'name'             => $this->name,
             'rfc'              => $this->rfc ?: null,
             'tax_regime'       => $this->tax_regime ?: null,
-            'birthdate'        => $this->birthdate ?: null,
             'anniversary_date' => $this->anniversary_date ?: null,
             'address'          => $this->address,
             'city'             => $this->city,
@@ -167,14 +209,43 @@ class CustomerForm extends Component
             }
         }
 
+        // Sync contacts: update existing, create new, delete removed
+        $keptIds = [];
+        foreach ($this->contacts as $contactData) {
+            if (empty($contactData['first_name'])) continue;
+
+            $payload = [
+                'first_name'       => $contactData['first_name'],
+                'alias'            => $contactData['alias'] ?: null,
+                'paternal_surname' => $contactData['paternal_surname'] ?: null,
+                'maternal_surname' => $contactData['maternal_surname'] ?: null,
+                'position'         => $contactData['position'] ?: null,
+                'phone'            => $contactData['phone'] ?: null,
+                'email'            => $contactData['email'] ?: null,
+                'is_primary'       => $contactData['is_primary'],
+                'description'      => $contactData['description'] ?: null,
+            ];
+
+            if (!empty($contactData['id'])) {
+                $contact = CustomerContact::find($contactData['id']);
+                if ($contact && $contact->customer_id === $customer->id) {
+                    $contact->update($payload);
+                    $keptIds[] = $contact->id;
+                }
+            } else {
+                $new = $customer->contacts()->create($payload);
+                $keptIds[] = $new->id;
+            }
+        }
+
+        $customer->contacts()->whereNotIn('id', $keptIds)->delete();
+
         session()->flash('success', $this->customer?->exists ? 'Cliente actualizado.' : 'Cliente creado.');
         $this->redirect(route('contacts.index'));
     }
 
     public function render()
     {
-        return view('livewire.customers.customer-form', [
-
-        ]);
+        return view('livewire.customers.customer-form');
     }
 }

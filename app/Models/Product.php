@@ -12,17 +12,20 @@ class Product extends Model
     use BelongsToCompany;
 
     protected $fillable = [
-        'company_id', 'category_id', 'unit_of_measure_id',
+        'company_id', 'category_id', 'unit_of_measure_id', 'supplier_id',
         'name', 'sku', 'barcode', 'description',
-        'purchase_price', 'sale_price', 'min_stock', 'max_stock', 'is_active',
+        'purchase_price', 'profit_margin', 'operational_costs', 'sale_price',
+        'min_stock', 'max_stock', 'is_active',
     ];
 
     protected $casts = [
-        'is_active'      => 'boolean',
-        'purchase_price' => 'decimal:2',
-        'sale_price'     => 'decimal:2',
-        'min_stock'      => 'decimal:2',
-        'max_stock'      => 'decimal:2',
+        'is_active'          => 'boolean',
+        'purchase_price'     => 'decimal:2',
+        'profit_margin'      => 'decimal:4',
+        'operational_costs'  => 'decimal:4',
+        'sale_price'         => 'decimal:2',
+        'min_stock'          => 'decimal:2',
+        'max_stock'          => 'decimal:2',
     ];
 
     public function company(): BelongsTo
@@ -38,6 +41,11 @@ class Product extends Model
     public function unitOfMeasure(): BelongsTo
     {
         return $this->belongsTo(UnitOfMeasure::class);
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
     }
 
     public function images(): HasMany
@@ -63,5 +71,89 @@ class Product extends Model
     public function getTotalStockAttribute(): float
     {
         return $this->stocks->sum('quantity');
+    }
+
+    /**
+     * Precio normal de venta = precio_obtencion * (1 + margen% / 100)
+     */
+    public function getNormalSalePriceAttribute(): float
+    {
+        $purchase = (float) $this->purchase_price;
+        $margin   = (float) $this->profit_margin;
+        return round($purchase * (1 + $margin / 100), 2);
+    }
+
+    /**
+     * Precio minimo de venta = precio_obtencion * (1 + gastos_operacion% / 100)
+     * El precio con descuento nunca puede bajar de aqui.
+     */
+    public function getMinSalePriceAttribute(): float
+    {
+        $purchase = (float) $this->purchase_price;
+        $opCosts  = (float) $this->operational_costs;
+        return round($purchase * (1 + $opCosts / 100), 2);
+    }
+
+    /**
+     * Descuento maximo que se puede aplicar sin perder capital.
+     * max_discount = precio_normal - precio_minimo
+     */
+    public function getMaxDiscountAttribute(): float
+    {
+        return max(0, round($this->normal_sale_price - $this->min_sale_price, 2));
+    }
+
+    /**
+     * Genera y asigna el sale_price calculado automaticamente.
+     */
+    public function computeSalePrice(): void
+    {
+        $this->sale_price = $this->normal_sale_price;
+    }
+
+    /**
+     * Genera un SKU automatico basado en el nombre y un secuencial.
+     */
+    public static function generateSku(string $name, int $companyId): string
+    {
+        $prefix = strtoupper(
+            preg_replace('/[^A-Z0-9]/', '', strtoupper(substr($name, 0, 3)))
+        );
+        $prefix = str_pad($prefix, 3, 'X');
+
+        $last = static::where('company_id', $companyId)
+            ->where('sku', 'like', $prefix . '-%')
+            ->orderByDesc('id')
+            ->value('sku');
+
+        $seq = 1;
+        if ($last && preg_match('/-(\d+)$/', $last, $m)) {
+            $seq = (int) $m[1] + 1;
+        }
+
+        return $prefix . '-' . str_pad($seq, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Genera un codigo de barras EAN-13 unico.
+     */
+    public static function generateBarcode(int $companyId): string
+    {
+        do {
+            // Prefijo 200 (uso interno) + company_id (3 dig) + random (6 dig)
+            $base = '200'
+                . str_pad($companyId % 1000, 3, '0', STR_PAD_LEFT)
+                . str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
+            // Calculo del digito verificador EAN-13
+            $sum = 0;
+            for ($i = 0; $i < 12; $i++) {
+                $sum += (int) $base[$i] * ($i % 2 === 0 ? 1 : 3);
+            }
+            $check = (10 - ($sum % 10)) % 10;
+            $barcode = $base . $check;
+        } while (static::where('company_id', $companyId)->where('barcode', $barcode)->exists());
+
+        return $barcode;
     }
 }

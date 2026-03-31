@@ -149,11 +149,7 @@ class DeliveryForm extends Component
     public function render()
     {
         return view('livewire.sales.delivery-form', [
-            'warehouses' => Warehouse::where('company_id', auth()->user()->company_id)
-                ->where('is_active', true)
-                ->with('branch')
-                ->orderBy('name')
-                ->get(),
+            'warehouses' => Warehouse::where('is_active', true)->with('branch')->orderBy('name')->get(),
         ]);
     }
 }

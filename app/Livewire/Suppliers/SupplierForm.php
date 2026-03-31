@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Suppliers;
 
+use App\Livewire\Concerns\HasLocationFields;
 use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -10,7 +11,7 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.app')]
 class SupplierForm extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, HasLocationFields;
 
     public ?Supplier $supplier = null;
     public string $type = 'company';
@@ -87,6 +88,8 @@ class SupplierForm extends Component
         if (empty($this->bankAccounts)) {
             $this->bankAccounts = [['id' => null, 'bank_name' => '', 'account_number' => '', 'clabe' => '', 'beneficiary' => '', 'is_primary' => true]];
         }
+
+        $this->initializeLocation();
     }
 
     public function addPhone(): void

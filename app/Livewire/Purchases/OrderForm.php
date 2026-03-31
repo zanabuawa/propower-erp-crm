@@ -204,10 +204,7 @@ class OrderForm extends Component
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
-            'branches' => Branch::where('company_id', auth()->user()->company_id)
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(),
+            'branches' => Branch::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 }

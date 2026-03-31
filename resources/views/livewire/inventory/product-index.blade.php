@@ -4,7 +4,15 @@
             <h1 class="text-xl font-medium text-gray-900">Productos</h1>
             <p class="text-sm text-gray-500 mt-0.5">Catálogo de productos e inventario</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('inventory.general') }}"
+                class="text-sm border border-gray-200 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
+                Existencias
+            </a>
+            <a href="{{ route('inventory.warehouse-stock') }}"
+                class="text-sm border border-gray-200 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
+                Por almacén
+            </a>
             <a href="{{ route('inventory.categories.index') }}"
                 class="text-sm border border-gray-200 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
                 Categorías
