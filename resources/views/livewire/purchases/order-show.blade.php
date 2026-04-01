@@ -1,23 +1,25 @@
 <div>
-    <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('purchases.orders.index') }}" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <div class="flex-1">
-            <div class="flex items-center gap-3">
-                <h1 class="text-xl font-medium text-gray-900">{{ $order->folio }}</h1>
-                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                    {{ \App\Models\PurchaseOrder::STATUS_COLORS[$order->status] ?? '' }}">
-                    {{ \App\Models\PurchaseOrder::STATUS[$order->status] ?? $order->status }}
-                </span>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 flex-1">
+            <a wire:navigate href="{{ route('purchases.orders.index') }}" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h1 class="text-xl font-medium text-gray-900">{{ $order->folio }}</h1>
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+                        {{ \App\Models\PurchaseOrder::STATUS_COLORS[$order->status] ?? '' }}">
+                        {{ \App\Models\PurchaseOrder::STATUS[$order->status] ?? $order->status }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500">
+                    Creada por {{ $order->createdBy->name }} el {{ $order->created_at->format('d/m/Y') }}
+                </p>
             </div>
-            <p class="text-sm text-gray-500">
-                Creada por {{ $order->createdBy->name }} el {{ $order->created_at->format('d/m/Y') }}
-            </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
             <a href="{{ route('purchases.orders.print', $order) }}" target="_blank"
                 class="px-3 py-2 text-sm border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg transition flex items-center gap-1.5">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -42,7 +44,7 @@
                 </button>
             @endif
             @if(in_array($order->status, ['sent', 'waiting_delivery', 'partial_received']))
-                <a href="{{ route('purchases.receipts.create', $order) }}"
+                <a wire:navigate href="{{ route('purchases.receipts.create', $order) }}"
                     class="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition">
                     Registrar recepción
                 </a>
@@ -56,7 +58,7 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
         {{-- Columna izquierda --}}
         <div class="space-y-4">
@@ -90,7 +92,7 @@
                     @if($order->requisition)
                         <div class="flex justify-between">
                             <span class="text-gray-500">Requisición</span>
-                            <a href="{{ route('purchases.requisitions.show', $order->requisition) }}"
+                            <a wire:navigate href="{{ route('purchases.requisitions.show', $order->requisition) }}"
                                 class="text-indigo-600 hover:text-indigo-800 font-medium text-xs">
                                 {{ $order->requisition->folio }}
                             </a>
@@ -136,7 +138,7 @@
         </div>
 
         {{-- Columna derecha --}}
-        <div class="lg:col-span-2 space-y-4">
+        <div class="md:col-span-1 lg:col-span-2 space-y-4">
 
             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
                 <button wire:click="$set('activeTab', 'items')"
@@ -151,36 +153,39 @@
 
             @if($activeTab === 'items')
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100">
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Producto</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Cant.</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Recibido</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Precio</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">IVA</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @foreach($order->items as $item)
-                                <tr>
-                                    <td class="px-5 py-3">
-                                        <p class="font-medium text-gray-900">{{ $item->description }}</p>
-                                    </td>
-                                    <td class="px-5 py-3 text-gray-700">{{ $item->quantity }}</td>
-                                    <td class="px-5 py-3">
-                                        <span class="{{ $item->quantity_received >= $item->quantity ? 'text-green-600' : 'text-amber-600' }} font-medium">
-                                            {{ $item->quantity_received }}
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-3 text-gray-700">${{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="px-5 py-3 text-gray-600">{{ $item->tax_rate }}%</td>
-                                    <td class="px-5 py-3 font-medium text-gray-900">${{ number_format($item->subtotal, 2) }}</td>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm min-w-[500px]">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100">
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Producto</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Cant.</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Recibido</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 hidden sm:table-cell">Precio</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 hidden sm:table-cell">IVA</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Subtotal</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($order->items as $item)
+                                    <tr>
+                                        <td class="px-5 py-3">
+                                            <p class="font-medium text-gray-900">{{ $item->description }}</p>
+                                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">${{ number_format($item->unit_price, 2) }} · IVA {{ $item->tax_rate }}%</p>
+                                        </td>
+                                        <td class="px-5 py-3 text-gray-700">{{ $item->quantity }}</td>
+                                        <td class="px-5 py-3">
+                                            <span class="{{ $item->quantity_received >= $item->quantity ? 'text-green-600' : 'text-amber-600' }} font-medium">
+                                                {{ $item->quantity_received }}
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-3 text-gray-700 hidden sm:table-cell">${{ number_format($item->unit_price, 2) }}</td>
+                                        <td class="px-5 py-3 text-gray-600 hidden sm:table-cell">{{ $item->tax_rate }}%</td>
+                                        <td class="px-5 py-3 font-medium text-gray-900">${{ number_format($item->subtotal, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             @endif
 
@@ -188,37 +193,61 @@
                 <div class="space-y-3">
                     @forelse($order->receipts as $receipt)
                         <div class="bg-white rounded-xl border border-gray-200 p-5">
-                            <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-start justify-between mb-3 gap-3">
                                 <div>
-                                    <p class="text-sm font-medium text-gray-900">{{ $receipt->folio }}</p>
-                                    <p class="text-xs text-gray-500">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <p class="text-sm font-medium text-gray-900">{{ $receipt->folio }}</p>
+                                        <span class="text-xs px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 font-medium">
+                                            {{ \App\Models\PurchaseReceipt::RECEPTION_TYPES[$receipt->reception_type] ?? $receipt->reception_type }}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-0.5">
                                         Recibido por {{ $receipt->receivedBy->name }}
                                         el {{ $receipt->received_at->format('d/m/Y H:i') }}
                                     </p>
+                                    @if($receipt->notes)
+                                        <p class="text-xs text-gray-500 mt-1 italic">{{ $receipt->notes }}</p>
+                                    @endif
                                 </div>
+                                <a href="{{ route('purchases.receipts.print', $receipt) }}" target="_blank"
+                                    class="flex-shrink-0 px-3 py-1.5 text-xs border border-gray-200 text-gray-500 hover:bg-gray-50 rounded-lg transition flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                    </svg>
+                                    Imprimir
+                                </a>
                             </div>
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="text-gray-500 border-b border-gray-100">
-                                        <th class="text-left py-1.5">Producto</th>
-                                        <th class="text-left py-1.5">Almacén</th>
-                                        <th class="text-left py-1.5">Cantidad</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    @foreach($receipt->items as $item)
-                                        <tr>
-                                            <td class="py-1.5 text-gray-700">{{ $item->product?->name ?? '—' }}</td>
-                                            <td class="py-1.5 text-gray-600">{{ $item->warehouse?->name ?? '—' }}</td>
-                                            <td class="py-1.5 font-medium text-gray-900">{{ $item->quantity_received }}</td>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs min-w-[380px]">
+                                    <thead>
+                                        <tr class="text-gray-500 border-b border-gray-100">
+                                            <th class="text-left py-1.5">Producto</th>
+                                            <th class="text-left py-1.5">Almacén</th>
+                                            <th class="text-right py-1.5">Cantidad</th>
+                                            <th class="text-left py-1.5 pl-4">Notas</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        @foreach($receipt->items as $item)
+                                            <tr>
+                                                <td class="py-1.5 text-gray-700">{{ $item->product?->name ?? '—' }}</td>
+                                                <td class="py-1.5 text-gray-600">{{ $item->warehouse?->name ?? '—' }}</td>
+                                                <td class="py-1.5 font-medium text-gray-900 text-right">{{ $item->quantity_received }}</td>
+                                                <td class="py-1.5 text-gray-500 pl-4 italic">{{ $item->notes ?: '—' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if($receipt->operating_expenses > 0)
+                                <p class="text-xs text-amber-700 mt-3 pt-3 border-t border-gray-100">
+                                    Gastos de operación: <strong>${{ number_format($receipt->operating_expenses, 2) }}</strong>
+                                </p>
+                            @endif
                         </div>
                     @empty
                         <div class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400 text-sm">
-                            No se han registrado recepciones.
+                            No se han registrado recepciones para esta orden.
                         </div>
                     @endforelse
                 </div>

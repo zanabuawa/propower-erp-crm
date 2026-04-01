@@ -1,12 +1,12 @@
 <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
             <h1 class="text-xl font-medium text-gray-900">Órdenes de compra</h1>
             <p class="text-sm text-gray-500 mt-0.5">Gestiona las órdenes de compra</p>
         </div>
         <div class="flex items-center gap-2">
-            <a href="{{ route('purchases.orders.create') }}"
-                class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-200 transition">
+            <a wire:navigate href="{{ route('purchases.orders.create') }}"
+                class="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg border border-gray-200 transition">
                 + Nueva orden
             </a>
         </div>
@@ -40,10 +40,10 @@
 
     {{-- Tab: Todas las órdenes --}}
     @if($tab === 'orders')
-        <div class="flex flex-wrap gap-3 mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             <input wire:model.live.debounce.300ms="search" type="text"
                 placeholder="Buscar por folio..."
-                class="flex-1 min-w-[200px] border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                class="col-span-1 sm:col-span-2 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
             <select wire:model.live="filterStatus"
                 class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 <option value="">Todos los estados</option>
@@ -54,50 +54,55 @@
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-gray-100 bg-gray-50">
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Folio</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Proveedor</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Sucursal</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Productos</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Total</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Esperado</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Estado</th>
-                        <th class="px-5 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($orders as $order)
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-5 py-3 font-mono text-xs font-medium text-gray-900">{{ $order->folio }}</td>
-                            <td class="px-5 py-3 text-gray-700">{{ $order->supplier?->name ?? '—' }}</td>
-                            <td class="px-5 py-3 text-gray-600">{{ $order->branch?->name ?? '—' }}</td>
-                            <td class="px-5 py-3 text-gray-600">{{ $order->items_count }}</td>
-                            <td class="px-5 py-3 font-medium text-gray-900">
-                                {{ $order->currency }} ${{ number_format($order->total, 2) }}
-                            </td>
-                            <td class="px-5 py-3 text-gray-600">{{ $order->expected_at?->format('d/m/Y') ?? '—' }}</td>
-                            <td class="px-5 py-3">
-                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                                    {{ \App\Models\PurchaseOrder::STATUS_COLORS[$order->status] ?? '' }}">
-                                    {{ \App\Models\PurchaseOrder::STATUS[$order->status] ?? $order->status }}
-                                </span>
-                            </td>
-                            <td class="px-5 py-3 text-right">
-                                <a href="{{ route('purchases.orders.show', $order) }}"
-                                    class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Ver detalle</a>
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm min-w-[700px]">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Folio</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Proveedor</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Sucursal</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Productos</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Total</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden sm:table-cell">Esperado</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Estado</th>
+                            <th class="px-5 py-3"></th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="px-5 py-10 text-center text-gray-400 text-sm">
-                                No se encontraron órdenes de compra.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($orders as $order)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-5 py-3">
+                                    <span class="font-mono text-xs font-medium text-gray-900">{{ $order->folio }}</span>
+                                    <p class="text-xs text-gray-400 sm:hidden">{{ $order->supplier?->name ?? '—' }}</p>
+                                </td>
+                                <td class="px-5 py-3 text-gray-700">{{ $order->supplier?->name ?? '—' }}</td>
+                                <td class="px-5 py-3 text-gray-600 hidden md:table-cell">{{ $order->branch?->name ?? '—' }}</td>
+                                <td class="px-5 py-3 text-gray-600 hidden md:table-cell">{{ $order->items_count }}</td>
+                                <td class="px-5 py-3 font-medium text-gray-900">
+                                    {{ $order->currency }} ${{ number_format($order->total, 2) }}
+                                </td>
+                                <td class="px-5 py-3 text-gray-600 hidden sm:table-cell">{{ $order->expected_at?->format('d/m/Y') ?? '—' }}</td>
+                                <td class="px-5 py-3">
+                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+                                        {{ \App\Models\PurchaseOrder::STATUS_COLORS[$order->status] ?? '' }}">
+                                        {{ \App\Models\PurchaseOrder::STATUS[$order->status] ?? $order->status }}
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3 text-right">
+                                    <a wire:navigate href="{{ route('purchases.orders.show', $order) }}"
+                                        class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Ver detalle</a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-5 py-10 text-center text-gray-400 text-sm">
+                                    No se encontraron órdenes de compra.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
             @if($orders->hasPages())
                 <div class="px-5 py-3 border-t border-gray-100">{{ $orders->links() }}</div>
@@ -117,77 +122,80 @@
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-gray-100 bg-gray-50">
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Requisición</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Solicitante</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Sucursal</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Partidas</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Total cotizado</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Estado</th>
-                        <th class="px-5 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($requisitions as $req)
-                        @php
-                            $q = $req->finalQuotation;
-                            $hasOrder = $req->order !== null;
-                        @endphp
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-5 py-3">
-                                <div class="font-mono text-xs font-medium text-gray-900">{{ $req->folio }}</div>
-                                @if($req->justification)
-                                    <div class="text-xs text-gray-400 truncate max-w-[200px]" title="{{ $req->justification }}">
-                                        {{ $req->justification }}
-                                    </div>
-                                @endif
-                            </td>
-                            <td class="px-5 py-3 text-gray-700">{{ $req->requestedBy?->name ?? '—' }}</td>
-                            <td class="px-5 py-3 text-gray-600">{{ $req->branch?->name ?? '—' }}</td>
-                            <td class="px-5 py-3 text-gray-600">{{ $q?->items->count() ?? '—' }}</td>
-                            <td class="px-5 py-3 font-medium text-gray-900">
-                                @if($q)
-                                    {{ $req->currency }} ${{ number_format($q->total, 2) }}
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td class="px-5 py-3">
-                                @if($hasOrder)
-                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                                        OC generada
-                                    </span>
-                                @else
-                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
-                                        Pendiente OC
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="px-5 py-3 text-right">
-                                @if($hasOrder)
-                                    <a href="{{ route('purchases.orders.show', $req->order) }}"
-                                        class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
-                                        Ver OC
-                                    </a>
-                                @elseif($q)
-                                    <a href="{{ route('purchases.orders.create', ['quotation' => $q->id]) }}"
-                                        class="inline-flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition">
-                                        + Crear OC
-                                    </a>
-                                @endif
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm min-w-[580px]">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Requisición</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden sm:table-cell">Solicitante</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Sucursal</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Partidas</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Total cotizado</th>
+                            <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Estado</th>
+                            <th class="px-5 py-3"></th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm">
-                                No hay requisiciones autorizadas pendientes de orden de compra.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($requisitions as $req)
+                            @php
+                                $q = $req->finalQuotation;
+                                $hasOrder = $req->order !== null;
+                            @endphp
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-5 py-3">
+                                    <div class="font-mono text-xs font-medium text-gray-900">{{ $req->folio }}</div>
+                                    @if($req->justification)
+                                        <div class="text-xs text-gray-400 truncate max-w-[200px]" title="{{ $req->justification }}">
+                                            {{ $req->justification }}
+                                        </div>
+                                    @endif
+                                    <p class="text-xs text-gray-400 sm:hidden">{{ $req->requestedBy?->name ?? '—' }}</p>
+                                </td>
+                                <td class="px-5 py-3 text-gray-700 hidden sm:table-cell">{{ $req->requestedBy?->name ?? '—' }}</td>
+                                <td class="px-5 py-3 text-gray-600 hidden md:table-cell">{{ $req->branch?->name ?? '—' }}</td>
+                                <td class="px-5 py-3 text-gray-600 hidden md:table-cell">{{ $q?->items->count() ?? '—' }}</td>
+                                <td class="px-5 py-3 font-medium text-gray-900">
+                                    @if($q)
+                                        {{ $req->currency }} ${{ number_format($q->total, 2) }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3">
+                                    @if($hasOrder)
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                            OC generada
+                                        </span>
+                                    @else
+                                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                                            Pendiente OC
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3 text-right">
+                                    @if($hasOrder)
+                                        <a wire:navigate href="{{ route('purchases.orders.show', $req->order) }}"
+                                            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                                            Ver OC
+                                        </a>
+                                    @elseif($q)
+                                        <a wire:navigate href="{{ route('purchases.orders.create', ['quotation' => $q->id]) }}"
+                                            class="inline-flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-3 py-1.5 rounded-lg transition">
+                                            + Crear OC
+                                        </a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm">
+                                    No hay requisiciones autorizadas pendientes de orden de compra.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
             @if($requisitions->hasPages())
                 <div class="px-5 py-3 border-t border-gray-100">{{ $requisitions->links() }}</div>

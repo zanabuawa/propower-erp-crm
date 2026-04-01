@@ -12,9 +12,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -51,6 +49,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/categorias/crear', \App\Livewire\Inventory\CategoryForm::class)->name('inventory.categories.create');
         Route::get('/inventario/unidades/crear', \App\Livewire\Inventory\UnitForm::class)->name('inventory.units.create');
         Route::get('/inventario/almacenes/crear', \App\Livewire\Inventory\WarehouseForm::class)->name('inventory.warehouses.create');
+    });
+    Route::middleware('can:adjust inventory')->group(function () {
         Route::get('/inventario/movimientos/crear', \App\Livewire\Inventory\StockMovementForm::class)->name('inventory.movements.create');
     });
     Route::middleware('can:edit inventory')->group(function () {
@@ -82,6 +82,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:create purchases')->group(function () {
         Route::get('/compras/requisiciones/crear', \App\Livewire\Purchases\RequisitionForm::class)->name('purchases.requisitions.create');
         Route::get('/compras/ordenes/crear', \App\Livewire\Purchases\OrderForm::class)->name('purchases.orders.create');
+    });
+    Route::middleware('can:receive goods')->group(function () {
         Route::get('/compras/recepciones/nueva', \App\Livewire\Purchases\GoodsReceiptForm::class)->name('purchases.goods-receipts.create');
         Route::get('/compras/ordenes/{order}/recibir', \App\Livewire\Purchases\ReceiptForm::class)->name('purchases.receipts.create');
     });
@@ -93,6 +95,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/compras/requisiciones/{requisition}', \App\Livewire\Purchases\RequisitionShow::class)->name('purchases.requisitions.show');
         Route::get('/compras/ordenes/{order}', \App\Livewire\Purchases\OrderShow::class)->name('purchases.orders.show');
         Route::get('/compras/ordenes/{order}/imprimir', \App\Http\Controllers\Purchases\OrderPrintController::class)->name('purchases.orders.print');
+        Route::get('/compras/recepciones/{receipt}/imprimir', \App\Http\Controllers\Purchases\ReceiptPrintController::class)->name('purchases.receipts.print');
         Route::get('/compras/requisiciones/{requisition}/imprimir', \App\Http\Controllers\Purchases\RequisitionPrintController::class)->name('purchases.requisitions.print');
     });
 
@@ -102,10 +105,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/ventas/cotizaciones/crear', \App\Livewire\Sales\QuotationForm::class)->name('sales.quotations.create');
         Route::get('/ventas/ordenes/crear', \App\Livewire\Sales\OrderForm::class)->name('sales.orders.create');
         Route::get('/ventas/facturas/crear', \App\Livewire\Sales\InvoiceForm::class)->name('sales.invoices.create');
-        Route::get('/ventas/listas-precios/crear', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.create');
         Route::get('/ventas/ordenes/{order}/remision', \App\Livewire\Sales\DeliveryForm::class)->name('sales.deliveries.create');
     });
-    Route::middleware('can:edit sales')->get('/ventas/listas-precios/{priceList}/editar', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.edit');
+    Route::middleware('can:manage price lists')->group(function () {
+        Route::get('/ventas/listas-precios/crear', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.create');
+    });
+    Route::middleware('can:manage price lists')->get('/ventas/listas-precios/{priceList}/editar', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.edit');
     Route::middleware('can:view sales')->group(function () {
         Route::get('/ventas/cotizaciones', \App\Livewire\Sales\QuotationIndex::class)->name('sales.index');
         Route::get('/ventas/ordenes', \App\Livewire\Sales\OrderIndex::class)->name('sales.orders.index');
@@ -116,9 +121,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/ventas/ordenes/{order}', \App\Livewire\Sales\OrderShow::class)->name('sales.orders.show');
         Route::get('/ventas/ordenes/{order}/imprimir', \App\Http\Controllers\Sales\OrderPrintController::class)->name('sales.orders.print');
         Route::get('/ventas/facturas/{invoice}', \App\Livewire\Sales\InvoiceShow::class)->name('sales.invoices.show');
+        Route::get('/ventas/facturas/{invoice}/descargar/{type}', \App\Http\Controllers\Sales\InvoiceDownloadController::class)->name('sales.invoices.download');
     });
 
-    Route::get('/dashboard', fn() => view('dashboard'))->name('dashboard');
 });
 
 require __DIR__ . '/auth.php';

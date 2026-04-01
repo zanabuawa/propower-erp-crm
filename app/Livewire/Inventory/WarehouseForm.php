@@ -65,7 +65,7 @@ class WarehouseForm extends Component
             session()->flash('success', 'Almacén creado correctamente.');
         }
 
-        $this->redirect(route('inventory.warehouses.index'));
+        $this->redirect(route('inventory.warehouses.index'), navigate: true);
     }
 
     public function render()

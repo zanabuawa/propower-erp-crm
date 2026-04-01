@@ -27,6 +27,8 @@ class ProductForm extends Component
     public ?int    $unit_of_measure_id = null;
     public ?int    $supplier_id        = null;
     public string  $sku                = '';
+    public string  $sat_product_code   = '';
+    public string  $sat_unit_code      = '';
     public string  $barcode            = '';
     public string  $description        = '';
     public string  $brand              = '';
@@ -82,6 +84,8 @@ class ProductForm extends Component
             $this->unit_of_measure_id = $this->product->unit_of_measure_id;
             $this->supplier_id        = $this->product->supplier_id;
             $this->sku                = $this->product->sku ?? '';
+            $this->sat_product_code   = $this->product->sat_product_code ?? '';
+            $this->sat_unit_code      = $this->product->sat_unit_code ?? '';
             $this->barcode            = $this->product->barcode ?? '';
             $this->description        = $this->product->description ?? '';
             $this->brand              = $this->product->brand ?? '';
@@ -245,6 +249,8 @@ class ProductForm extends Component
             'unit_of_measure_id' => 'nullable|exists:unit_of_measures,id',
             'supplier_id'        => 'nullable|exists:suppliers,id',
             'sku'                => 'nullable|string|max:100',
+            'sat_product_code'   => 'nullable|string|max:20',
+            'sat_unit_code'      => 'nullable|string|max:10',
             'barcode'            => 'nullable|string|max:100',
             'description'        => 'nullable|string',
             'brand'              => 'nullable|string|max:100',
@@ -275,6 +281,8 @@ class ProductForm extends Component
             'unit_of_measure_id' => $this->unit_of_measure_id,
             'supplier_id'        => $this->supplier_id,
             'sku'                => $this->sku ?: null,
+            'sat_product_code'   => $this->sat_product_code ?: null,
+            'sat_unit_code'      => $this->sat_unit_code ?: null,
             'barcode'            => $this->type === 'product' ? ($this->barcode ?: null) : null,
             'description'        => $this->description,
             'brand'              => $this->brand ?: null,
@@ -311,7 +319,7 @@ class ProductForm extends Component
             }
         }
 
-        $this->redirect(route('inventory.index'));
+        $this->redirect(route('inventory.index'), navigate: true);
     }
 
     public function render()

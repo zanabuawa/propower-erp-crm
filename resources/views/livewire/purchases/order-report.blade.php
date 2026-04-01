@@ -14,7 +14,7 @@
 
     {{-- Filtros --}}
     <div class="bg-white rounded-xl border border-gray-200 p-4">
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
 
             <div>
                 <label class="block text-[10px] text-gray-400 mb-1 font-medium uppercase tracking-wide">Desde</label>
@@ -76,7 +76,7 @@
 
     {{-- Tarjetas de resumen --}}
     @php $totals = $this->totals; @endphp
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
 
         <div class="bg-white rounded-xl border border-gray-200 px-4 py-3">
             <p class="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Total órdenes</p>
@@ -128,7 +128,7 @@
         </div>
         @else
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm min-w-[700px]">
                 <thead class="bg-gray-50 text-xs text-gray-500">
                     <tr>
                         <th class="px-4 py-2 text-left">Folio</th>

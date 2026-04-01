@@ -285,7 +285,7 @@ class OrderForm extends Component
         });
 
         session()->flash('success', 'Orden de compra creada correctamente.');
-        $this->redirect(route('purchases.orders.index'));
+        $this->redirect(route('purchases.orders.index'), navigate: true);
     }
 
     public function render()

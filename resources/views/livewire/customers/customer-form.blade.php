@@ -1,6 +1,6 @@
 <div class="max-w-3xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('contacts.index') }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('contacts.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -29,8 +29,23 @@
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Régimen fiscal</label>
-                    <input wire:model="tax_regime" type="text"
+                    <select wire:model="tax_regime"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Seleccionar —</option>
+                        @foreach(\App\Models\Customer::TAX_REGIMES as $code => $label)
+                            <option value="{{ $code }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Uso de CFDI</label>
+                    <select wire:model="cfdi_use"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Seleccionar —</option>
+                        @foreach(\App\Models\Customer::CFDI_USES as $code => $label)
+                            <option value="{{ $code }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Fecha de aniversario</label>
@@ -70,7 +85,7 @@
                     class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Agregar</button>
             </div>
             @foreach($phones as $index => $phone)
-                <div class="flex gap-2 items-center">
+                <div class="flex flex-wrap gap-2 items-center">
                     <input wire:model="phones.{{ $index }}.number" type="text" placeholder="Número"
                         class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                     <select wire:model="phones.{{ $index }}.type"
@@ -103,7 +118,7 @@
                     class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Agregar</button>
             </div>
             @foreach($emails as $index => $email)
-                <div class="flex gap-2 items-center">
+                <div class="flex flex-wrap gap-2 items-center">
                     <input wire:model="emails.{{ $index }}.email" type="email" placeholder="correo@ejemplo.com"
                         class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                     <select wire:model="emails.{{ $index }}.type"
@@ -137,7 +152,7 @@
 
             @forelse($contacts as $index => $contact)
                 <div class="border border-gray-100 rounded-lg p-4 space-y-3">
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                         <div class="sm:col-span-2">
                             <label class="block text-xs text-gray-500 mb-1">Nombre(s) *</label>
                             <input wire:model="contacts.{{ $index }}.first_name" type="text"
@@ -174,7 +189,7 @@
                             <input wire:model="contacts.{{ $index }}.email" type="email"
                                 class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                         </div>
-                        <div class="col-span-2 sm:col-span-4">
+                        <div class="col-span-1 sm:col-span-2 lg:col-span-4">
                             <label class="block text-xs text-gray-500 mb-1">Notas / descripción</label>
                             <textarea wire:model="contacts.{{ $index }}.description" rows="2"
                                 class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"></textarea>
@@ -237,8 +252,8 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pb-6">
-            <a href="{{ route('contacts.index') }}"
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+            <a wire:navigate href="{{ route('contacts.index') }}"
                 class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                 Cancelar
             </a>

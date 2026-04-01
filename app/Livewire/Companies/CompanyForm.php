@@ -23,6 +23,8 @@ class CompanyForm extends Component
     public string $city = '';
     public string $state = '';
     public string $country = 'México';
+    public string $fiscal_regime = '';
+    public string $fiscal_postal_code = '';
     public bool $is_active = true;
     public $logo;
     public $icon;
@@ -43,8 +45,10 @@ class CompanyForm extends Component
             $this->address = $this->company->address ?? '';
             $this->city = $this->company->city ?? '';
             $this->state = $this->company->state ?? '';
-            $this->country = $this->company->country ?? 'México';
-            $this->is_active = $this->company->is_active ?? true;
+            $this->country             = $this->company->country ?? 'México';
+            $this->fiscal_regime       = $this->company->fiscal_regime ?? '';
+            $this->fiscal_postal_code  = $this->company->fiscal_postal_code ?? '';
+            $this->is_active           = $this->company->is_active ?? true;
         }
 
         $this->initializeLocation();
@@ -61,8 +65,10 @@ class CompanyForm extends Component
             'address' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:100',
             'state' => 'nullable|string|max:100',
-            'country' => 'required|string|max:100',
-            'is_active' => 'boolean',
+            'country'             => 'required|string|max:100',
+            'fiscal_regime'       => 'nullable|string|max:10',
+            'fiscal_postal_code'  => 'nullable|string|max:5',
+            'is_active'           => 'boolean',
         ];
     }
 
@@ -81,8 +87,10 @@ class CompanyForm extends Component
             'address' => $this->address,
             'city' => $this->city,
             'state' => $this->state,
-            'country' => $this->country,
-            'is_active' => $this->is_active,
+            'country'            => $this->country,
+            'fiscal_regime'      => $this->fiscal_regime ?: null,
+            'fiscal_postal_code' => $this->fiscal_postal_code ?: null,
+            'is_active'          => $this->is_active,
         ];
 
         if ($this->logo && is_object($this->logo)) {
@@ -105,7 +113,7 @@ class CompanyForm extends Component
             session()->flash('success', 'Empresa creada correctamente.');
         }
 
-        $this->redirect(route('companies.index'));
+        $this->redirect(route('companies.index'), navigate: true);
     }
 
     public function render()

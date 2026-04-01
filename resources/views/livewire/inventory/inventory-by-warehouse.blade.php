@@ -1,11 +1,11 @@
 <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
             <h1 class="text-xl font-medium text-gray-900">Inventario por almacén</h1>
             <p class="text-sm text-gray-400 mt-0.5">Existencias locales por almacén</p>
         </div>
-        <a href="{{ route('inventory.general') }}"
-            class="text-sm text-indigo-600 hover:underline">
+        <a wire:navigate href="{{ route('inventory.general') }}"
+            class="text-sm text-indigo-600 hover:underline self-start sm:self-auto">
             ← Ver inventario general
         </a>
     </div>
@@ -34,7 +34,7 @@
 
     @if($selectedWarehouse)
         {{-- KPIs del almacén seleccionado --}}
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
             <div class="bg-white rounded-xl border border-gray-200 p-4">
                 <p class="text-xs text-gray-400 mb-1">Almacén</p>
                 <p class="text-sm font-semibold text-gray-800 truncate">{{ $selectedWarehouse->name }}</p>
@@ -62,8 +62,8 @@
 
         {{-- Filtros --}}
         <div class="bg-white rounded-xl border border-gray-200 p-4 mb-5">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div class="sm:col-span-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div>
                     <input wire:model.live="search" type="text" placeholder="Buscar por nombre, SKU o código..."
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 </div>
@@ -90,78 +90,83 @@
 
         {{-- Tabla --}}
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <table class="w-full text-sm">
-                <thead>
-                    <tr class="border-b border-gray-100 bg-gray-50">
-                        <th class="text-left text-xs text-gray-500 font-medium px-4 py-3">Producto</th>
-                        <th class="text-left text-xs text-gray-500 font-medium px-4 py-3">SKU</th>
-                        <th class="text-left text-xs text-gray-500 font-medium px-4 py-3">Categoría</th>
-                        <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Existencias</th>
-                        <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Mín.</th>
-                        <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Precio costo</th>
-                        <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Precio venta</th>
-                        <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Desc. máx.</th>
-                        <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Valor</th>
-                        <th class="text-center text-xs text-gray-500 font-medium px-4 py-3">Estado</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50">
-                    @forelse($stocks as $stock)
-                        @php
-                            $p      = $stock->product;
-                            $qty    = $stock->quantity;
-                            $isOut  = $qty <= 0;
-                            $isLow  = $qty > 0 && $qty <= $p->min_stock;
-                            $cost    = (float)$p->purchase_price;
-                            $maxDisc = max(0, round(
-                                $cost * (1 + (float)$p->profit_margin / 100)
-                                - $cost * (1 + (float)$p->operational_costs / 100),
-                                2
-                            ));
-                        @endphp
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-4 py-3">
-                                <a href="{{ route('inventory.products.edit', $p) }}"
-                                    class="font-medium text-gray-800 hover:text-indigo-600">
-                                    {{ $p->name }}
-                                </a>
-                                @if($p->unitOfMeasure)
-                                    <span class="text-xs text-gray-400 ml-1">/ {{ $p->unitOfMeasure->abbreviation }}</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-3 text-gray-500 font-mono text-xs">{{ $p->sku ?? '—' }}</td>
-                            <td class="px-4 py-3 text-gray-500">{{ $p->category?->name ?? '—' }}</td>
-                            <td class="px-4 py-3 text-right font-semibold {{ $isOut ? 'text-red-500' : ($isLow ? 'text-amber-500' : 'text-gray-800') }}">
-                                {{ number_format($qty, 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right text-gray-400 text-xs">{{ number_format($p->min_stock, 2) }}</td>
-                            <td class="px-4 py-3 text-right text-gray-600">${{ number_format($p->purchase_price, 2) }}</td>
-                            <td class="px-4 py-3 text-right text-gray-800">${{ number_format($p->sale_price, 2) }}</td>
-                            <td class="px-4 py-3 text-right {{ $maxDisc > 0 ? 'text-green-600' : 'text-gray-300' }}">
-                                ${{ number_format($maxDisc, 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right font-medium text-indigo-600">
-                                ${{ number_format($qty * (float)$p->purchase_price, 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-center">
-                                @if($isOut)
-                                    <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-600 font-medium">Sin stock</span>
-                                @elseif($isLow)
-                                    <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-amber-50 text-amber-600 font-medium">Stock bajo</span>
-                                @else
-                                    <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-600 font-medium">Normal</span>
-                                @endif
-                            </td>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm min-w-[640px]">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-gray-50">
+                            <th class="text-left text-xs text-gray-500 font-medium px-4 py-3">Producto</th>
+                            <th class="text-left text-xs text-gray-500 font-medium px-4 py-3 hidden sm:table-cell">SKU</th>
+                            <th class="text-left text-xs text-gray-500 font-medium px-4 py-3 hidden md:table-cell">Categoría</th>
+                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Existencias</th>
+                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden md:table-cell">Mín.</th>
+                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden lg:table-cell">Precio costo</th>
+                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden lg:table-cell">Precio venta</th>
+                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden lg:table-cell">Desc. máx.</th>
+                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden sm:table-cell">Valor</th>
+                            <th class="text-center text-xs text-gray-500 font-medium px-4 py-3">Estado</th>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="10" class="px-4 py-10 text-center text-sm text-gray-400">
-                                No hay productos con existencias en este almacén.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @forelse($stocks as $stock)
+                            @php
+                                $p      = $stock->product;
+                                $qty    = $stock->quantity;
+                                $isOut  = $qty <= 0;
+                                $isLow  = $qty > 0 && $qty <= $p->min_stock;
+                                $cost    = (float)$p->purchase_price;
+                                $maxDisc = max(0, round(
+                                    $cost * (1 + (float)$p->profit_margin / 100)
+                                    - $cost * (1 + (float)$p->operational_costs / 100),
+                                    2
+                                ));
+                            @endphp
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 py-3">
+                                    <a wire:navigate href="{{ route('inventory.products.edit', $p) }}"
+                                        class="font-medium text-gray-800 hover:text-indigo-600">
+                                        {{ $p->name }}
+                                    </a>
+                                    @if($p->unitOfMeasure)
+                                        <span class="text-xs text-gray-400 ml-1">/ {{ $p->unitOfMeasure->abbreviation }}</span>
+                                    @endif
+                                    <p class="text-xs text-gray-400 sm:hidden mt-0.5">
+                                        {{ $p->sku ?? '' }}{{ $p->sku && $p->category ? ' · ' : '' }}{{ $p->category?->name ?? '' }}
+                                    </p>
+                                </td>
+                                <td class="px-4 py-3 text-gray-500 font-mono text-xs hidden sm:table-cell">{{ $p->sku ?? '—' }}</td>
+                                <td class="px-4 py-3 text-gray-500 hidden md:table-cell">{{ $p->category?->name ?? '—' }}</td>
+                                <td class="px-4 py-3 text-right font-semibold {{ $isOut ? 'text-red-500' : ($isLow ? 'text-amber-500' : 'text-gray-800') }}">
+                                    {{ number_format($qty, 2) }}
+                                </td>
+                                <td class="px-4 py-3 text-right text-gray-400 text-xs hidden md:table-cell">{{ number_format($p->min_stock, 2) }}</td>
+                                <td class="px-4 py-3 text-right text-gray-600 hidden lg:table-cell">${{ number_format($p->purchase_price, 2) }}</td>
+                                <td class="px-4 py-3 text-right text-gray-800 hidden lg:table-cell">${{ number_format($p->sale_price, 2) }}</td>
+                                <td class="px-4 py-3 text-right hidden lg:table-cell {{ $maxDisc > 0 ? 'text-green-600' : 'text-gray-300' }}">
+                                    ${{ number_format($maxDisc, 2) }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-medium text-indigo-600 hidden sm:table-cell">
+                                    ${{ number_format($qty * (float)$p->purchase_price, 2) }}
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    @if($isOut)
+                                        <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-600 font-medium">Sin stock</span>
+                                    @elseif($isLow)
+                                        <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-amber-50 text-amber-600 font-medium">Stock bajo</span>
+                                    @else
+                                        <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-600 font-medium">Normal</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="10" class="px-4 py-10 text-center text-sm text-gray-400">
+                                    No hay productos con existencias en este almacén.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     @else
         <div class="bg-white rounded-xl border border-gray-200 p-10 text-center text-sm text-gray-400">

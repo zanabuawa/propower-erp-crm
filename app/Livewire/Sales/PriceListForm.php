@@ -131,7 +131,7 @@ class PriceListForm extends Component
         }
 
         session()->flash('success', $this->priceList?->exists ? 'Lista actualizada.' : 'Lista creada.');
-        $this->redirect(route('sales.price-lists.index'));
+        $this->redirect(route('sales.price-lists.index'), navigate: true);
     }
 
     public function render()

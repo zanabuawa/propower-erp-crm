@@ -1,6 +1,6 @@
 <div class="max-w-lg">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('inventory.categories.index') }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('inventory.categories.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -47,9 +47,9 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pb-6">
-            <a href="{{ route('inventory.categories.index') }}"
-                class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">Cancelar</a>
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+            <a wire:navigate href="{{ route('inventory.categories.index') }}"
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition text-center">Cancelar</a>
             <button type="submit"
                 class="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition">
                 {{ $category?->exists ? 'Guardar cambios' : 'Crear categoría' }}

@@ -1,17 +1,40 @@
-<div class="max-w-4xl">
+<div class="max-w-5xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('purchases.goods-receipts.index') }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('purchases.goods-receipts.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
         </a>
         <div>
             <h1 class="text-xl font-medium text-gray-900">Nueva recepción de mercancías</h1>
-            <p class="text-sm text-gray-400 mt-0.5">Registro de entrada directa — actualiza stock y precios del producto</p>
+            <p class="text-sm text-gray-400 mt-0.5">Registra la entrada de productos al inventario</p>
         </div>
     </div>
 
     <div class="space-y-5">
+
+        {{-- Orden de compra (opcional) --}}
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Vincular a orden de compra</h2>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Orden de compra</label>
+                <select wire:model.live="purchase_order_id"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <option value="">— Sin orden de compra (entrada directa) —</option>
+                    @foreach($purchaseOrders as $po)
+                        <option value="{{ $po->id }}">
+                            {{ $po->folio }} — {{ $po->supplier->name }}
+                            ({{ \App\Models\PurchaseOrder::STATUS[$po->status] ?? $po->status }})
+                        </option>
+                    @endforeach
+                </select>
+                @if($purchase_order_id)
+                    <p class="text-xs text-teal-600 mt-1">Los productos pendientes de esta orden se cargaron automáticamente.</p>
+                @else
+                    <p class="text-xs text-gray-400 mt-1">Opcional — los productos de la orden se cargarán automáticamente en la lista.</p>
+                @endif
+            </div>
+        </div>
 
         {{-- Datos generales --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
@@ -87,10 +110,10 @@
 
                 {{-- Notas --}}
                 <div class="sm:col-span-2">
-                    <label class="block text-xs text-gray-500 mb-1">Notas</label>
+                    <label class="block text-xs text-gray-500 mb-1">Notas generales</label>
                     <input wire:model="notes" type="text"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                        placeholder="Observaciones">
+                        placeholder="Observaciones de la recepción">
                 </div>
             </div>
         </div>
@@ -98,10 +121,17 @@
         {{-- Productos --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h2 class="text-sm font-medium text-gray-700">Productos recibidos</h2>
-                <livewire:shared.product-picker />
+                <div>
+                    <h2 class="text-sm font-medium text-gray-700">Productos recibidos</h2>
+                    @if(count($items) > 0)
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            Marca los productos que llegaron y agrega notas si es necesario
+                        </p>
+                    @endif
+                </div>
             </div>
 
+            {{-- Buscador manual --}}
             <div class="relative">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,7 +139,7 @@
                         d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input wire:model.live.debounce.250ms="productSearch" type="text"
-                    placeholder="Búsqueda rápida: nombre, SKU o código de barras..."
+                    placeholder="Agregar producto extra: nombre, SKU o código de barras..."
                     class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 @if(count($productResults) > 0)
                     <div class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl z-20 mt-1 overflow-hidden">
@@ -124,9 +154,7 @@
                                         · Costo: ${{ number_format($result['purchase_price'], 2) }}
                                     </p>
                                 </div>
-                                <div class="text-right flex-shrink-0 ml-4">
-                                    <p class="text-xs text-indigo-400">+ Agregar</p>
-                                </div>
+                                <span class="text-xs text-indigo-400 flex-shrink-0 ml-4">+ Agregar</span>
                             </button>
                         @endforeach
                     </div>
@@ -137,39 +165,49 @@
 
             @if(count($items) > 0)
                 <div class="border border-gray-100 rounded-lg overflow-x-auto">
-                    <table class="w-full text-sm">
+                    <table class="w-full text-sm min-w-[680px]">
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100">
+                                <th class="px-3 py-2.5 w-10">
+                                    <span class="text-xs font-medium text-gray-500">Ok</span>
+                                </th>
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Producto</th>
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Cantidad</th>
                                 @if($reception_type !== 'defective')
                                     <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio costo</th>
-                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Margen %</th>
-                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Gastos op. %</th>
-                                    <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio venta</th>
-                                    <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio mín.</th>
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Margen %</th>
+                                    <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Precio venta</th>
                                 @endif
+                                <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Notas / Observaciones</th>
                                 <th class="w-8"></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @foreach($items as $index => $item)
                                 @php
+                                    $received  = $item['received'] ?? true;
                                     $cost      = (float)($item['purchase_price'] ?? 0);
                                     $margin    = (float)($item['profit_margin'] ?? 0);
-                                    $opPct     = (float)($item['operational_cost'] ?? 0);
                                     $salePrice = round($cost * (1 + $margin / 100), 2);
-                                    $minPrice  = round($cost * (1 + $opPct / 100), 2);
                                 @endphp
-                                <tr>
+                                <tr class="{{ $received ? '' : 'opacity-50 bg-gray-50' }}">
+                                    <td class="px-3 py-3 text-center">
+                                        <input wire:model.live="items.{{ $index }}.received"
+                                            type="checkbox"
+                                            class="w-4 h-4 rounded text-teal-600 border-gray-300 focus:ring-teal-400"
+                                            {{ $received ? 'checked' : '' }}>
+                                    </td>
                                     <td class="px-4 py-3">
                                         <p class="font-medium text-gray-900 text-sm">{{ $item['product_name'] }}</p>
-                                        <p class="text-xs text-gray-400 font-mono">{{ $item['sku'] }}</p>
+                                        @if($item['sku'])
+                                            <p class="text-xs text-gray-400 font-mono">{{ $item['sku'] }}</p>
+                                        @endif
                                     </td>
                                     <td class="px-4 py-2">
                                         <input wire:model.live="items.{{ $index }}.quantity"
                                             type="number" step="0.01" min="0.01"
-                                            class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                            {{ !$received ? 'disabled' : '' }}
+                                            class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:bg-gray-100">
                                         @error("items.{$index}.quantity")
                                             <p class="text-xs text-red-500">{{ $message }}</p>
                                         @enderror
@@ -180,32 +218,33 @@
                                                 <span class="absolute left-2 top-1.5 text-xs text-gray-400">$</span>
                                                 <input wire:model.live="items.{{ $index }}.purchase_price"
                                                     type="number" step="0.01" min="0"
-                                                    class="w-full border border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                                    {{ !$received ? 'disabled' : '' }}
+                                                    class="w-full border border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:bg-gray-100">
                                             </div>
                                         </td>
                                         <td class="px-4 py-2">
                                             <div class="relative">
                                                 <input wire:model.live="items.{{ $index }}.profit_margin"
                                                     type="number" step="0.01" min="0" max="999"
-                                                    class="w-full border border-gray-200 rounded pl-2 pr-6 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                                    {{ !$received ? 'disabled' : '' }}
+                                                    class="w-full border border-gray-200 rounded pl-2 pr-6 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:bg-gray-100">
                                                 <span class="absolute right-2 top-1.5 text-xs text-gray-400">%</span>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-2">
-                                            <div class="relative">
-                                                <input wire:model.live="items.{{ $index }}.operational_cost"
-                                                    type="number" step="0.01" min="0" max="999"
-                                                    class="w-full border border-amber-200 rounded pl-2 pr-6 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300">
-                                                <span class="absolute right-2 top-1.5 text-xs text-amber-400">%</span>
-                                            </div>
-                                        </td>
                                         <td class="px-4 py-3 text-right">
-                                            <p class="text-sm font-semibold text-indigo-600">${{ number_format($salePrice, 2) }}</p>
-                                        </td>
-                                        <td class="px-4 py-3 text-right">
-                                            <p class="text-sm font-semibold text-amber-600">${{ number_format($minPrice, 2) }}</p>
+                                            <p class="text-sm font-semibold {{ $received ? 'text-indigo-600' : 'text-gray-400' }}">
+                                                ${{ number_format($salePrice, 2) }}
+                                            </p>
                                         </td>
                                     @endif
+                                    <td class="px-4 py-2">
+                                        <input wire:model="items.{{ $index }}.notes"
+                                            type="text"
+                                            {{ !$received ? 'disabled' : '' }}
+                                            placeholder="Ej: llegó golpeado, falta embalaje..."
+                                            class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300 disabled:bg-gray-100"
+                                            style="min-width:160px">
+                                    </td>
                                     <td class="px-4 py-2 text-center">
                                         <button type="button" wire:click="removeItem({{ $index }})"
                                             class="text-red-400 hover:text-red-600">
@@ -219,17 +258,35 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- Resumen --}}
+                @php
+                    $receivedCount = collect($items)->where('received', true)->count();
+                    $totalCount    = count($items);
+                @endphp
+                @if($totalCount > 0)
+                    <p class="text-xs text-gray-500">
+                        {{ $receivedCount }} de {{ $totalCount }} producto(s) marcado(s) como recibido(s)
+                        @if($receivedCount < $totalCount)
+                            <span class="text-amber-600">— {{ $totalCount - $receivedCount }} pendiente(s)</span>
+                        @endif
+                    </p>
+                @endif
             @else
                 <div class="border-2 border-dashed border-gray-200 rounded-lg py-10 text-center text-sm text-gray-400">
-                    Busca y agrega los productos que estás recibiendo.
+                    @if($purchase_order_id)
+                        Todos los productos de esta orden ya fueron recibidos.
+                    @else
+                        Selecciona una orden de compra o busca productos manualmente.
+                    @endif
                 </div>
             @endif
         </div>
 
         @if(count($items) > 0)
-            <div class="flex items-center justify-end gap-3 pb-6">
-                <a href="{{ route('purchases.goods-receipts.index') }}"
-                    class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+                <a wire:navigate href="{{ route('purchases.goods-receipts.index') }}"
+                    class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition text-center">
                     Cancelar
                 </a>
                 <button type="button" wire:click="confirm"
@@ -252,8 +309,8 @@
                         @if($wh) · Almacén: <strong>{{ $wh->name }}</strong> @endif
                     </p>
                 </div>
-                <div class="p-6 space-y-3">
-                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Productos que se agregarán al inventario</p>
+                <div class="p-6 space-y-3 max-h-80 overflow-y-auto">
+                    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Productos a registrar</p>
                     <div class="border border-gray-100 rounded-lg overflow-hidden">
                         <table class="w-full text-sm">
                             <thead>
@@ -263,32 +320,36 @@
                                     @if($reception_type !== 'defective')
                                         <th class="text-right px-4 py-2">Precio venta</th>
                                     @endif
+                                    <th class="text-left px-4 py-2">Notas</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach($items as $item)
-                                    @php
-                                        $sp = round((float)($item['purchase_price'] ?? 0) * (1 + (float)($item['profit_margin'] ?? 0) / 100), 2);
-                                    @endphp
-                                    <tr>
-                                        <td class="px-4 py-2.5 font-medium text-gray-900">{{ $item['product_name'] }}</td>
-                                        <td class="px-4 py-2.5 text-right text-gray-700">{{ $item['quantity'] }}</td>
-                                        @if($reception_type !== 'defective')
-                                            <td class="px-4 py-2.5 text-right text-indigo-600 font-semibold">${{ number_format($sp, 2) }}</td>
-                                        @endif
-                                    </tr>
+                                    @if($item['received'] ?? true)
+                                        @php
+                                            $sp = round((float)($item['purchase_price'] ?? 0) * (1 + (float)($item['profit_margin'] ?? 0) / 100), 2);
+                                        @endphp
+                                        <tr>
+                                            <td class="px-4 py-2.5 font-medium text-gray-900">{{ $item['product_name'] }}</td>
+                                            <td class="px-4 py-2.5 text-right text-gray-700">{{ $item['quantity'] }}</td>
+                                            @if($reception_type !== 'defective')
+                                                <td class="px-4 py-2.5 text-right text-indigo-600 font-semibold">${{ number_format($sp, 2) }}</td>
+                                            @endif
+                                            <td class="px-4 py-2.5 text-xs text-gray-500">{{ $item['notes'] ?: '—' }}</td>
+                                        </tr>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                     @if($operating_expenses > 0)
                         <p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
-                            Gastos de operación generales: <strong>${{ number_format($operating_expenses, 2) }}</strong>
+                            Gastos de operación: <strong>${{ number_format($operating_expenses, 2) }}</strong>
                         </p>
                     @endif
                     @if($reception_type === 'defective')
                         <p class="text-xs text-red-700 bg-red-50 rounded-lg px-3 py-2">
-                            Estos productos se registrarán en el almacén de defectuosos. No se actualizarán precios ni stock de venta.
+                            Estos productos se registrarán en el almacén de defectuosos. No se actualizarán precios.
                         </p>
                     @endif
                 </div>

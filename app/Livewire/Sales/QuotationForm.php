@@ -230,7 +230,7 @@ class QuotationForm extends Component
         });
 
         session()->flash('success', 'Cotización creada correctamente.');
-        $this->redirect(route('sales.index'));
+        $this->redirect(route('sales.index'), navigate: true);
     }
 
     public function render()

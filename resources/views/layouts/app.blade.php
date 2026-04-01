@@ -295,7 +295,20 @@ x-init="init()">
                 </svg>
             </button>
             <span class="font-medium text-gray-800 flex-1 truncate">
-                {{ $title ?? 'Dashboard' }}
+                @php
+                    $moduleTitle = match(true) {
+                        request()->routeIs('inventory.*')    => 'Inventario',
+                        request()->routeIs('purchases.*')    => 'Compras',
+                        request()->routeIs('sales.*')        => 'Ventas',
+                        request()->routeIs('contacts.*', 'suppliers.*', 'opportunities.*', 'tickets.*', 'campaigns.*') => 'CRM',
+                        request()->routeIs('hr.*')           => 'Recursos humanos',
+                        request()->routeIs('accounting.*')   => 'Contabilidad',
+                        request()->routeIs('projects.*', 'licitaciones.*') => 'Proyectos',
+                        request()->routeIs('companies.*', 'branches.*', 'users.*') => 'Administración',
+                        default => $title ?? 'Dashboard',
+                    };
+                @endphp
+                {{ $moduleTitle }}
             </span>
             @livewire('shared.notification-bell')
             @if(auth()->user()->branch)
@@ -317,5 +330,6 @@ x-init="init()">
 </div>
 
 @livewireScripts
+@stack('scripts')
 </body>
 </html>

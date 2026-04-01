@@ -1,23 +1,25 @@
 <div>
-    <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('sales.orders.index') }}" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <div class="flex-1">
-            <div class="flex items-center gap-3">
-                <h1 class="text-xl font-medium text-gray-900">{{ $order->folio }}</h1>
-                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                    {{ \App\Models\SaleOrder::STATUS_COLORS[$order->status] ?? '' }}">
-                    {{ \App\Models\SaleOrder::STATUS[$order->status] ?? $order->status }}
-                </span>
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 flex-1">
+            <a wire:navigate href="{{ route('sales.orders.index') }}" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div>
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h1 class="text-xl font-medium text-gray-900">{{ $order->folio }}</h1>
+                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+                        {{ \App\Models\SaleOrder::STATUS_COLORS[$order->status] ?? '' }}">
+                        {{ \App\Models\SaleOrder::STATUS[$order->status] ?? $order->status }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500">
+                    {{ $order->customer->name }} · {{ $order->createdBy->name }}
+                </p>
             </div>
-            <p class="text-sm text-gray-500">
-                {{ $order->customer->name }} · {{ $order->createdBy->name }}
-            </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
             <a href="{{ route('sales.orders.print', $order) }}" target="_blank"
                 class="inline-flex items-center gap-1.5 px-3 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition"
                 title="Imprimir / PDF">
@@ -27,13 +29,13 @@
                 Imprimir
             </a>
             @if(in_array($order->status, ['confirmed', 'partial_delivered']))
-                <a href="{{ route('sales.deliveries.create', $order) }}"
+                <a wire:navigate href="{{ route('sales.deliveries.create', $order) }}"
                     class="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition">
                     Registrar remisión
                 </a>
             @endif
             @if(in_array($order->status, ['delivered']) && !$order->invoice)
-                <a href="{{ route('sales.invoices.create') }}?order={{ $order->id }}"
+                <a wire:navigate href="{{ route('sales.invoices.create') }}?order={{ $order->id }}"
                     class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
                     Generar factura
                 </a>
@@ -53,7 +55,7 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <div class="space-y-4">
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Información</h2>
@@ -79,7 +81,7 @@
                     @if($order->quotation)
                         <div class="flex justify-between">
                             <span class="text-gray-500">Cotización</span>
-                            <a href="{{ route('sales.quotations.show', $order->quotation) }}"
+                            <a wire:navigate href="{{ route('sales.quotations.show', $order->quotation) }}"
                                 class="text-indigo-600 text-xs font-medium">{{ $order->quotation->folio }}</a>
                         </div>
                     @endif
@@ -113,13 +115,13 @@
             @if($order->invoice)
                 <div class="bg-green-50 border border-green-200 rounded-xl p-4">
                     <p class="text-sm font-medium text-green-800">Factura generada</p>
-                    <a href="{{ route('sales.invoices.show', $order->invoice) }}"
+                    <a wire:navigate href="{{ route('sales.invoices.show', $order->invoice) }}"
                         class="text-xs text-green-700 font-medium">{{ $order->invoice->folio }} →</a>
                 </div>
             @endif
         </div>
 
-        <div class="lg:col-span-2 space-y-4">
+        <div class="md:col-span-1 lg:col-span-2 space-y-4">
             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
                 <button wire:click="$set('activeTab', 'items')"
                     class="px-4 py-1.5 text-sm rounded-md transition {{ $activeTab === 'items' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
@@ -133,34 +135,39 @@
 
             @if($activeTab === 'items')
                 <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="bg-gray-50 border-b border-gray-100">
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Producto</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Cant.</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Entregado</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Precio</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Desc.</th>
-                                <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            @foreach($order->items as $item)
-                                <tr>
-                                    <td class="px-5 py-3 font-medium text-gray-900">{{ $item->description }}</td>
-                                    <td class="px-5 py-3 text-gray-700">{{ $item->quantity }}</td>
-                                    <td class="px-5 py-3">
-                                        <span class="{{ $item->quantity_delivered >= $item->quantity ? 'text-green-600' : 'text-amber-600' }} font-medium">
-                                            {{ $item->quantity_delivered }}
-                                        </span>
-                                    </td>
-                                    <td class="px-5 py-3 text-gray-700">${{ number_format($item->unit_price, 2) }}</td>
-                                    <td class="px-5 py-3 text-gray-600">{{ $item->discount_pct }}%</td>
-                                    <td class="px-5 py-3 font-medium">${{ number_format($item->subtotal, 2) }}</td>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm min-w-[480px]">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-100">
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Producto</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Cant.</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Entregado</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 hidden sm:table-cell">Precio</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 hidden sm:table-cell">Desc.</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Subtotal</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($order->items as $item)
+                                    <tr>
+                                        <td class="px-5 py-3 font-medium text-gray-900">
+                                            {{ $item->description }}
+                                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">${{ number_format($item->unit_price, 2) }} · Desc. {{ $item->discount_pct }}%</p>
+                                        </td>
+                                        <td class="px-5 py-3 text-gray-700">{{ $item->quantity }}</td>
+                                        <td class="px-5 py-3">
+                                            <span class="{{ $item->quantity_delivered >= $item->quantity ? 'text-green-600' : 'text-amber-600' }} font-medium">
+                                                {{ $item->quantity_delivered }}
+                                            </span>
+                                        </td>
+                                        <td class="px-5 py-3 text-gray-700 hidden sm:table-cell">${{ number_format($item->unit_price, 2) }}</td>
+                                        <td class="px-5 py-3 text-gray-600 hidden sm:table-cell">{{ $item->discount_pct }}%</td>
+                                        <td class="px-5 py-3 font-medium">${{ number_format($item->subtotal, 2) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             @endif
 
@@ -176,24 +183,26 @@
                                     </p>
                                 </div>
                             </div>
-                            <table class="w-full text-xs">
-                                <thead>
-                                    <tr class="text-gray-500 border-b border-gray-100">
-                                        <th class="text-left py-1.5">Producto</th>
-                                        <th class="text-left py-1.5">Almacén</th>
-                                        <th class="text-left py-1.5">Cantidad</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    @foreach($delivery->items as $item)
-                                        <tr>
-                                            <td class="py-1.5 text-gray-700">{{ $item->product?->name ?? '—' }}</td>
-                                            <td class="py-1.5 text-gray-600">{{ $item->warehouse?->name ?? '—' }}</td>
-                                            <td class="py-1.5 font-medium">{{ $item->quantity }}</td>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs min-w-[320px]">
+                                    <thead>
+                                        <tr class="text-gray-500 border-b border-gray-100">
+                                            <th class="text-left py-1.5">Producto</th>
+                                            <th class="text-left py-1.5">Almacén</th>
+                                            <th class="text-left py-1.5">Cantidad</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        @foreach($delivery->items as $item)
+                                            <tr>
+                                                <td class="py-1.5 text-gray-700">{{ $item->product?->name ?? '—' }}</td>
+                                                <td class="py-1.5 text-gray-600">{{ $item->warehouse?->name ?? '—' }}</td>
+                                                <td class="py-1.5 font-medium">{{ $item->quantity }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     @empty
                         <div class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400 text-sm">

@@ -47,9 +47,9 @@ class NotificationBell extends Component
 
         $data = $notification->data;
         if (!empty($data['requisition_id'])) {
-            $this->redirect(route('purchases.requisitions.show', $data['requisition_id']));
+            $this->redirect(route('purchases.requisitions.show', $data['requisition_id']), navigate: true);
         } elseif (!empty($data['order_id'])) {
-            $this->redirect(route('purchases.orders.show', $data['order_id']));
+            $this->redirect(route('purchases.orders.show', $data['order_id']), navigate: true);
         }
     }
 
@@ -62,7 +62,9 @@ class NotificationBell extends Component
     public function render()
     {
         return view('livewire.shared.notification-bell', [
-            'notifications' => auth()->user()->notifications()->latest()->take(15)->get(),
+            'notifications' => $this->open
+                ? auth()->user()->notifications()->latest()->take(15)->get()
+                : collect(),
         ]);
     }
 }

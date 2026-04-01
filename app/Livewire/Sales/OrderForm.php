@@ -261,7 +261,7 @@ class OrderForm extends Component
         });
 
         session()->flash('success', 'Orden de venta creada correctamente.');
-        $this->redirect(route('sales.orders.index'));
+        $this->redirect(route('sales.orders.index'), navigate: true);
     }
 
     public function render()

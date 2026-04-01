@@ -11,9 +11,31 @@ class Product extends Model
 {
     use BelongsToCompany;
 
+    // Códigos SAT más comunes para productos y servicios eléctricos/tecnológicos
+    const SAT_PRODUCT_CODES = [
+        '43231500' => '43231500 - Equipo de cómputo y accesorios',
+        '43211500' => '43211500 - Computadoras personales',
+        '39121500' => '39121500 - Cables eléctricos y accesorios',
+        '39122000' => '39122000 - Componentes eléctricos',
+        '84111506' => '84111506 - Servicios de instalación eléctrica',
+        '81112000' => '81112000 - Servicios de tecnología de la información',
+        '01010101' => '01010101 - No existe en el catálogo',
+    ];
+
+    const SAT_UNIT_CODES = [
+        'H87' => 'H87 - Pieza',
+        'EA'  => 'EA  - Elemento',
+        'MTR' => 'MTR - Metro',
+        'KGM' => 'KGM - Kilogramo',
+        'LTR' => 'LTR - Litro',
+        'E48' => 'E48 - Unidad de servicio',
+        'ACT' => 'ACT - Actividad',
+        'MTS' => 'MTS - Metro cuadrado',
+    ];
+
     protected $fillable = [
         'company_id', 'type', 'category_id', 'subcategory_id', 'unit_of_measure_id', 'supplier_id',
-        'name', 'sku', 'barcode', 'description',
+        'name', 'sku', 'sat_product_code', 'sat_unit_code', 'barcode', 'description',
         'brand', 'model', 'color',
         'purchase_price', 'profit_margin', 'operational_costs', 'sale_price',
         'min_stock', 'max_stock', 'is_active',

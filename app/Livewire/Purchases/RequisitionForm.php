@@ -138,7 +138,7 @@ class RequisitionForm extends Component
         });
 
         session()->flash('success', 'Requisición enviada a compras correctamente.');
-        $this->redirect(route('purchases.index'));
+        $this->redirect(route('purchases.index'), navigate: true);
     }
 
     public function render()

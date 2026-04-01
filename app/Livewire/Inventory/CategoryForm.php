@@ -58,7 +58,7 @@ class CategoryForm extends Component
             session()->flash('success', 'Categoría creada correctamente.');
         }
 
-        $this->redirect(route('inventory.categories.index'));
+        $this->redirect(route('inventory.categories.index'), navigate: true);
     }
 
     public function render()

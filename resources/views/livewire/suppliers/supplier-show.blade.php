@@ -1,34 +1,35 @@
 <div>
-    <div class="flex items-center gap-4 mb-6">
-        <a href="{{ route('suppliers.index') }}" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
-            </svg>
-        </a>
-        @if($supplier->image)
-            <img src="{{ Storage::url($supplier->image) }}"
-                class="w-14 h-14 rounded-full object-cover border border-gray-200">
-        @else
-            <div
-                class="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold text-xl">
-                {{ strtoupper(substr($supplier->name, 0, 2)) }}
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
+        <div class="flex items-center gap-3 flex-1">
+            <a wire:navigate href="{{ route('suppliers.index') }}" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
+                </svg>
+            </a>
+            @if($supplier->image)
+                <img src="{{ Storage::url($supplier->image) }}"
+                    class="w-14 h-14 rounded-full object-cover border border-gray-200">
+            @else
+                <div class="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-teal-600 font-semibold text-xl flex-shrink-0">
+                    {{ strtoupper(substr($supplier->name, 0, 2)) }}
+                </div>
+            @endif
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h1 class="text-xl font-medium text-gray-900">{{ $supplier->name }}</h1>
+                    <span class="text-xs px-2 py-0.5 rounded-full
+                        {{ $supplier->status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                        {{ \App\Models\Supplier::STATUS[$supplier->status] }}
+                    </span>
+                </div>
+                <p class="text-sm text-gray-500">
+                    {{ $supplier->type === 'company' ? 'Empresa' : 'Persona física' }}
+                    @if($supplier->rfc) · RFC: {{ $supplier->rfc }} @endif
+                </p>
             </div>
-        @endif
-        <div class="flex-1">
-            <div class="flex items-center gap-3">
-                <h1 class="text-xl font-medium text-gray-900">{{ $supplier->name }}</h1>
-                <span class="text-xs px-2 py-0.5 rounded-full
-                    {{ $supplier->status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                    {{ \App\Models\Supplier::STATUS[$supplier->status] }}
-                </span>
-            </div>
-            <p class="text-sm text-gray-500">
-                {{ $supplier->type === 'company' ? 'Empresa' : 'Persona física' }}
-                @if($supplier->rfc) · RFC: {{ $supplier->rfc }} @endif
-            </p>
         </div>
-        <a href="{{ route('suppliers.edit', $supplier) }}"
-            class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+        <a wire:navigate href="{{ route('suppliers.edit', $supplier) }}"
+            class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition self-start sm:self-auto">
             Editar
         </a>
     </div>
@@ -39,7 +40,7 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
         <div class="space-y-4">
             <div class="bg-white rounded-xl border border-gray-200 p-5">
@@ -47,7 +48,7 @@
                 <div class="space-y-2 text-sm">
                     @foreach($supplier->phones as $phone)
                         <div class="flex items-center gap-2 text-gray-700">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
@@ -57,7 +58,7 @@
                     @endforeach
                     @foreach($supplier->emails as $email)
                         <div class="flex items-center gap-2 text-gray-700">
-                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
@@ -67,7 +68,7 @@
                     @endforeach
                     @if($supplier->address)
                         <div class="flex items-start gap-2 text-gray-700">
-                            <svg class="w-4 h-4 text-gray-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -115,8 +116,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">Días de crédito</span>
-                        <span
-                            class="font-medium">{{ $supplier->payment_terms == 0 ? 'Contado' : $supplier->payment_terms . ' días' }}</span>
+                        <span class="font-medium">{{ $supplier->payment_terms == 0 ? 'Contado' : $supplier->payment_terms . ' días' }}</span>
                     </div>
                     @if($supplier->assignedTo)
                         <div class="flex justify-between">
@@ -128,7 +128,7 @@
             </div>
         </div>
 
-        <div class="lg:col-span-2 space-y-4">
+        <div class="md:col-span-1 lg:col-span-2 space-y-4">
             <div class="flex gap-1 bg-gray-100 p-1 rounded-lg w-fit">
                 <button wire:click="$set('activeTab', 'contacts')"
                     class="px-4 py-1.5 text-sm rounded-md transition {{ $activeTab === 'contacts' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
@@ -152,7 +152,7 @@
 
                     @if($showContactForm)
                         <div class="border border-indigo-100 bg-indigo-50/30 rounded-lg p-4 mb-4 space-y-3">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs text-gray-500 mb-1">Nombre *</label>
                                     <input wire:model="contactFirstName" type="text"
@@ -174,7 +174,7 @@
                                     <input wire:model="contactPhone" type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                                 </div>
-                                <div class="col-span-2">
+                                <div class="col-span-1 sm:col-span-2">
                                     <label class="block text-xs text-gray-500 mb-1">Correo</label>
                                     <input wire:model="contactEmail" type="email"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
@@ -191,11 +191,10 @@
 
                     @forelse($supplier->contacts as $contact)
                         <div class="flex items-center gap-3 py-3 border-b border-gray-100 last:border-0">
-                            <div
-                                class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium text-xs">
+                            <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium text-xs flex-shrink-0">
                                 {{ strtoupper(substr($contact->first_name, 0, 1) . substr($contact->last_name ?? '', 0, 1)) }}
                             </div>
-                            <div class="flex-1">
+                            <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900">{{ $contact->full_name }}</p>
                                 <p class="text-xs text-gray-400">
                                     {{ $contact->position ?? '' }}
@@ -203,9 +202,9 @@
                                 </p>
                             </div>
                             @if($contact->is_primary)
-                                <span class="text-xs text-indigo-500">Principal</span>
+                                <span class="text-xs text-indigo-500 flex-shrink-0">Principal</span>
                             @endif
-                            <button wire:click="deleteContact({{ $contact->id }})" class="text-red-400 hover:text-red-600">
+                            <button wire:click="deleteContact({{ $contact->id }})" class="text-red-400 hover:text-red-600 flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                         d="M6 18L18 6M6 6l12 12" />
@@ -228,7 +227,7 @@
 
                     @if($showNoteForm)
                         <div class="border border-indigo-100 bg-indigo-50/30 rounded-lg p-4 mb-4 space-y-3">
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs text-gray-500 mb-1">Tipo</label>
                                     <select wire:model="noteType"
@@ -246,7 +245,7 @@
                                         class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                                     @error('noteTitle') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                                 </div>
-                                <div class="col-span-2">
+                                <div class="col-span-1 sm:col-span-2">
                                     <label class="block text-xs text-gray-500 mb-1">Descripción</label>
                                     <textarea wire:model="noteBody" rows="3"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"></textarea>
@@ -267,13 +266,13 @@
 
                     @forelse($supplier->notes as $note)
                         <div class="flex gap-3 py-3 border-b border-gray-100 last:border-0">
-                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-sm flex-shrink-0">
                                 {{ $noteIcons[$note->type] ?? '📝' }}
                             </div>
-                            <div class="flex-1">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-sm font-medium text-gray-900">{{ $note->title }}</p>
-                                    <div class="flex items-center gap-2">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2">
+                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $note->title }}</p>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
                                         <span class="text-xs text-gray-400">{{ $note->noted_at->format('d/m/Y H:i') }}</span>
                                         <button wire:click="deleteNote({{ $note->id }})"
                                             class="text-red-400 hover:text-red-600">

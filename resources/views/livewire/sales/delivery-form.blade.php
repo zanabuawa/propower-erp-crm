@@ -1,6 +1,6 @@
 <div class="max-w-3xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('sales.orders.show', $order) }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('sales.orders.show', $order) }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -40,7 +40,8 @@
             <div class="px-5 py-3 border-b border-gray-100">
                 <h2 class="text-sm font-medium text-gray-700">Productos a entregar</h2>
             </div>
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[500px]">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-100">
                         <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Producto</th>
@@ -80,11 +81,12 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
 
         @if(count($items) > 0)
-            <div class="flex items-center justify-end gap-3 pb-6">
-                <a href="{{ route('sales.orders.show', $order) }}"
+            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+                <a wire:navigate href="{{ route('sales.orders.show', $order) }}"
                     class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                     Cancelar
                 </a>

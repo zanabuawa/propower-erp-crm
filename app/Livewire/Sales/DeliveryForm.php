@@ -143,7 +143,7 @@ class DeliveryForm extends Component
         });
 
         session()->flash('success', 'Remisión registrada y stock actualizado.');
-        $this->redirect(route('sales.orders.show', $this->order));
+        $this->redirect(route('sales.orders.show', $this->order), navigate: true);
     }
 
     public function render()

@@ -27,6 +27,7 @@ class OrderShow extends Component
                 'branch',
                 'createdBy',
                 'receipts.items.product',
+                'receipts.items.warehouse',
                 'receipts.receivedBy',
                 'invoice',
                 'requisition',

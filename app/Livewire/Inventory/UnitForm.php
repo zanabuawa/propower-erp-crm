@@ -52,7 +52,7 @@ class UnitForm extends Component
             session()->flash('success', 'Unidad creada correctamente.');
         }
 
-        $this->redirect(route('inventory.units.index'));
+        $this->redirect(route('inventory.units.index'), navigate: true);
     }
 
     public function render()

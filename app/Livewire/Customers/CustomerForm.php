@@ -20,6 +20,7 @@ class CustomerForm extends Component
     public string $name = '';
     public string $rfc = '';
     public string $tax_regime = '';
+    public string $cfdi_use = '';
     public string $anniversary_date = '';
     public $image = null;
     public string $address = '';
@@ -47,6 +48,7 @@ class CustomerForm extends Component
             $this->name             = $this->customer->name;
             $this->rfc              = $this->customer->rfc ?? '';
             $this->tax_regime       = $this->customer->tax_regime ?? '';
+            $this->cfdi_use         = $this->customer->cfdi_use ?? '';
             $this->anniversary_date = $this->customer->anniversary_date?->format('Y-m-d') ?? '';
             $this->address          = $this->customer->address ?? '';
             $this->city             = $this->customer->city ?? '';
@@ -140,7 +142,8 @@ class CustomerForm extends Component
         return [
             'name'             => 'required|string|max:255',
             'rfc'              => 'nullable|string|max:13',
-            'tax_regime'       => 'nullable|string|max:255',
+            'tax_regime'       => 'nullable|string|max:10',
+            'cfdi_use'         => 'nullable|string|max:10',
             'anniversary_date' => 'nullable|date',
             'address'          => 'nullable|string|max:255',
             'city'             => 'nullable|string|max:100',
@@ -171,6 +174,7 @@ class CustomerForm extends Component
             'name'             => $this->name,
             'rfc'              => $this->rfc ?: null,
             'tax_regime'       => $this->tax_regime ?: null,
+            'cfdi_use'         => $this->cfdi_use ?: null,
             'anniversary_date' => $this->anniversary_date ?: null,
             'address'          => $this->address,
             'city'             => $this->city,
@@ -241,7 +245,7 @@ class CustomerForm extends Component
         $customer->contacts()->whereNotIn('id', $keptIds)->delete();
 
         session()->flash('success', $this->customer?->exists ? 'Cliente actualizado.' : 'Cliente creado.');
-        $this->redirect(route('contacts.index'));
+        $this->redirect(route('contacts.index'), navigate: true);
     }
 
     public function render()

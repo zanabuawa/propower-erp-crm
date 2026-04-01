@@ -13,12 +13,36 @@ class Customer extends Model
 {
     use BelongsToCompany, HasContactInfo, SoftDeletes;
 
+    const CFDI_USES = [
+        'G01' => 'G01 - Adquisición de mercancias',
+        'G02' => 'G02 - Devoluciones, descuentos o bonificaciones',
+        'G03' => 'G03 - Gastos en general',
+        'I01' => 'I01 - Construcciones',
+        'I04' => 'I04 - Equipo de computo y accesorios',
+        'I06' => 'I06 - Comunicaciones telefónicas',
+        'S01' => 'S01 - Sin efectos fiscales',
+        'CP01' => 'CP01 - Pagos',
+        'CN01' => 'CN01 - Nómina',
+    ];
+
+    const TAX_REGIMES = [
+        '601' => '601 - General de Ley Personas Morales',
+        '603' => '603 - Personas Morales con Fines no Lucrativos',
+        '606' => '606 - Arrendamiento',
+        '612' => '612 - Personas Físicas con Actividades Empresariales y Profesionales',
+        '616' => '616 - Sin obligaciones fiscales',
+        '621' => '621 - Incorporación Fiscal',
+        '625' => '625 - Actividades Empresariales con ingresos a través de Plataformas Tecnológicas',
+        '626' => '626 - Régimen Simplificado de Confianza (RESICO)',
+    ];
+
     protected $fillable = [
         'company_id',
         'assigned_to',
         'name',
         'rfc',
         'tax_regime',
+        'cfdi_use',
         'anniversary_date',
         'image',
         'address',

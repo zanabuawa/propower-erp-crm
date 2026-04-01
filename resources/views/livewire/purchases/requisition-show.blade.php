@@ -1,7 +1,7 @@
 <div class="max-w-4xl space-y-5">
 
     {{-- Header --}}
-    <div class="flex items-start justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div class="flex items-center gap-3">
             <a href="{{ route('purchases.index') }}" wire:navigate class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -17,7 +17,7 @@
                 </p>
             </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 self-start">
             <span class="px-3 py-1 text-xs font-medium rounded-full {{ \App\Models\PurchaseRequisition::STATUS_COLORS[$requisition->status] ?? 'bg-gray-100 text-gray-600' }}">
                 {{ \App\Models\PurchaseRequisition::STATUS[$requisition->status] ?? $requisition->status }}
             </span>
@@ -116,34 +116,40 @@
         <div class="px-5 py-3 border-b border-gray-100">
             <h2 class="text-sm font-medium text-gray-700">Ítems solicitados</h2>
         </div>
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-xs text-gray-500">
-                <tr>
-                    <th class="px-4 py-2 text-left">Descripción</th>
-                    <th class="px-4 py-2 text-center">Cant.</th>
-                    <th class="px-4 py-2 text-left">Unidad</th>
-                    <th class="px-4 py-2 text-right">Precio ref.</th>
-                    <th class="px-4 py-2 text-right">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-                @foreach($requisition->items as $item)
-                <tr>
-                    <td class="px-4 py-2 text-gray-800">{{ $item->description }}</td>
-                    <td class="px-4 py-2 text-center text-gray-600">{{ $item->quantity }}</td>
-                    <td class="px-4 py-2 text-gray-500 text-xs">{{ $item->unit }}</td>
-                    <td class="px-4 py-2 text-right text-gray-600">${{ number_format($item->unit_price, 2) }}</td>
-                    <td class="px-4 py-2 text-right font-medium">${{ number_format($item->quantity * $item->unit_price, 2) }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-            <tfoot class="bg-gray-50 text-xs">
-                <tr>
-                    <td colspan="4" class="px-4 py-2 text-right text-gray-500 font-medium">Total estimado</td>
-                    <td class="px-4 py-2 text-right font-semibold text-gray-800">${{ number_format($requisition->total, 2) }}</td>
-                </tr>
-            </tfoot>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[480px]">
+                <thead class="bg-gray-50 text-xs text-gray-500">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Descripción</th>
+                        <th class="px-4 py-2 text-center">Cant.</th>
+                        <th class="px-4 py-2 text-left hidden sm:table-cell">Unidad</th>
+                        <th class="px-4 py-2 text-right hidden sm:table-cell">Precio ref.</th>
+                        <th class="px-4 py-2 text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach($requisition->items as $item)
+                    <tr>
+                        <td class="px-4 py-2 text-gray-800">
+                            {{ $item->description }}
+                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">{{ $item->unit }} · ${{ number_format($item->unit_price, 2) }}</p>
+                        </td>
+                        <td class="px-4 py-2 text-center text-gray-600">{{ $item->quantity }}</td>
+                        <td class="px-4 py-2 text-gray-500 text-xs hidden sm:table-cell">{{ $item->unit }}</td>
+                        <td class="px-4 py-2 text-right text-gray-600 hidden sm:table-cell">${{ number_format($item->unit_price, 2) }}</td>
+                        <td class="px-4 py-2 text-right font-medium">${{ number_format($item->quantity * $item->unit_price, 2) }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                <tfoot class="bg-gray-50 text-xs">
+                    <tr>
+                        <td colspan="4" class="px-4 py-2 text-right text-gray-500 font-medium hidden sm:table-cell">Total estimado</td>
+                        <td colspan="2" class="px-4 py-2 text-right text-gray-500 font-medium sm:hidden">Total estimado</td>
+                        <td class="px-4 py-2 text-right font-semibold text-gray-800">${{ number_format($requisition->total, 2) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 
     {{-- ═══════════════════════════════════════════════════
@@ -162,7 +168,7 @@
         @endif
 
         @if(!$showQuotationForm && !$showRejectForm)
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             <button wire:click="openQuotationForm('preliminary')"
                 class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition">
                 {{ $requisition->status === 'requester_returned' ? 'Actualizar cotización preliminar' : 'Crear cotización preliminar' }}
@@ -210,7 +216,7 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm min-w-[540px]">
                 <thead class="bg-gray-50 text-xs text-gray-500">
                     <tr>
                         <th class="px-3 py-2 text-left">Descripción *</th>
@@ -329,44 +335,49 @@
             </div>
             @endif
 
-            <table class="w-full text-sm mt-3">
-                <thead class="bg-gray-50 text-xs text-gray-500">
-                    <tr>
-                        <th class="px-4 py-2 text-left">Descripción</th>
-                        <th class="px-4 py-2 text-center">Cant.</th>
-                        <th class="px-4 py-2 text-left">Unidad</th>
-                        <th class="px-4 py-2 text-right">Precio unit.</th>
-                        <th class="px-4 py-2 text-center">IVA</th>
-                        <th class="px-4 py-2 text-right">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50">
-                    @foreach($requisition->preliminaryQuotation->items as $qi)
-                    <tr>
-                        <td class="px-4 py-2">{{ $qi->description }}</td>
-                        <td class="px-4 py-2 text-center">{{ $qi->quantity }}</td>
-                        <td class="px-4 py-2 text-xs text-gray-500">{{ $qi->unit }}</td>
-                        <td class="px-4 py-2 text-right">${{ number_format($qi->unit_price, 2) }}</td>
-                        <td class="px-4 py-2 text-center text-xs text-gray-500">{{ $qi->tax_rate }}%</td>
-                        <td class="px-4 py-2 text-right font-medium">${{ number_format($qi->subtotal, 2) }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-                <tfoot class="bg-gray-50 text-xs font-medium">
-                    <tr>
-                        <td colspan="5" class="px-4 py-2 text-right text-gray-500">Subtotal</td>
-                        <td class="px-4 py-2 text-right">${{ number_format($requisition->preliminaryQuotation->subtotal, 2) }}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="5" class="px-4 py-2 text-right text-gray-500">IVA</td>
-                        <td class="px-4 py-2 text-right">${{ number_format($requisition->preliminaryQuotation->tax, 2) }}</td>
-                    </tr>
-                    <tr class="text-sm">
-                        <td colspan="5" class="px-4 py-2 text-right font-semibold text-gray-800">Total</td>
-                        <td class="px-4 py-2 text-right font-bold text-gray-900">${{ number_format($requisition->preliminaryQuotation->total, 2) }}</td>
-                    </tr>
-                </tfoot>
-            </table>
+            <div class="overflow-x-auto mt-3">
+                <table class="w-full text-sm min-w-[480px]">
+                    <thead class="bg-gray-50 text-xs text-gray-500">
+                        <tr>
+                            <th class="px-4 py-2 text-left">Descripción</th>
+                            <th class="px-4 py-2 text-center">Cant.</th>
+                            <th class="px-4 py-2 text-left hidden sm:table-cell">Unidad</th>
+                            <th class="px-4 py-2 text-right">Precio unit.</th>
+                            <th class="px-4 py-2 text-center hidden sm:table-cell">IVA</th>
+                            <th class="px-4 py-2 text-right">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach($requisition->preliminaryQuotation->items as $qi)
+                        <tr>
+                            <td class="px-4 py-2">{{ $qi->description }}</td>
+                            <td class="px-4 py-2 text-center">{{ $qi->quantity }}</td>
+                            <td class="px-4 py-2 text-xs text-gray-500 hidden sm:table-cell">{{ $qi->unit }}</td>
+                            <td class="px-4 py-2 text-right">${{ number_format($qi->unit_price, 2) }}</td>
+                            <td class="px-4 py-2 text-center text-xs text-gray-500 hidden sm:table-cell">{{ $qi->tax_rate }}%</td>
+                            <td class="px-4 py-2 text-right font-medium">${{ number_format($qi->subtotal, 2) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot class="bg-gray-50 text-xs font-medium">
+                        <tr>
+                            <td colspan="5" class="px-4 py-2 text-right text-gray-500 hidden sm:table-cell">Subtotal</td>
+                            <td colspan="2" class="px-4 py-2 text-right text-gray-500 sm:hidden">Subtotal</td>
+                            <td class="px-4 py-2 text-right">${{ number_format($requisition->preliminaryQuotation->subtotal, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" class="px-4 py-2 text-right text-gray-500 hidden sm:table-cell">IVA</td>
+                            <td colspan="2" class="px-4 py-2 text-right text-gray-500 sm:hidden">IVA</td>
+                            <td class="px-4 py-2 text-right">${{ number_format($requisition->preliminaryQuotation->tax, 2) }}</td>
+                        </tr>
+                        <tr class="text-sm">
+                            <td colspan="5" class="px-4 py-2 text-right font-semibold text-gray-800 hidden sm:table-cell">Total</td>
+                            <td colspan="2" class="px-4 py-2 text-right font-semibold text-gray-800 sm:hidden">Total</td>
+                            <td class="px-4 py-2 text-right font-bold text-gray-900">${{ number_format($requisition->preliminaryQuotation->total, 2) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         @endif
 
         <div class="px-5 py-4 border-t border-gray-100 space-y-3">
@@ -393,13 +404,13 @@
 
     {{-- ── COMPRAS: solicitante confirmó → crear cotización final ── --}}
     @if($requisition->status === 'requester_confirmed' && $this->isComprador && !$showQuotationForm)
-    <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-5 flex items-center justify-between gap-4">
+    <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <p class="text-sm font-medium text-cyan-800">El solicitante confirmó la cotización preliminar</p>
             <p class="text-xs text-cyan-600 mt-0.5">Ahora puedes crear la cotización final con precios y proveedor definitivos.</p>
         </div>
         <button wire:click="openQuotationForm('final')" type="button"
-            class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition whitespace-nowrap">
+            class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition whitespace-nowrap self-start sm:self-auto">
             Crear cotización final
         </button>
     </div>
@@ -415,42 +426,50 @@
             </span>
         </div>
 
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-xs text-gray-500">
-                <tr>
-                    <th class="px-4 py-2 text-left">Descripción</th>
-                    <th class="px-4 py-2 text-center">Cant.</th>
-                    <th class="px-4 py-2 text-right">Precio unit.</th>
-                    <th class="px-4 py-2 text-center">IVA</th>
-                    <th class="px-4 py-2 text-right">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-                @foreach($requisition->finalQuotation->items as $qi)
-                <tr>
-                    <td class="px-4 py-2">{{ $qi->description }}</td>
-                    <td class="px-4 py-2 text-center">{{ $qi->quantity }} {{ $qi->unit }}</td>
-                    <td class="px-4 py-2 text-right">${{ number_format($qi->unit_price, 2) }}</td>
-                    <td class="px-4 py-2 text-center text-xs text-gray-500">{{ $qi->tax_rate }}%</td>
-                    <td class="px-4 py-2 text-right font-medium">${{ number_format($qi->subtotal, 2) }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-            <tfoot class="bg-gray-50 text-xs font-medium">
-                <tr>
-                    <td colspan="4" class="px-4 py-2 text-right text-gray-500">Subtotal</td>
-                    <td class="px-4 py-2 text-right">${{ number_format($requisition->finalQuotation->subtotal, 2) }}</td>
-                </tr>
-                <tr>
-                    <td colspan="4" class="px-4 py-2 text-right text-gray-500">IVA</td>
-                    <td class="px-4 py-2 text-right">${{ number_format($requisition->finalQuotation->tax, 2) }}</td>
-                </tr>
-                <tr class="text-sm">
-                    <td colspan="4" class="px-4 py-2 text-right font-semibold text-gray-800">Total</td>
-                    <td class="px-4 py-2 text-right font-bold text-gray-900">${{ number_format($requisition->finalQuotation->total, 2) }}</td>
-                </tr>
-            </tfoot>
-        </table>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[420px]">
+                <thead class="bg-gray-50 text-xs text-gray-500">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Descripción</th>
+                        <th class="px-4 py-2 text-center">Cant.</th>
+                        <th class="px-4 py-2 text-right hidden sm:table-cell">Precio unit.</th>
+                        <th class="px-4 py-2 text-center hidden sm:table-cell">IVA</th>
+                        <th class="px-4 py-2 text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach($requisition->finalQuotation->items as $qi)
+                    <tr>
+                        <td class="px-4 py-2">
+                            {{ $qi->description }}
+                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">${{ number_format($qi->unit_price, 2) }} · IVA {{ $qi->tax_rate }}%</p>
+                        </td>
+                        <td class="px-4 py-2 text-center">{{ $qi->quantity }} {{ $qi->unit }}</td>
+                        <td class="px-4 py-2 text-right hidden sm:table-cell">${{ number_format($qi->unit_price, 2) }}</td>
+                        <td class="px-4 py-2 text-center text-xs text-gray-500 hidden sm:table-cell">{{ $qi->tax_rate }}%</td>
+                        <td class="px-4 py-2 text-right font-medium">${{ number_format($qi->subtotal, 2) }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                <tfoot class="bg-gray-50 text-xs font-medium">
+                    <tr>
+                        <td colspan="4" class="px-4 py-2 text-right text-gray-500 hidden sm:table-cell">Subtotal</td>
+                        <td colspan="2" class="px-4 py-2 text-right text-gray-500 sm:hidden">Subtotal</td>
+                        <td class="px-4 py-2 text-right">${{ number_format($requisition->finalQuotation->subtotal, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="px-4 py-2 text-right text-gray-500 hidden sm:table-cell">IVA</td>
+                        <td colspan="2" class="px-4 py-2 text-right text-gray-500 sm:hidden">IVA</td>
+                        <td class="px-4 py-2 text-right">${{ number_format($requisition->finalQuotation->tax, 2) }}</td>
+                    </tr>
+                    <tr class="text-sm">
+                        <td colspan="4" class="px-4 py-2 text-right font-semibold text-gray-800 hidden sm:table-cell">Total</td>
+                        <td colspan="2" class="px-4 py-2 text-right font-semibold text-gray-800 sm:hidden">Total</td>
+                        <td class="px-4 py-2 text-right font-bold text-gray-900">${{ number_format($requisition->finalQuotation->total, 2) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
 
         {{-- Panel de autorizaciones --}}
         @if($requisition->finalQuotation->approvals->count() > 0)
@@ -465,7 +484,6 @@
                             {{ $approval->level }}
                         </div>
                         <div>
-                            {{-- Muestra quién autorizó; si aún no hay nadie, indica el rol esperado --}}
                             <p class="text-xs font-medium text-gray-800">
                                 {{ $approval->user?->name ?? 'Pendiente de ' . ucfirst($approval->role) }}
                             </p>
@@ -565,7 +583,7 @@
                     <p class="text-[10px] text-gray-400">Dibuja tu firma con el ratón o dedo. Es obligatoria para autorizar.</p>
                 </div>
 
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-3">
                     <button wire:click="approveQuotation" type="button"
                         class="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
                         Autorizar
@@ -584,13 +602,13 @@
 
     {{-- ── Orden de compra generada ── --}}
     @if($requisition->status === 'ordered' && $requisition->order)
-    <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center justify-between gap-4">
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <p class="text-sm font-medium text-green-800">Orden de compra generada</p>
             <p class="text-xs text-green-600 mt-0.5">Folio: {{ $requisition->order->folio }}</p>
         </div>
         <a href="{{ route('purchases.orders.show', $requisition->order) }}" wire:navigate
-            class="px-4 py-2 text-sm bg-green-700 hover:bg-green-800 text-white rounded-lg transition whitespace-nowrap">
+            class="px-4 py-2 text-sm bg-green-700 hover:bg-green-800 text-white rounded-lg transition whitespace-nowrap self-start sm:self-auto">
             Ver orden de compra
         </a>
     </div>

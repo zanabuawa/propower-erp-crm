@@ -6,42 +6,42 @@
             <p class="text-sm text-gray-500 mt-1">Catálogo de productos, materiales y servicios</p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <a href="{{ route('inventory.general') }}"
+            <a wire:navigate href="{{ route('inventory.general') }}"
                 class="inline-flex items-center gap-2 text-sm border border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                 </svg>
                 Existencias
             </a>
-            <a href="{{ route('inventory.warehouse-stock') }}"
+            <a wire:navigate href="{{ route('inventory.warehouse-stock') }}"
                 class="inline-flex items-center gap-2 text-sm border border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
                 Por almacén
             </a>
-            <a href="{{ route('inventory.categories.index') }}"
+            <a wire:navigate href="{{ route('inventory.categories.index') }}"
                 class="inline-flex items-center gap-2 text-sm border border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
                 </svg>
                 Categorías
             </a>
-            <a href="{{ route('inventory.units.index') }}"
+            <a wire:navigate href="{{ route('inventory.units.index') }}"
                 class="inline-flex items-center gap-2 text-sm border border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-4 0h4"/>
                 </svg>
                 Unidades
             </a>
-            <a href="{{ route('inventory.warehouses.index') }}"
+            <a wire:navigate href="{{ route('inventory.warehouses.index') }}"
                 class="inline-flex items-center gap-2 text-sm border border-gray-200 hover:border-gray-300 hover:bg-gray-50 px-3 py-2 rounded-lg transition text-gray-600">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
                 </svg>
                 Almacenes
             </a>
-            <a href="{{ route('inventory.products.create') }}"
+            <a wire:navigate href="{{ route('inventory.products.create') }}"
                 class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -191,7 +191,7 @@
 
                         {{-- Acciones --}}
                         <div class="flex gap-2 mt-3 pt-2 border-t border-gray-100">
-                            <a href="{{ route('inventory.products.edit', $product) }}"
+                            <a wire:navigate href="{{ route('inventory.products.edit', $product) }}"
                                 class="flex-1 text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium py-1.5 px-2 rounded-lg hover:bg-indigo-50 transition">
                                 Editar
                             </a>
@@ -326,7 +326,7 @@
                             </td>
                             <td class="px-5 py-3 text-right">
                                 <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition">
-                                    <a href="{{ route('inventory.products.edit', $product) }}"
+                                    <a wire:navigate href="{{ route('inventory.products.edit', $product) }}"
                                         class="p-1.5 text-indigo-600 hover:text-indigo-800 rounded-md hover:bg-indigo-50 transition"
                                         title="Editar">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -366,7 +366,7 @@
 
     {{-- Modal de confirmación --}}
     @if($confirmingDelete)
-        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div class="bg-white rounded-xl border border-gray-200 p-6 w-full max-w-sm mx-4">
                 <div class="flex items-center gap-3 mb-4">
                     <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">

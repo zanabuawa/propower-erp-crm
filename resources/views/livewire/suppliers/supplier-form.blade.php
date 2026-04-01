@@ -1,6 +1,6 @@
 <div class="max-w-3xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('suppliers.index') }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('suppliers.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
             </svg>
@@ -86,7 +86,7 @@
                     class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Agregar</button>
             </div>
             @foreach($phones as $index => $phone)
-                <div class="flex gap-2 items-center">
+                <div class="flex flex-wrap gap-2 items-center">
                     <input wire:model="phones.{{ $index }}.number" type="text" placeholder="Número"
                         class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                     <select wire:model="phones.{{ $index }}.type"
@@ -120,7 +120,7 @@
                     class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Agregar</button>
             </div>
             @foreach($emails as $index => $email)
-                <div class="flex gap-2 items-center">
+                <div class="flex flex-wrap gap-2 items-center">
                     <input wire:model="emails.{{ $index }}.email" type="email" placeholder="correo@ejemplo.com"
                         class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                     <select wire:model="emails.{{ $index }}.type"
@@ -234,8 +234,8 @@
             </div>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pb-6">
-            <a href="{{ route('suppliers.index') }}"
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+            <a wire:navigate href="{{ route('suppliers.index') }}"
                 class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                 Cancelar
             </a>

@@ -1,6 +1,6 @@
-<div class="max-w-3xl">
+<div class="max-w-4xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('purchases.orders.show', $order) }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('purchases.orders.show', $order) }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7" />
             </svg>
@@ -68,7 +68,7 @@
 
                 {{-- Notas --}}
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">Notas</label>
+                    <label class="block text-xs text-gray-500 mb-1">Notas generales</label>
                     <input wire:model="notes" type="text"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                         placeholder="Observaciones de la recepción">
@@ -78,33 +78,58 @@
 
         {{-- Tabla de productos --}}
         <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div class="px-5 py-3 border-b border-gray-100">
-                <h2 class="text-sm font-medium text-gray-700">Productos a recibir</h2>
+            <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h2 class="text-sm font-medium text-gray-700">Checklist de productos</h2>
+                    @php
+                        $receivedCount = collect($items)->where('received', true)->count();
+                        $totalCount    = count($items);
+                    @endphp
+                    @if($totalCount > 0)
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            {{ $receivedCount }}/{{ $totalCount }} producto(s) marcado(s) — desmarca los que no llegaron
+                        </p>
+                    @endif
+                </div>
             </div>
-            <table class="w-full text-sm">
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[620px]">
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-3 py-2.5 w-10">
+                            <span class="text-xs font-medium text-gray-500">Ok</span>
+                        </th>
                         <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Producto</th>
-                        <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500">Pendiente</th>
+                        <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500">Ordenado</th>
                         <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Cant. a recibir</th>
                         @if($reception_type !== 'defective')
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio costo</th>
-                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Gastos op. %</th>
+                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Gastos op. %</th>
                         @endif
                         <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Almacén destino</th>
+                        <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Notas</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($items as $index => $item)
-                        <tr>
+                        @php $received = $item['received'] ?? true; @endphp
+                        <tr class="{{ $received ? '' : 'opacity-50 bg-gray-50' }}">
+                            <td class="px-3 py-3 text-center">
+                                <input wire:model.live="items.{{ $index }}.received"
+                                    type="checkbox"
+                                    class="w-4 h-4 rounded text-teal-600 border-gray-300 focus:ring-teal-400"
+                                    {{ $received ? 'checked' : '' }}>
+                            </td>
                             <td class="px-4 py-3">
                                 <p class="font-medium text-gray-900">{{ $item['product_name'] }}</p>
                             </td>
-                            <td class="px-4 py-3 text-right text-gray-600">{{ $item['quantity_pending'] }}</td>
+                            <td class="px-4 py-3 text-right text-gray-500 text-xs">{{ $item['quantity_ordered'] }}</td>
                             <td class="px-4 py-3">
-                                <input wire:model="items.{{ $index }}.quantity_received" type="number" step="0.01" min="0"
+                                <input wire:model="items.{{ $index }}.quantity_received"
+                                    type="number" step="0.01" min="0"
                                     max="{{ $item['quantity_pending'] }}"
-                                    class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                    {{ !$received ? 'disabled' : '' }}
+                                    class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:bg-gray-100">
                                 @error("items.{$index}.quantity_received")
                                     <p class="text-xs text-red-500">{{ $message }}</p>
                                 @enderror
@@ -113,14 +138,18 @@
                                 <td class="px-4 py-3">
                                     <div class="relative">
                                         <span class="absolute left-2 top-1.5 text-xs text-gray-400">$</span>
-                                        <input wire:model="items.{{ $index }}.purchase_price" type="number" step="0.01" min="0"
-                                            class="w-full border border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        <input wire:model="items.{{ $index }}.purchase_price"
+                                            type="number" step="0.01" min="0"
+                                            {{ !$received ? 'disabled' : '' }}
+                                            class="w-full border border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:bg-gray-100">
                                     </div>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="relative">
-                                        <input wire:model="items.{{ $index }}.operational_cost" type="number" step="0.01" min="0" max="999"
-                                            class="w-full border border-gray-200 rounded pl-3 pr-7 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300"
+                                        <input wire:model="items.{{ $index }}.operational_cost"
+                                            type="number" step="0.01" min="0" max="999"
+                                            {{ !$received ? 'disabled' : '' }}
+                                            class="w-full border border-gray-200 rounded pl-3 pr-7 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300 disabled:bg-gray-100"
                                             placeholder="0.00">
                                         <span class="absolute right-2 top-1.5 text-xs text-gray-400">%</span>
                                     </div>
@@ -134,7 +163,8 @@
                                     <span class="text-xs text-amber-600">Almacén defectuosos</span>
                                 @else
                                     <select wire:model="items.{{ $index }}.warehouse_id"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        {{ !$received ? 'disabled' : '' }}
+                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:bg-gray-100">
                                         @foreach($warehouses as $warehouse)
                                             <option value="{{ $warehouse->id }}" {{ $item['warehouse_id'] == $warehouse->id ? 'selected' : '' }}>
                                                 {{ $warehouse->name }}
@@ -143,22 +173,31 @@
                                     </select>
                                 @endif
                             </td>
+                            <td class="px-4 py-3">
+                                <input wire:model="items.{{ $index }}.notes"
+                                    type="text"
+                                    {{ !$received ? 'disabled' : '' }}
+                                    placeholder="Ej: golpeado, incompleto..."
+                                    class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300 disabled:bg-gray-100"
+                                    style="min-width:140px">
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-8 text-center text-gray-400 text-sm">
+                            <td colspan="8" class="px-5 py-8 text-center text-gray-400 text-sm">
                                 Todos los productos ya fueron recibidos.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
 
         @if(count($items) > 0)
-            <div class="flex items-center justify-end gap-3 pb-6">
-                <a href="{{ route('purchases.orders.show', $order) }}"
-                    class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+            <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+                <a wire:navigate href="{{ route('purchases.orders.show', $order) }}"
+                    class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition text-center">
                     Cancelar
                 </a>
                 <button type="button" wire:click="confirm"
@@ -180,20 +219,21 @@
                         Tipo: <strong>{{ \App\Models\PurchaseReceipt::RECEPTION_TYPES[$reception_type] }}</strong>
                     </p>
                 </div>
-                <div class="p-6 space-y-3">
+                <div class="p-6 space-y-3 max-h-80 overflow-y-auto">
                     <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Productos que se registrarán</p>
-                    <div class="border border-gray-100 rounded-lg overflow-hidden">
+                    <div class="border border-gray-100 rounded-lg overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
                                     <th class="text-left px-4 py-2">Producto</th>
                                     <th class="text-right px-4 py-2">Cantidad</th>
                                     <th class="text-left px-4 py-2">Almacén</th>
+                                    <th class="text-left px-4 py-2">Notas</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @foreach($items as $item)
-                                    @if($item['quantity_received'] > 0)
+                                    @if(($item['received'] ?? true) && $item['quantity_received'] > 0)
                                         @php
                                             $wh = $warehouses->firstWhere('id', $reception_type === 'defective' ? $warehouse_id : $item['warehouse_id']);
                                         @endphp
@@ -201,6 +241,7 @@
                                             <td class="px-4 py-2.5 font-medium text-gray-900">{{ $item['product_name'] }}</td>
                                             <td class="px-4 py-2.5 text-right text-gray-700">{{ $item['quantity_received'] }}</td>
                                             <td class="px-4 py-2.5 text-gray-500 text-xs">{{ $wh?->name ?? '—' }}</td>
+                                            <td class="px-4 py-2.5 text-gray-500 text-xs">{{ $item['notes'] ?: '—' }}</td>
                                         </tr>
                                     @endif
                                 @endforeach

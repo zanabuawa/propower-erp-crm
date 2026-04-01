@@ -47,6 +47,7 @@ class ReceiptForm extends Component
                 'quantity_pending'  => $i->pending_quantity,
                 'operational_cost'  => '0',
                 'notes'             => '',
+                'received'          => true,
             ])->values()->toArray();
     }
 
@@ -142,6 +143,7 @@ class ReceiptForm extends Component
             };
 
             foreach ($this->items as $item) {
+                if (!($item['received'] ?? true)) continue;
                 if ($item['quantity_received'] <= 0) continue;
 
                 $warehouseId = $this->reception_type === 'defective'
@@ -220,7 +222,7 @@ class ReceiptForm extends Component
 
         $this->showConfirmModal = false;
         session()->flash('success', 'Recepción registrada y stock actualizado.');
-        $this->redirect(route('purchases.orders.show', $this->order));
+        $this->redirect(route('purchases.orders.show', $this->order), navigate: true);
     }
 
     public function render()

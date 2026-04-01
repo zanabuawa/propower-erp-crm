@@ -213,7 +213,7 @@ class InvoiceForm extends Component
         });
 
         session()->flash('success', 'Factura creada correctamente.');
-        $this->redirect(route('sales.invoices.index'));
+        $this->redirect(route('sales.invoices.index'), navigate: true);
     }
 
     public function render()

@@ -1,6 +1,6 @@
 <div class="max-w-4xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('inventory.movements.index') }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('inventory.movements.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -108,7 +108,8 @@
             {{-- Tabla de productos agregados --}}
             @if(count($items) > 0)
                 <div class="border border-gray-100 rounded-lg overflow-hidden">
-                    <table class="w-full text-sm">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm min-w-[480px]">
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100">
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Producto</th>
@@ -163,6 +164,7 @@
                         </tfoot>
                     </table>
                 </div>
+                </div>
             @else
                 <div class="border-2 border-dashed border-gray-200 rounded-lg py-8 text-center text-gray-400 text-sm">
                     Busca y agrega productos al movimiento
@@ -170,9 +172,9 @@
             @endif
         </div>
 
-        <div class="flex items-center justify-end gap-3 pb-6">
-            <a href="{{ route('inventory.movements.index') }}"
-                class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+            <a wire:navigate href="{{ route('inventory.movements.index') }}"
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition text-center">
                 Cancelar
             </a>
             <button type="submit"

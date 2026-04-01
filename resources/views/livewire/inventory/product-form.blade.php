@@ -1,6 +1,6 @@
 <div class="max-w-3xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('inventory.index') }}" class="text-gray-400 hover:text-gray-600">
+        <a wire:navigate href="{{ route('inventory.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -206,6 +206,37 @@
             </div>
         </div>
 
+        {{-- ── Códigos SAT (CFDI) ───────────────────────────────────────────── --}}
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Códigos SAT (CFDI)</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Clave de producto/servicio</label>
+                    <select wire:model="sat_product_code"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Seleccionar —</option>
+                        @foreach(\App\Models\Product::SAT_PRODUCT_CODES as $code => $label)
+                            <option value="{{ $code }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">ClaveProdServ del SAT requerida para CFDI</p>
+                    @error('sat_product_code') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Clave de unidad</label>
+                    <select wire:model="sat_unit_code"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Seleccionar —</option>
+                        @foreach(\App\Models\Product::SAT_UNIT_CODES as $code => $label)
+                            <option value="{{ $code }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">ClaveUnidad del SAT requerida para CFDI</p>
+                    @error('sat_unit_code') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </div>
+
         {{-- ── Precios ───────────────────────────────────────────────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Precios y margen</h2>
@@ -272,7 +303,7 @@
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Imágenes</h2>
             @if(count($existingImages) > 0)
-                <div class="grid grid-cols-4 gap-3 mb-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                     @foreach($existingImages as $image)
                         <div class="relative group">
                             <img src="{{ Storage::url($image['path']) }}"
@@ -313,9 +344,9 @@
             </label>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pb-6">
-            <a href="{{ route('inventory.index') }}"
-                class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+            <a wire:navigate href="{{ route('inventory.index') }}"
+                class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition text-center">
                 Cancelar
             </a>
             <button type="submit"

@@ -179,7 +179,7 @@ class StockMovementForm extends Component
         });
 
         session()->flash('success', 'Movimiento registrado correctamente.');
-        $this->redirect(route('inventory.movements.index'));
+        $this->redirect(route('inventory.movements.index'), navigate: true);
     }
 
     public function render()

@@ -1,6 +1,6 @@
 <div class="max-w-2xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('companies.index') }}" class="text-gray-400 hover:text-gray-600 transition">
+        <a wire:navigate href="{{ route('companies.index') }}" class="text-gray-400 hover:text-gray-600 transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -58,6 +58,29 @@
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos fiscales (CFDI)</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Régimen fiscal</label>
+                    <select wire:model="fiscal_regime"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Seleccionar —</option>
+                        @foreach(\App\Models\Company::FISCAL_REGIMES as $code => $label)
+                            <option value="{{ $code }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('fiscal_regime') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Código postal fiscal (lugar de expedición)</label>
+                    <input wire:model="fiscal_postal_code" type="text" maxlength="5" placeholder="Ej. 64000"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    @error('fiscal_postal_code') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Logos</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
@@ -106,8 +129,8 @@
             </label>
         </div>
 
-        <div class="flex items-center justify-end gap-3 pb-6">
-            <a href="{{ route('companies.index') }}"
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
+            <a wire:navigate href="{{ route('companies.index') }}"
                 class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                 Cancelar
             </a>

@@ -26,6 +26,11 @@ class PurchaseReceipt extends Model
         'operating_expenses' => 'decimal:2',
     ];
 
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
     public function order(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id');

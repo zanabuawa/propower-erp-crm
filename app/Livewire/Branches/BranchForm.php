@@ -84,7 +84,7 @@ class BranchForm extends Component
             session()->flash('success', 'Sucursal creada correctamente.');
         }
 
-        $this->redirect(route('branches.index'));
+        $this->redirect(route('branches.index'), navigate: true);
     }
 
     public function render()

@@ -87,21 +87,32 @@ class UserForm extends Component
     }
 
     /**
-     * All permissions grouped by module with labels.
+     * All permissions grouped by module with labels (CRUD + extras).
      */
     public function getGroupedPermissionsProperty(): array
     {
         $groups = [];
         foreach (RolesAndPermissionsSeeder::$modules as $module => $label) {
             $permissions = [];
+
+            // Base CRUD actions
             foreach (RolesAndPermissionsSeeder::$actions as $action => $actionLabel) {
                 $permName = "{$action} {$module}";
                 $permissions[] = [
                     'name'        => $permName,
-                    'action'      => $action,
                     'actionLabel' => $actionLabel,
                 ];
             }
+
+            // Extra granular permissions for this module
+            $extras = RolesAndPermissionsSeeder::$extraPermissions[$module] ?? [];
+            foreach ($extras as $permName => $actionLabel) {
+                $permissions[] = [
+                    'name'        => $permName,
+                    'actionLabel' => $actionLabel,
+                ];
+            }
+
             $groups[] = [
                 'module'      => $module,
                 'label'       => $label,
@@ -158,7 +169,7 @@ class UserForm extends Component
             session()->flash('success', 'Usuario creado correctamente.');
         }
 
-        $this->redirect(route('users.index'));
+        $this->redirect(route('users.index'), navigate: true);
     }
 
     public function render()

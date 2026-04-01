@@ -209,7 +209,7 @@ class SupplierForm extends Component
         }
 
         session()->flash('success', $this->supplier?->exists ? 'Proveedor actualizado.' : 'Proveedor creado.');
-        $this->redirect(route('suppliers.index'));
+        $this->redirect(route('suppliers.index'), navigate: true);
     }
 
     public function render()
