@@ -69,22 +69,37 @@
 
         {{-- Productos --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Productos</h2>
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h2 class="text-sm font-medium text-gray-700">Productos y servicios</h2>
+                <livewire:shared.product-picker />
+            </div>
 
+            {{-- Búsqueda rápida inline --}}
             <div class="relative">
-                <input wire:model.live.debounce.300ms="productSearch" type="text"
-                    placeholder="Buscar producto..."
-                    class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input wire:model.live.debounce.250ms="productSearch" type="text"
+                    placeholder="Búsqueda rápida: nombre, SKU o código de barras..."
+                    class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 @if(count($productResults) > 0)
-                    <div class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 mt-1">
+                    <div class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl z-10 mt-1 overflow-hidden">
                         @foreach($productResults as $result)
                             <button type="button" wire:click="addProduct({{ $result['id'] }})"
-                                class="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition flex items-center justify-between">
+                                class="w-full text-left px-4 py-2.5 hover:bg-indigo-50 transition flex items-center justify-between border-b border-gray-50 last:border-0">
                                 <div>
                                     <p class="text-sm font-medium text-gray-900">{{ $result['name'] }}</p>
-                                    <p class="text-xs text-gray-400">SKU: {{ $result['sku'] ?? '—' }}</p>
+                                    <p class="text-xs text-gray-400">
+                                        SKU: {{ $result['sku'] ?? '—' }}
+                                        @if($result['barcode'] ?? null) · CB: {{ $result['barcode'] }} @endif
+                                    </p>
                                 </div>
-                                <span class="text-xs text-indigo-600 font-medium">+ Agregar</span>
+                                <div class="text-right flex-shrink-0 ml-4">
+                                    <p class="text-xs font-semibold text-indigo-600">${{ number_format($result['sale_price'], 2) }}</p>
+                                    <p class="text-xs text-indigo-400">+ Agregar</p>
+                                </div>
                             </button>
                         @endforeach
                     </div>

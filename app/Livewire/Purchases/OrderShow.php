@@ -41,6 +41,13 @@ class OrderShow extends Component
         session()->flash('success', 'Orden marcada como enviada al proveedor.');
     }
 
+    public function markAsWaitingDelivery(): void
+    {
+        $this->order->update(['status' => 'waiting_delivery']);
+        $this->order->refresh();
+        session()->flash('success', 'Orden marcada como esperando mercancía.');
+    }
+
     public function cancel(): void
     {
         $this->order->update(['status' => 'cancelled']);

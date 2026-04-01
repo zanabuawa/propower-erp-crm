@@ -16,6 +16,7 @@ class SupplierForm extends Component
     public ?Supplier $supplier = null;
     public string $type = 'company';
     public string $name = '';
+    public string $internal_code = '';
     public string $rfc = '';
     public string $tax_regime = '';
     public $image = null;
@@ -42,6 +43,7 @@ class SupplierForm extends Component
 
             $this->type          = $this->supplier->type;
             $this->name          = $this->supplier->name;
+            $this->internal_code = $this->supplier->internal_code ?? '';
             $this->rfc           = $this->supplier->rfc ?? '';
             $this->tax_regime    = $this->supplier->tax_regime ?? '';
             $this->address       = $this->supplier->address ?? '';
@@ -130,6 +132,7 @@ class SupplierForm extends Component
         return [
             'type'                          => 'required|in:person,company',
             'name'                          => 'required|string|max:255',
+            'internal_code'                 => 'nullable|string|max:60',
             'rfc'                           => 'nullable|string|max:13',
             'tax_regime'                    => 'nullable|string|max:255',
             'address'                       => 'nullable|string|max:255',
@@ -158,6 +161,7 @@ class SupplierForm extends Component
             'company_id'    => auth()->user()->company_id,
             'type'          => $this->type,
             'name'          => $this->name,
+            'internal_code' => $this->internal_code ?: null,
             'rfc'           => $this->rfc ?: null,
             'tax_regime'    => $this->tax_regime ?: null,
             'address'       => $this->address,

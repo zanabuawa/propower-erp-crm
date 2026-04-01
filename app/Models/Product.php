@@ -12,8 +12,9 @@ class Product extends Model
     use BelongsToCompany;
 
     protected $fillable = [
-        'company_id', 'category_id', 'unit_of_measure_id', 'supplier_id',
+        'company_id', 'type', 'category_id', 'subcategory_id', 'unit_of_measure_id', 'supplier_id',
         'name', 'sku', 'barcode', 'description',
+        'brand', 'model', 'color',
         'purchase_price', 'profit_margin', 'operational_costs', 'sale_price',
         'min_stock', 'max_stock', 'is_active',
     ];
@@ -36,6 +37,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function subcategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'subcategory_id');
     }
 
     public function unitOfMeasure(): BelongsTo

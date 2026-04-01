@@ -30,13 +30,20 @@
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos generales</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
+                <div>
                     <label class="block text-xs text-gray-500 mb-1">
                         {{ $type === 'company' ? 'Razón social *' : 'Nombre completo *' }}
                     </label>
                     <input wire:model="name" type="text" value="{{ $name }}"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                     @error('name') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Código interno (No. proveedor)</label>
+                    <input wire:model="internal_code" type="text"
+                        placeholder="Ej. PROV-0042"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    <p class="text-xs text-gray-400 mt-1">Número o clave interna para identificar a este proveedor</p>
                 </div>
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">RFC</label>

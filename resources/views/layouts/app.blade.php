@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
@@ -166,7 +167,7 @@ x-init="init()">
             @canany(['view inventory', 'create inventory', 'edit inventory', 'delete inventory'])
             <x-sidebar-menu id="inv" label="Inventario" icon="inventory" :routes="['inventory.*']">
                 @can('view inventory')
-                <x-sidebar-subitem route="inventory.index" label="Productos" />
+                <x-sidebar-subitem route="inventory.index" label="Productos y servicios" />
                 <x-sidebar-subitem route="inventory.general" label="Existencias generales" />
                 <x-sidebar-subitem route="inventory.warehouse-stock" label="Existencias por almacén" />
                 <x-sidebar-subitem route="inventory.categories.index" label="Categorías" />
@@ -184,6 +185,7 @@ x-init="init()">
                 <x-sidebar-subitem route="purchases.index" label="Requisiciones" />
                 <x-sidebar-subitem route="purchases.orders.index" label="Órdenes de compra" />
                 <x-sidebar-subitem route="purchases.goods-receipts.index" label="Recepción de mercancías" />
+                <x-sidebar-subitem route="purchases.report" label="Reporte de compras" />
                 @endcan
             </x-sidebar-menu>
             @endcanany

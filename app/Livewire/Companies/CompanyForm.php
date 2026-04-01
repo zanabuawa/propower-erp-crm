@@ -26,6 +26,7 @@ class CompanyForm extends Component
     public bool $is_active = true;
     public $logo;
     public $icon;
+    public $print_logo;
 
     public function mount($company = null): void
     {
@@ -90,6 +91,10 @@ class CompanyForm extends Component
 
         if ($this->icon && is_object($this->icon)) {
             $data['icon'] = $this->icon->store('icons', 'public');
+        }
+
+        if ($this->print_logo && is_object($this->print_logo)) {
+            $data['print_logo'] = $this->print_logo->store('logos', 'public');
         }
 
         if ($this->company?->exists) {

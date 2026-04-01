@@ -15,28 +15,31 @@ class WarehouseForm extends Component
     public string $name = '';
     public string $code = '';
     public string $location = '';
-    public bool $is_active = true;
+    public bool $is_active    = true;
+    public bool $is_defective = false;
 
     public function mount($warehouse = null): void
     {
         if ($warehouse) {
-            $this->warehouse  = $warehouse instanceof Warehouse ? $warehouse : Warehouse::findOrFail($warehouse);
-            $this->branch_id  = $this->warehouse->branch_id;
-            $this->name       = $this->warehouse->name;
-            $this->code       = $this->warehouse->code ?? '';
-            $this->location   = $this->warehouse->location ?? '';
-            $this->is_active  = $this->warehouse->is_active;
+            $this->warehouse    = $warehouse instanceof Warehouse ? $warehouse : Warehouse::findOrFail($warehouse);
+            $this->branch_id    = $this->warehouse->branch_id;
+            $this->name         = $this->warehouse->name;
+            $this->code         = $this->warehouse->code ?? '';
+            $this->location     = $this->warehouse->location ?? '';
+            $this->is_active    = $this->warehouse->is_active;
+            $this->is_defective = $this->warehouse->is_defective;
         }
     }
 
     public function rules(): array
     {
         return [
-            'branch_id' => 'required|exists:branches,id',
-            'name'      => 'required|string|max:255',
-            'code'      => 'nullable|string|max:20',
-            'location'  => 'nullable|string|max:255',
-            'is_active' => 'boolean',
+            'branch_id'    => 'required|exists:branches,id',
+            'name'         => 'required|string|max:255',
+            'code'         => 'nullable|string|max:20',
+            'location'     => 'nullable|string|max:255',
+            'is_active'    => 'boolean',
+            'is_defective' => 'boolean',
         ];
     }
 
@@ -45,12 +48,13 @@ class WarehouseForm extends Component
         $this->validate();
 
         $data = [
-            'company_id' => auth()->user()->company_id,
-            'branch_id'  => $this->branch_id,
-            'name'       => $this->name,
-            'code'       => $this->code,
-            'location'   => $this->location,
-            'is_active'  => $this->is_active,
+            'company_id'   => auth()->user()->company_id,
+            'branch_id'    => $this->branch_id,
+            'name'         => $this->name,
+            'code'         => $this->code,
+            'location'     => $this->location,
+            'is_active'    => $this->is_active,
+            'is_defective' => $this->is_defective,
         ];
 
         if ($this->warehouse?->exists) {

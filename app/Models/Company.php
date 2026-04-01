@@ -19,6 +19,7 @@ class Company extends Model
         'country',
         'logo',
         'icon',
+        'print_logo',
         'is_active',
     ];
 

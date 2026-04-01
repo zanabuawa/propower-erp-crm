@@ -59,9 +59,9 @@
 
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Logos</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">Logo horizontal (expandido)</label>
+                    <label class="block text-xs text-gray-500 mb-1">Logo horizontal (sidebar expandido)</label>
                     <input wire:model="logo" type="file" accept="image/*" class="w-full text-sm text-gray-500">
                     @error('logo') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     @if($company?->logo)
@@ -69,12 +69,29 @@
                     @endif
                 </div>
                 <div>
-                    <label class="block text-xs text-gray-500 mb-1">Ícono cuadrado (contraído)</label>
+                    <label class="block text-xs text-gray-500 mb-1">Ícono cuadrado (sidebar contraído)</label>
                     <input wire:model="icon" type="file" accept="image/*" class="w-full text-sm text-gray-500">
                     @error('icon') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     @if($company?->icon)
                         <img src="{{ Storage::url($company->icon) }}" class="mt-2 h-10 w-10 object-contain rounded-lg">
                     @endif
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs text-gray-500 mb-1">Logo para impresiones</label>
+                    <input wire:model="print_logo" type="file" accept="image/*" class="w-full text-sm text-gray-500">
+                    @error('print_logo') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    @if($company?->print_logo)
+                        <div class="mt-2 flex items-center gap-3">
+                            <img src="{{ Storage::url($company->print_logo) }}" class="h-12 object-contain rounded border border-gray-200 bg-white p-1">
+                            <img src="{{ Storage::url($company->print_logo) }}" class="h-12 object-contain rounded border border-gray-800 bg-gray-900 p-1">
+                        </div>
+                    @endif
+                    <p class="text-xs text-gray-400 mt-1.5 leading-relaxed">
+                        Este logo se usa en órdenes de compra, reportes y documentos impresos.
+                        <strong>Se recomienda usar una versión con caracteres a color o en blanco y negro</strong>
+                        para garantizar su visibilidad sobre fondos claros y oscuros.
+                        Formatos sugeridos: PNG con fondo transparente o SVG.
+                    </p>
                 </div>
             </div>
         </div>

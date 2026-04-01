@@ -41,10 +41,17 @@
                         <td class="px-5 py-3 text-gray-600">{{ $warehouse->code ?? '—' }}</td>
                         <td class="px-5 py-3 text-gray-600">{{ $warehouse->location ?? '—' }}</td>
                         <td class="px-5 py-3">
-                            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                                {{ $warehouse->is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                                {{ $warehouse->is_active ? 'Activo' : 'Inactivo' }}
-                            </span>
+                            <div class="flex flex-wrap gap-1">
+                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
+                                    {{ $warehouse->is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                                    {{ $warehouse->is_active ? 'Activo' : 'Inactivo' }}
+                                </span>
+                                @if($warehouse->is_defective)
+                                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                                        Defectuosos
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-5 py-3 text-right">
                             <div class="flex items-center justify-end gap-2">

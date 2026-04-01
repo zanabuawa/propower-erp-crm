@@ -16,7 +16,9 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'company_id', 'branch_id', 'supplier_id', 'purchase_requisition_id',
         'created_by', 'folio', 'currency', 'status', 'subtotal', 'tax',
-        'total', 'payment_terms', 'supplier_bank_account_id', 'notes', 'expected_at',
+        'total', 'payment_terms', 'supplier_bank_account_id', 'notes',
+        'expected_at', 'required_at',
+        'shipping_address', 'billing_address', 'print_language',
     ];
 
     protected $casts = [
@@ -24,13 +26,15 @@ class PurchaseOrder extends Model
         'tax'         => 'decimal:2',
         'total'       => 'decimal:2',
         'expected_at' => 'datetime',
+        'required_at' => 'date',
     ];
 
     const STATUS = [
         'draft'            => 'Borrador',
-        'sent'             => 'Enviada',
+        'sent'             => 'Enviada al proveedor',
+        'waiting_delivery' => 'Esperando mercancía',
         'partial_received' => 'Recepción parcial',
-        'received'         => 'Recibida',
+        'received'         => 'Mercancía recibida',
         'invoiced'         => 'Facturada',
         'cancelled'        => 'Cancelada',
     ];
@@ -38,6 +42,7 @@ class PurchaseOrder extends Model
     const STATUS_COLORS = [
         'draft'            => 'bg-gray-100 text-gray-600',
         'sent'             => 'bg-blue-50 text-blue-700',
+        'waiting_delivery' => 'bg-violet-50 text-violet-700',
         'partial_received' => 'bg-amber-50 text-amber-700',
         'received'         => 'bg-teal-50 text-teal-700',
         'invoiced'         => 'bg-green-50 text-green-700',

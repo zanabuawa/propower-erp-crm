@@ -8,12 +8,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchaseReceipt extends Model
 {
-    protected $fillable = [
-        'company_id', 'purchase_order_id', 'received_by',
-        'warehouse_id', 'folio', 'status', 'notes', 'received_at',
+    const RECEPTION_TYPES = [
+        'purchase'  => 'Compra',
+        'return'    => 'Devolución',
+        'transfer'  => 'Transferencia de otro almacén',
+        'defective' => 'Defectuoso',
     ];
 
-    protected $casts = ['received_at' => 'datetime'];
+    protected $fillable = [
+        'company_id', 'purchase_order_id', 'received_by',
+        'warehouse_id', 'folio', 'status', 'reception_type',
+        'operating_expenses', 'notes', 'received_at',
+    ];
+
+    protected $casts = [
+        'received_at'        => 'datetime',
+        'operating_expenses' => 'decimal:2',
+    ];
 
     public function order(): BelongsTo
     {

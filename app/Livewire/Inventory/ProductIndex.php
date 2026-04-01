@@ -12,15 +12,17 @@ class ProductIndex extends Component
 {
     use WithPagination;
 
-    public string $search = '';
+    public string $search         = '';
     public string $filterCategory = '';
-    public string $filterStatus = '';
-    public bool $confirmingDelete = false;
-    public ?int $deleteId = null;
+    public string $filterStatus   = '';
+    public string $filterType     = '';
+    public bool   $confirmingDelete = false;
+    public ?int   $deleteId = null;
 
-    public function updatingSearch(): void { $this->resetPage(); }
+    public function updatingSearch():         void { $this->resetPage(); }
     public function updatingFilterCategory(): void { $this->resetPage(); }
-    public function updatingFilterStatus(): void { $this->resetPage(); }
+    public function updatingFilterStatus():   void { $this->resetPage(); }
+    public function updatingFilterType():     void { $this->resetPage(); }
 
     public function confirmDelete(int $id): void
     {
@@ -52,10 +54,11 @@ class ProductIndex extends Component
                     ->orWhere('barcode', 'like', "%{$this->search}%"))
                 ->when($this->filterCategory, fn($q) => $q->where('category_id', $this->filterCategory))
                 ->when($this->filterStatus !== '', fn($q) => $q->where('is_active', $this->filterStatus))
-                ->with(['category', 'unitOfMeasure', 'primaryImage', 'stocks'])
+                ->when($this->filterType !== '', fn($q) => $q->where('type', $this->filterType))
+                ->with(['category', 'subcategory', 'unitOfMeasure', 'primaryImage', 'stocks'])
                 ->latest()
                 ->paginate(15),
-            'categories' => \App\Models\Category::where('is_active', true)->orderBy('name')->get(),
+            'categories' => \App\Models\Category::whereNull('parent_id')->where('is_active', true)->orderBy('name')->get(),
         ]);
     }
 }

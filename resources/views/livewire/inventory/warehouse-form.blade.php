@@ -42,11 +42,19 @@
                     class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                     placeholder="ej: Bodega norte, Piso 2">
             </div>
-            <div>
+            <div class="space-y-3">
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input wire:model="is_active" type="checkbox" class="w-4 h-4 rounded text-indigo-600"
                         {{ $is_active ? 'checked' : '' }}>
                     <span class="text-sm text-gray-700">Almacén activo</span>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input wire:model="is_defective" type="checkbox" class="w-4 h-4 rounded text-amber-500 mt-0.5"
+                        {{ $is_defective ? 'checked' : '' }}>
+                    <div>
+                        <span class="text-sm text-gray-700">Almacén de productos defectuosos</span>
+                        <p class="text-xs text-gray-400 mt-0.5">Las recepciones de tipo "Defectuoso" se dirigen automáticamente a este almacén por sucursal.</p>
+                    </div>
                 </label>
             </div>
         </div>

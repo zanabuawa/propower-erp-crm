@@ -2,14 +2,14 @@
 
 namespace App\Livewire\Purchases;
 
-use App\Models\PurchaseRequisition;
-use App\Models\PurchaseRequisitionItem;
 use App\Models\Product;
+use App\Models\PurchaseRequisition;
 use App\Notifications\PurchaseNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 #[Layout('layouts.app')]
 class RequisitionForm extends Component
@@ -38,10 +38,26 @@ class RequisitionForm extends Component
             ->where('is_active', true)
             ->where(fn($q) => $q
                 ->where('name', 'like', "%{$this->productSearch}%")
-                ->orWhere('sku', 'like', "%{$this->productSearch}%"))
-            ->limit(6)
-            ->get(['id', 'name', 'sku', 'purchase_price'])
+                ->orWhere('sku', 'like', "%{$this->productSearch}%")
+                ->orWhere('barcode', 'like', "%{$this->productSearch}%"))
+            ->limit(8)
+            ->get(['id', 'name', 'sku', 'barcode', 'purchase_price'])
             ->toArray();
+    }
+
+    #[On('product-picked')]
+    public function productPicked(int $productId): void
+    {
+        $product = Product::find($productId);
+        if (!$product) return;
+        $this->items[] = [
+            'product_id'  => $product->id,
+            'description' => $product->name,
+            'quantity'    => 1,
+            'unit_price'  => $product->purchase_price,
+            'unit'        => '',
+            'notes'       => '',
+        ];
     }
 
     public function selectProduct(int $index, int $productId): void
@@ -49,10 +65,10 @@ class RequisitionForm extends Component
         $product = Product::find($productId);
         if (!$product) return;
 
-        $this->items[$index]['product_id']   = $product->id;
-        $this->items[$index]['description']  = $product->name;
-        $this->items[$index]['unit_price']   = $product->purchase_price;
-        $this->productSearch = '';
+        $this->items[$index]['product_id']  = $product->id;
+        $this->items[$index]['description'] = $product->name;
+        $this->items[$index]['unit_price']  = $product->purchase_price;
+        $this->productSearch  = '';
         $this->productResults = [];
     }
 
@@ -70,13 +86,13 @@ class RequisitionForm extends Component
     public function rules(): array
     {
         return [
-            'justification'          => 'required|string',
-            'currency'               => 'required|in:MXN,USD',
-            'needed_by'              => 'required|date',
-            'items'                  => 'required|array|min:1',
-            'items.*.description'    => 'required|string|max:255',
-            'items.*.quantity'       => 'required|numeric|min:0.01',
-            'items.*.unit_price'     => 'required|numeric|min:0',
+            'justification'       => 'required|string',
+            'currency'            => 'required|in:MXN,USD',
+            'needed_by'           => 'required|date',
+            'items'               => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.quantity'    => 'required|numeric|min:0.01',
+            'items.*.unit_price'  => 'required|numeric|min:0',
         ];
     }
 
@@ -96,31 +112,32 @@ class RequisitionForm extends Component
                 'requested_by'  => auth()->id(),
                 'folio'         => $folio,
                 'currency'      => $this->currency,
-                'status'        => 'pending_quote',
+                'status'        => 'submitted',
                 'justification' => $this->justification,
                 'needed_by'     => $this->needed_by,
+                'submitted_at'  => now(),
             ]);
 
             foreach ($this->items as $item) {
                 $requisition->items()->create($item);
             }
 
-            // Notificar a usuarios de compras
-            $comprasUsers = User::where('company_id', auth()->user()->company_id)
-                ->whereHas('roles', fn($q) => $q->where('name', 'compras'))
+            // Notificar a usuarios con rol comprador
+            $compradores = User::where('company_id', auth()->user()->company_id)
+                ->whereHas('roles', fn($q) => $q->where('name', 'comprador'))
                 ->get();
 
-            foreach ($comprasUsers as $user) {
+            foreach ($compradores as $user) {
                 $user->notify(new PurchaseNotification(
                     title: 'Nueva requisición de compra',
-                    message: "Se creó la requisición {$folio} por " . auth()->user()->name,
-                    type: 'requisition',
+                    message: "Se creó la requisición {$folio} por " . auth()->user()->name . '. Requiere cotización preliminar.',
+                    type: 'requisition_submitted',
                     requisitionId: $requisition->id,
                 ));
             }
         });
 
-        session()->flash('success', 'Requisición enviada correctamente.');
+        session()->flash('success', 'Requisición enviada a compras correctamente.');
         $this->redirect(route('purchases.index'));
     }
 
