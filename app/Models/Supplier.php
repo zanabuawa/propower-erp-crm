@@ -14,7 +14,7 @@ class Supplier extends Model
     use BelongsToCompany, HasContactInfo, SoftDeletes;
 
     protected $fillable = [
-        'company_id', 'assigned_to', 'type', 'name', 'rfc', 'tax_regime',
+        'company_id', 'assigned_to', 'type', 'name', 'internal_code', 'rfc', 'tax_regime',
         'image', 'address', 'city', 'state', 'country', 'zip_code', 'website',
         'credit_limit', 'payment_terms', 'bank_name', 'bank_account', 'bank_clabe',
         'status', 'description',

@@ -1,6 +1,6 @@
 <div class="max-w-4xl">
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('purchases.index') }}" class="text-gray-400 hover:text-gray-600">
+        <a href="{{ route('purchases.index') }}" wire:navigate class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -40,22 +40,34 @@
 
         {{-- Productos --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Productos solicitados</h2>
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h2 class="text-sm font-medium text-gray-700">Productos solicitados</h2>
+                <livewire:shared.product-picker />
+            </div>
 
             <div class="relative">
-                <input wire:model.live.debounce.300ms="productSearch" type="text"
-                    placeholder="Buscar producto del catálogo (opcional)..."
-                    class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input wire:model.live.debounce.250ms="productSearch" type="text"
+                    placeholder="Búsqueda rápida: nombre, SKU o código de barras..."
+                    class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 @if(count($productResults) > 0)
-                    <div class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 mt-1">
+                    <div class="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl z-10 mt-1 overflow-hidden">
                         @foreach($productResults as $result)
-                            <div class="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm">
-                                <p class="font-medium text-gray-900">{{ $result['name'] }}</p>
-                                <div class="flex gap-3 mt-0.5">
+                            <div class="px-4 py-2.5 border-b border-gray-50 last:border-0 hover:bg-indigo-50 transition">
+                                <div class="flex items-center justify-between mb-1">
+                                    <p class="text-sm font-medium text-gray-900">{{ $result['name'] }}</p>
+                                    <span class="text-xs font-semibold text-indigo-600">${{ number_format($result['purchase_price'], 2) }}</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mb-1.5">SKU: {{ $result['sku'] ?? '—' }}@if($result['barcode'] ?? null) · CB: {{ $result['barcode'] }}@endif</p>
+                                <div class="flex gap-2 flex-wrap">
                                     @foreach($items as $index => $item)
                                         <button type="button" wire:click="selectProduct({{ $index }}, {{ $result['id'] }})"
-                                            class="text-xs text-indigo-600 hover:text-indigo-800">
-                                            Agregar a línea {{ $index + 1 }}
+                                            class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded transition">
+                                            → Línea {{ $index + 1 }}
                                         </button>
                                     @endforeach
                                 </div>
@@ -132,7 +144,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-3 pb-6">
-            <a href="{{ route('purchases.index') }}"
+            <a href="{{ route('purchases.index') }}" wire:navigate
                 class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                 Cancelar
             </a>

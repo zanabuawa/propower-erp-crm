@@ -10,6 +10,7 @@ use App\Models\SaleQuotation;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 #[Layout('layouts.app')]
 class OrderForm extends Component
@@ -89,10 +90,17 @@ class OrderForm extends Component
             ->where('is_active', true)
             ->where(fn($q) => $q
                 ->where('name', 'like', "%{$this->productSearch}%")
-                ->orWhere('sku', 'like', "%{$this->productSearch}%"))
-            ->limit(6)
-            ->get(['id', 'name', 'sku', 'sale_price'])
+                ->orWhere('sku', 'like', "%{$this->productSearch}%")
+                ->orWhere('barcode', 'like', "%{$this->productSearch}%"))
+            ->limit(8)
+            ->get(['id', 'name', 'sku', 'barcode', 'sale_price'])
             ->toArray();
+    }
+
+    #[On('product-picked')]
+    public function productPicked(int $productId): void
+    {
+        $this->addProduct($productId);
     }
 
     public function addProduct(int $productId): void

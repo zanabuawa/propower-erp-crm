@@ -3,6 +3,7 @@
 namespace App\Livewire\Purchases;
 
 use App\Models\Product;
+use App\Models\PurchaseReceipt;
 use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Supplier;
@@ -10,29 +11,57 @@ use App\Models\Warehouse;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 #[Layout('layouts.app')]
 class GoodsReceiptForm extends Component
 {
-    public ?int    $supplier_id  = null;
-    public ?int    $warehouse_id = null;
-    public string  $notes        = '';
-    public string  $reference    = ''; // factura, remisión, etc.
-    public array   $items        = [];
+    public ?int    $supplier_id    = null;
+    public ?int    $warehouse_id   = null;
+    public string  $reception_type = 'purchase';
+    public string  $notes          = '';
+    public string  $reference      = '';
+    public float   $operating_expenses = 0;
+    public array   $items          = [];
 
     // Búsqueda de productos
-    public string  $productSearch   = '';
-    public array   $productResults  = [];
+    public string  $productSearch  = '';
+    public array   $productResults = [];
+
+    // Modal de confirmación
+    public bool    $showConfirmModal = false;
 
     public function mount(): void
     {
         $this->items = [];
+        $this->setDefaultWarehouse();
+    }
 
-        // Almacén por defecto según sucursal del usuario
-        $this->warehouse_id = auth()->user()->branch_id
-            ? Warehouse::where('branch_id', auth()->user()->branch_id)
-                ->where('is_active', true)->first()?->id
-            : null;
+    private function setDefaultWarehouse(): void
+    {
+        $user = auth()->user();
+
+        if ($this->reception_type === 'defective') {
+            // Almacén de defectuosos de la sucursal del usuario
+            $defective = Warehouse::where('company_id', $user->company_id)
+                ->where('is_defective', true)
+                ->where('is_active', true)
+                ->when($user->branch_id, fn($q) => $q->where('branch_id', $user->branch_id))
+                ->first();
+            $this->warehouse_id = $defective?->id;
+        } else {
+            $this->warehouse_id = $user->branch_id
+                ? Warehouse::where('branch_id', $user->branch_id)
+                    ->where('is_active', true)
+                    ->where('is_defective', false)
+                    ->first()?->id
+                : null;
+        }
+    }
+
+    public function updatedReceptionType(): void
+    {
+        $this->setDefaultWarehouse();
     }
 
     public function updatedProductSearch(): void
@@ -53,9 +82,14 @@ class GoodsReceiptForm extends Component
             ->toArray();
     }
 
+    #[On('product-picked')]
+    public function productPicked(int $productId): void
+    {
+        $this->addProduct($productId);
+    }
+
     public function addProduct(int $productId): void
     {
-        // Evitar duplicados
         foreach ($this->items as $item) {
             if ($item['product_id'] === $productId) {
                 $this->productSearch  = '';
@@ -87,9 +121,6 @@ class GoodsReceiptForm extends Component
         $this->items = array_values($this->items);
     }
 
-    /**
-     * Precio de venta calculado para un ítem: costo * (1 + margen% / 100)
-     */
     public function getSalePriceForItem(array $item): float
     {
         $cost   = (float) ($item['purchase_price'] ?? 0);
@@ -97,9 +128,6 @@ class GoodsReceiptForm extends Component
         return round($cost * (1 + $margin / 100), 2);
     }
 
-    /**
-     * Precio mínimo venta: costo * (1 + gastos_op% / 100)
-     */
     public function getMinSalePriceForItem(array $item): float
     {
         $cost  = (float) ($item['purchase_price'] ?? 0);
@@ -107,10 +135,23 @@ class GoodsReceiptForm extends Component
         return round($cost * (1 + $opPct / 100), 2);
     }
 
-    public function rules(): array
+    public function confirm(): void
+    {
+        $this->validate($this->validationRules());
+        $this->showConfirmModal = true;
+    }
+
+    public function cancelConfirm(): void
+    {
+        $this->showConfirmModal = false;
+    }
+
+    private function validationRules(): array
     {
         return [
             'warehouse_id'               => 'required|exists:warehouses,id',
+            'reception_type'             => 'required|in:purchase,return,transfer,defective',
+            'operating_expenses'         => 'required|numeric|min:0',
             'items'                      => 'required|array|min:1',
             'items.*.product_id'         => 'required|exists:products,id',
             'items.*.quantity'           => 'required|numeric|min:0.01',
@@ -122,27 +163,33 @@ class GoodsReceiptForm extends Component
 
     public function save(): void
     {
-        $this->validate();
+        $this->validate($this->validationRules());
 
         DB::transaction(function () {
             $companyId = auth()->user()->company_id;
 
             $folio = 'REC-' . str_pad(
-                \App\Models\PurchaseReceipt::where('company_id', $companyId)->count() + 1,
+                PurchaseReceipt::where('company_id', $companyId)->count() + 1,
                 6, '0', STR_PAD_LEFT
             );
 
-            // Crear cabecera del movimiento de stock (tipo entry)
+            // Tipo de movimiento de stock según tipo de recepción
+            $movementType = match ($this->reception_type) {
+                'return'    => 'return',
+                'transfer'  => 'transfer',
+                default     => 'entry',
+            };
+
             $movement = StockMovement::create([
-                'company_id'  => $companyId,
+                'company_id'   => $companyId,
                 'warehouse_id' => $this->warehouse_id,
-                'user_id'     => auth()->id(),
-                'type'        => 'entry',
-                'folio'       => $folio,
-                'status'      => 'confirmed',
-                'reference'   => $this->reference ?: null,
-                'notes'       => $this->notes ?: 'Recepción de mercancías',
-                'moved_at'    => now(),
+                'user_id'      => auth()->id(),
+                'type'         => $movementType,
+                'folio'        => $folio,
+                'status'       => 'confirmed',
+                'reference'    => $this->reference ?: null,
+                'notes'        => $this->notes ?: PurchaseReceipt::RECEPTION_TYPES[$this->reception_type],
+                'moved_at'     => now(),
             ]);
 
             foreach ($this->items as $item) {
@@ -152,7 +199,6 @@ class GoodsReceiptForm extends Component
                 $profitMargin     = (float) $item['profit_margin'];
                 $opCostPct        = (float) $item['operational_cost'];
 
-                // Actualizar stock
                 $stock = Stock::firstOrCreate(
                     ['product_id' => $productId, 'warehouse_id' => $this->warehouse_id],
                     ['quantity' => 0]
@@ -160,20 +206,20 @@ class GoodsReceiptForm extends Component
                 $qtyBefore = (float) $stock->quantity;
                 $stock->increment('quantity', $qty);
 
-                // Actualizar precios del producto
-                $newSalePrice = round($newPurchasePrice * (1 + $profitMargin / 100), 2);
-
-                $productUpdate = [
-                    'purchase_price'    => $newPurchasePrice,
-                    'operational_costs' => $opCostPct,
-                    'sale_price'        => $newSalePrice,
-                ];
-                if ($this->supplier_id) {
-                    $productUpdate['supplier_id'] = $this->supplier_id;
+                // No actualizar precios si es defectuoso
+                if ($this->reception_type !== 'defective') {
+                    $newSalePrice = round($newPurchasePrice * (1 + $profitMargin / 100), 2);
+                    $productUpdate = [
+                        'purchase_price'    => $newPurchasePrice,
+                        'operational_costs' => $opCostPct,
+                        'sale_price'        => $newSalePrice,
+                    ];
+                    if ($this->supplier_id) {
+                        $productUpdate['supplier_id'] = $this->supplier_id;
+                    }
+                    Product::where('id', $productId)->update($productUpdate);
                 }
-                Product::where('id', $productId)->update($productUpdate);
 
-                // Ítem del movimiento de stock
                 $movement->items()->create([
                     'product_id'      => $productId,
                     'warehouse_id'    => $this->warehouse_id,
@@ -183,17 +229,49 @@ class GoodsReceiptForm extends Component
                     'quantity_after'  => $qtyBefore + $qty,
                 ]);
             }
+
+            // Crear registro de recepción
+            PurchaseReceipt::create([
+                'company_id'         => $companyId,
+                'purchase_order_id'  => null,
+                'received_by'        => auth()->id(),
+                'warehouse_id'       => $this->warehouse_id,
+                'folio'              => $folio,
+                'status'             => 'completed',
+                'reception_type'     => $this->reception_type,
+                'operating_expenses' => $this->operating_expenses,
+                'notes'              => $this->notes ?: null,
+                'received_at'        => now(),
+            ]);
         });
 
+        $this->showConfirmModal = false;
         session()->flash('success', 'Recepción de mercancías registrada correctamente.');
         $this->redirect(route('purchases.goods-receipts.index'));
     }
 
     public function render()
     {
+        $user = auth()->user();
+
+        if ($this->reception_type === 'defective') {
+            $warehouses = Warehouse::where('company_id', $user->company_id)
+                ->where('is_active', true)
+                ->where('is_defective', true)
+                ->with('branch')
+                ->orderBy('name')
+                ->get();
+        } else {
+            $warehouses = Warehouse::forUser($user)
+                ->where('is_defective', false)
+                ->with('branch')
+                ->orderBy('name')
+                ->get();
+        }
+
         return view('livewire.purchases.goods-receipt-form', [
-            'warehouses' => Warehouse::where('is_active', true)->with('branch')->orderBy('name')->get(),
-            'suppliers'  => Supplier::where('company_id', auth()->user()->company_id)
+            'warehouses' => $warehouses,
+            'suppliers'  => Supplier::where('company_id', $user->company_id)
                 ->where('status', 'active')->orderBy('name')->get(),
         ]);
     }

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/DELL/proyectos/propower-erp-crm/app/Livewire/Inventory -type f -name *.php)",
+      "Bash(php artisan:*)"
+    ]
+  }
+}

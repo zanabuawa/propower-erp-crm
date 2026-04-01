@@ -3,30 +3,54 @@
 namespace App\Livewire\Shared;
 
 use Livewire\Component;
-use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 class NotificationBell extends Component
 {
-    public int $count = 0;
-    public bool $open = false;
+    public int  $count  = 0;
+    public bool $open   = false;
+    public int  $userId = 0;
 
     public function mount(): void
     {
+        $this->userId = auth()->id();
+        $this->refreshCount();
+    }
+
+    public function refreshCount(): void
+    {
         $this->count = auth()->user()->unreadNotifications()->count();
+    }
+
+    // Escucha el evento de broadcast en el canal privado del usuario
+    #[On('echo-private:App.Models.User.{userId},Illuminate\\Notifications\\Events\\BroadcastNotificationCreated')]
+    public function handleNewNotification(): void
+    {
+        $this->refreshCount();
     }
 
     public function toggle(): void
     {
         $this->open = !$this->open;
         if ($this->open) {
-            $this->count = auth()->user()->unreadNotifications()->count();
+            $this->refreshCount();
         }
     }
 
     public function markAsRead(string $id): void
     {
-        auth()->user()->notifications()->where('id', $id)->update(['read_at' => now()]);
-        $this->count = auth()->user()->unreadNotifications()->count();
+        $notification = auth()->user()->notifications()->where('id', $id)->first();
+        if (!$notification) return;
+
+        $notification->update(['read_at' => now()]);
+        $this->refreshCount();
+
+        $data = $notification->data;
+        if (!empty($data['requisition_id'])) {
+            $this->redirect(route('purchases.requisitions.show', $data['requisition_id']));
+        } elseif (!empty($data['order_id'])) {
+            $this->redirect(route('purchases.orders.show', $data['order_id']));
+        }
     }
 
     public function markAllAsRead(): void
@@ -38,7 +62,7 @@ class NotificationBell extends Component
     public function render()
     {
         return view('livewire.shared.notification-bell', [
-            'notifications' => auth()->user()->notifications()->latest()->take(10)->get(),
+            'notifications' => auth()->user()->notifications()->latest()->take(15)->get(),
         ]);
     }
 }
