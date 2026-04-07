@@ -213,10 +213,11 @@ class OrderForm extends Component
         }
 
         DB::transaction(function () {
-            $folio = 'OV-' . str_pad(
-                SaleOrder::where('company_id', auth()->user()->company_id)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) SaleOrder::withTrashed()
+                ->where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 4) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'OV-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $order = SaleOrder::create([
                 'company_id'        => auth()->user()->company_id,

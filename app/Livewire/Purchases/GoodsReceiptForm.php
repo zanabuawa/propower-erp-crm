@@ -216,10 +216,10 @@ class GoodsReceiptForm extends Component
         DB::transaction(function () use ($receivedItems) {
             $companyId = auth()->user()->company_id;
 
-            $folio = 'REC-' . str_pad(
-                PurchaseReceipt::where('company_id', $companyId)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) PurchaseReceipt::where('company_id', $companyId)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 5) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'REC-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $movementType = match ($this->reception_type) {
                 'return'   => 'return',

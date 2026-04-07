@@ -118,10 +118,10 @@ class ReceiptForm extends Component
         $this->validate($this->validationRules());
 
         DB::transaction(function () {
-            $folio = 'REC-' . str_pad(
-                PurchaseReceipt::where('company_id', auth()->user()->company_id)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) PurchaseReceipt::where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 5) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'REC-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $receipt = PurchaseReceipt::create([
                 'company_id'         => auth()->user()->company_id,

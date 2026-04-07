@@ -161,10 +161,11 @@ class InvoiceForm extends Component
         $this->validate();
 
         DB::transaction(function () {
-            $folio = 'FAC-' . str_pad(
-                SaleInvoice::where('company_id', auth()->user()->company_id)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) SaleInvoice::withTrashed()
+                ->where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 5) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'FAC-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $dueAt = null;
             if ((int)$this->payment_terms > 0) {

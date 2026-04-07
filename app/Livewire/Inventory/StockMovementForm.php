@@ -125,10 +125,10 @@ class StockMovementForm extends Component
         $this->validate();
 
         DB::transaction(function () {
-            $folio = 'MOV-' . strtoupper($this->type[0]) . '-' . str_pad(
-                StockMovement::where('company_id', auth()->user()->company_id)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) StockMovement::where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 7) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'MOV-' . strtoupper($this->type[0]) . '-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $movement = StockMovement::create([
                 'company_id'               => auth()->user()->company_id,

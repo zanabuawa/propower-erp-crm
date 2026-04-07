@@ -101,10 +101,11 @@ class RequisitionForm extends Component
         $this->validate();
 
         DB::transaction(function () {
-            $folio = 'REQ-' . str_pad(
-                PurchaseRequisition::where('company_id', auth()->user()->company_id)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) PurchaseRequisition::withTrashed()
+                ->where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 5) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'REQ-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $requisition = PurchaseRequisition::create([
                 'company_id'    => auth()->user()->company_id,

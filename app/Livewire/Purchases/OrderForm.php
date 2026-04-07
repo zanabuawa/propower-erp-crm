@@ -229,10 +229,11 @@ class OrderForm extends Component
         $this->validate();
 
         DB::transaction(function () {
-            $folio = 'OC-' . str_pad(
-                PurchaseOrder::where('company_id', auth()->user()->company_id)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) PurchaseOrder::withTrashed()
+                ->where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 4) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'OC-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $order = PurchaseOrder::create([
                 'company_id'               => auth()->user()->company_id,

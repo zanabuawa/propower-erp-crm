@@ -180,12 +180,11 @@ class QuotationForm extends Component
         }
 
         DB::transaction(function () {
-            $folio = 'COT-' . str_pad(
-                SaleQuotation::where('company_id', auth()->user()->company_id)->count() + 1,
-                6,
-                '0',
-                STR_PAD_LEFT
-            );
+            $lastNumber = (int) SaleQuotation::withTrashed()
+                ->where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 5) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'COT-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $subtotal = $this->subtotal;
             $discount = $this->discount;
