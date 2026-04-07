@@ -67,10 +67,10 @@ class DeliveryForm extends Component
         $this->validate();
 
         DB::transaction(function () {
-            $folio = 'REM-' . str_pad(
-                SaleDelivery::where('company_id', auth()->user()->company_id)->count() + 1,
-                6, '0', STR_PAD_LEFT
-            );
+            $lastNumber = (int) SaleDelivery::where('company_id', auth()->user()->company_id)
+                ->selectRaw("MAX(CAST(SUBSTRING(folio, 5) AS UNSIGNED)) as max_num")
+                ->value('max_num');
+            $folio = 'REM-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
             $delivery = SaleDelivery::create([
                 'company_id'    => auth()->user()->company_id,

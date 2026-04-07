@@ -130,7 +130,7 @@ class InvoiceShow extends Component
             'PaymentMethod'   => 'PUE',
             'ExpeditionPlace' => $company->fiscal_postal_code,
             'Currency'        => $invoice->currency,
-            'Folio'           => ltrim($invoice->folio, 'FAC-'),
+            'Folio'           => preg_replace('/^FAC-/', '', $invoice->folio),
             'Issuer'          => [
                 'FiscalRegime' => $company->fiscal_regime,
                 'Rfc'          => $company->rfc,
@@ -273,10 +273,10 @@ class InvoiceShow extends Component
             'paymentMethod' => 'required|in:cash,transfer,card,check,credit',
         ]);
 
-        $folio = 'PAG-' . str_pad(
-            SalePayment::where('company_id', auth()->user()->company_id)->count() + 1,
-            6, '0', STR_PAD_LEFT
-        );
+        $lastNumber = (int) SalePayment::where('company_id', auth()->user()->company_id)
+            ->selectRaw("MAX(CAST(SUBSTRING(folio, 5) AS UNSIGNED)) as max_num")
+            ->value('max_num');
+        $folio = 'PAG-' . str_pad($lastNumber + 1, 6, '0', STR_PAD_LEFT);
 
         SalePayment::create([
             'company_id'      => auth()->user()->company_id,
