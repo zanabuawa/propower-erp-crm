@@ -35,12 +35,13 @@ class ProductForm extends Component
     public string  $model              = '';
     public string  $color              = '';
     public string  $purchase_price     = '0';
-    public string  $profit_margin      = '0';
+    public string  $profit_margin      = '10';
     public string  $min_stock          = '0';
     public string  $max_stock          = '0';
     public bool    $is_active          = true;
-    public $images = [];
-    public array   $existingImages     = [];
+    public $images        = [];   // productos: múltiples archivos
+    public $serviceImage  = null; // servicios: un solo archivo
+    public array $existingImages = [];
 
     // ── Modal: nueva categoría ───────────────────────────────────────────────
     public bool   $showCategoryModal  = false;
@@ -61,6 +62,14 @@ class ProductForm extends Component
     public string $newSupplierName   = '';
     public string $newSupplierPhone  = '';
     public string $newSupplierEmail  = '';
+
+    // ── Hooks ────────────────────────────────────────────────────────────────
+    public function updatedProfitMargin(): void
+    {
+        if ((float) $this->profit_margin < 10) {
+            $this->profit_margin = '10';
+        }
+    }
 
     // ── Computed ─────────────────────────────────────────────────────────────
     public function getNormalSalePriceProperty(): float
@@ -92,7 +101,7 @@ class ProductForm extends Component
             $this->model              = $this->product->model ?? '';
             $this->color              = $this->product->color ?? '';
             $this->purchase_price     = $this->product->purchase_price;
-            $this->profit_margin      = $this->product->profit_margin ?? '0';
+            $this->profit_margin      = max(10, (float) ($this->product->profit_margin ?? 10));
             $this->min_stock          = $this->product->min_stock;
             $this->max_stock          = $this->product->max_stock;
             $this->is_active          = $this->product->is_active;
@@ -257,7 +266,7 @@ class ProductForm extends Component
             'model'              => 'nullable|string|max:100',
             'color'              => 'nullable|string|max:60',
             'purchase_price'     => 'required|numeric|min:0',
-            'profit_margin'      => 'required|numeric|min:0|max:999',
+            'profit_margin'      => 'required|numeric|min:10|max:999',
             'min_stock'          => 'required|numeric|min:0',
             'max_stock'          => 'required|numeric|min:0',
             'is_active'          => 'boolean',
@@ -305,13 +314,20 @@ class ProductForm extends Component
             session()->flash('success', ucfirst($this->type === 'service' ? 'Servicio' : 'Producto') . ' creado correctamente.');
         }
 
-        if ($this->type === 'product' && is_array($this->images) && count($this->images) > 0) {
+        if ($this->type === 'service' && is_object($this->serviceImage)) {
+            // Reemplazar imagen única del servicio
+            $product->images()->delete();
+            $product->images()->create([
+                'path'       => $this->serviceImage->store('services', 'public'),
+                'is_primary' => true,
+                'sort_order' => 0,
+            ]);
+        } elseif ($this->type === 'product' && is_array($this->images) && count($this->images) > 0) {
             $isFirst = $product->images()->count() === 0;
             foreach ($this->images as $index => $image) {
                 if (is_object($image)) {
-                    $path = $image->store('products', 'public');
                     $product->images()->create([
-                        'path'       => $path,
+                        'path'       => $image->store('products', 'public'),
                         'is_primary' => $isFirst && $index === 0,
                         'sort_order' => $product->images()->count(),
                     ]);

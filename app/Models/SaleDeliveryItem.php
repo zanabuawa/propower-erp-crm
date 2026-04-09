@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class SaleDeliveryItem extends Model
 {
     protected $fillable = [
-        'sale_delivery_id', 'sale_order_item_id', 'product_id', 'warehouse_id', 'quantity',
+        'sale_delivery_id', 'sale_order_item_id', 'product_id', 'warehouse_id', 'lot_id', 'quantity',
     ];
 
     protected $casts = ['quantity' => 'decimal:2'];
@@ -17,4 +17,5 @@ class SaleDeliveryItem extends Model
     public function orderItem(): BelongsTo { return $this->belongsTo(SaleOrderItem::class, 'sale_order_item_id'); }
     public function product(): BelongsTo { return $this->belongsTo(Product::class); }
     public function warehouse(): BelongsTo { return $this->belongsTo(Warehouse::class); }
+    public function lot(): BelongsTo       { return $this->belongsTo(ProductLot::class, 'lot_id'); }
 }

@@ -10,7 +10,7 @@ class SaleDelivery extends Model
 {
     protected $fillable = [
         'company_id', 'sale_order_id', 'customer_id', 'created_by',
-        'warehouse_id', 'folio', 'status', 'notes', 'delivered_at',
+        'warehouse_id', 'folio', 'status', 'reason', 'notes', 'delivered_at',
     ];
 
     protected $casts = ['delivered_at' => 'datetime'];
@@ -19,6 +19,14 @@ class SaleDelivery extends Model
         'draft'     => 'Borrador',
         'delivered' => 'Entregada',
         'cancelled' => 'Cancelada',
+    ];
+
+    const REASONS = [
+        'sale_order'         => 'Orden de venta',
+        'internal_use'       => 'Uso interno',
+        'scrap'              => 'Merma / desperdicio',
+        'return_to_supplier' => 'Devolución a proveedor',
+        'other'              => 'Otro',
     ];
 
     public function order(): BelongsTo { return $this->belongsTo(SaleOrder::class, 'sale_order_id'); }

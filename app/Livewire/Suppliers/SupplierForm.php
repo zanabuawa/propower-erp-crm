@@ -14,7 +14,9 @@ class SupplierForm extends Component
     use WithFileUploads, HasLocationFields;
 
     public ?Supplier $supplier = null;
-    public string $type = 'company';
+    public string $type             = 'company';
+    public string $service_type     = '';
+    public string $supplier_category = '';
     public string $name = '';
     public string $internal_code = '';
     public string $rfc = '';
@@ -41,8 +43,10 @@ class SupplierForm extends Component
                 ? $supplier
                 : Supplier::with('phones', 'emails', 'bankAccounts')->findOrFail($supplier);
 
-            $this->type          = $this->supplier->type;
-            $this->name          = $this->supplier->name;
+            $this->type               = $this->supplier->type;
+            $this->service_type       = $this->supplier->service_type ?? '';
+            $this->supplier_category  = $this->supplier->supplier_category ?? '';
+            $this->name               = $this->supplier->name;
             $this->internal_code = $this->supplier->internal_code ?? '';
             $this->rfc           = $this->supplier->rfc ?? '';
             $this->tax_regime    = $this->supplier->tax_regime ?? '';
@@ -131,6 +135,8 @@ class SupplierForm extends Component
     {
         return [
             'type'                          => 'required|in:person,company',
+            'service_type'                  => 'nullable|in:product_supplier,service_contractor,both',
+            'supplier_category'             => 'nullable|string|max:60',
             'name'                          => 'required|string|max:255',
             'internal_code'                 => 'nullable|string|max:60',
             'rfc'                           => 'nullable|string|max:13',
@@ -158,9 +164,11 @@ class SupplierForm extends Component
         $this->validate();
 
         $data = [
-            'company_id'    => auth()->user()->company_id,
-            'type'          => $this->type,
-            'name'          => $this->name,
+            'company_id'         => auth()->user()->company_id,
+            'type'               => $this->type,
+            'service_type'       => $this->service_type ?: null,
+            'supplier_category'  => $this->supplier_category ?: null,
+            'name'               => $this->name,
             'internal_code' => $this->internal_code ?: null,
             'rfc'           => $this->rfc ?: null,
             'tax_regime'    => $this->tax_regime ?: null,

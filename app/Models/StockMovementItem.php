@@ -9,7 +9,7 @@ class StockMovementItem extends Model
 {
     protected $fillable = [
         'stock_movement_id', 'product_id', 'warehouse_id',
-        'warehouse_destination_id', 'quantity', 'unit_price',
+        'warehouse_destination_id', 'lot_id', 'quantity', 'unit_price',
         'quantity_before', 'quantity_after',
         'received_quantity', 'received_at',
         'is_late_addition', 'added_at',
@@ -44,5 +44,10 @@ class StockMovementItem extends Model
     public function warehouseDestination(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class, 'warehouse_destination_id');
+    }
+
+    public function lot(): BelongsTo
+    {
+        return $this->belongsTo(ProductLot::class, 'lot_id');
     }
 }

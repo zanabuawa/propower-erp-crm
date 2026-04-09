@@ -43,6 +43,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/unidades', \App\Livewire\Inventory\UnitIndex::class)->name('inventory.units.index');
         Route::get('/inventario/almacenes', \App\Livewire\Inventory\WarehouseIndex::class)->name('inventory.warehouses.index');
         Route::get('/inventario/movimientos', \App\Livewire\Inventory\StockMovementIndex::class)->name('inventory.movements.index');
+        Route::get('/inventario/lotes', \App\Livewire\Inventory\LotIndex::class)->name('inventory.lots.index');
+        Route::get('/inventario/lotes/{lot}', \App\Livewire\Inventory\LotDetail::class)->name('inventory.lots.show');
+        Route::get('/inventario/kardex', \App\Livewire\Inventory\PepsKardexView::class)->name('inventory.kardex');
     });
     Route::middleware('can:create inventory')->group(function () {
         Route::get('/inventario/productos/crear', \App\Livewire\Inventory\ProductForm::class)->name('inventory.products.create');

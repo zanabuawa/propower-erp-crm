@@ -116,9 +116,13 @@
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100">
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Producto</th>
-                                <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-32">Cantidad</th>
-                                <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-36">Precio unit.</th>
-                                <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-32">Subtotal</th>
+                                <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Cantidad</th>
+                                <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-32">Precio unit.</th>
+                                @if(in_array($type, ['entry', 'return']))
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-36">Fecha venc. lote</th>
+                                    <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Notas lote</th>
+                                @endif
+                                <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Subtotal</th>
                                 <th class="w-10"></th>
                             </tr>
                         </thead>
@@ -142,6 +146,18 @@
                                                 class="w-full border border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
                                         </div>
                                     </td>
+                                    @if(in_array($type, ['entry', 'return']))
+                                        <td class="px-4 py-2.5">
+                                            <input wire:model="items.{{ $index }}.expiry_date"
+                                                type="date"
+                                                class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        </td>
+                                        <td class="px-4 py-2.5">
+                                            <input wire:model="items.{{ $index }}.lot_notes"
+                                                type="text" placeholder="Opcional"
+                                                class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        </td>
+                                    @endif
                                     <td class="px-4 py-2.5 text-gray-700 font-medium">
                                         ${{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                     </td>
@@ -158,7 +174,8 @@
                         </tbody>
                         <tfoot>
                             <tr class="bg-gray-50 border-t border-gray-100">
-                                <td colspan="3" class="px-4 py-2.5 text-xs font-medium text-gray-500 text-right">Total:</td>
+                                <td colspan="{{ in_array($type, ['entry', 'return']) ? 5 : 3 }}"
+                                    class="px-4 py-2.5 text-xs font-medium text-gray-500 text-right">Total:</td>
                                 <td class="px-4 py-2.5 font-medium text-gray-900">
                                     ${{ number_format(collect($items)->sum(fn($i) => $i['quantity'] * $i['unit_price']), 2) }}
                                 </td>

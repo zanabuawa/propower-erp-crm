@@ -109,7 +109,10 @@
             <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-all duration-300">
                 <div class="flex items-start gap-4">
                     {{-- Imagen / Icono de servicio --}}
-                    @if($isService)
+                    @if($isService && $product->primaryImage)
+                        <img src="{{ Storage::url($product->primaryImage->path) }}"
+                            class="w-16 h-16 rounded-2xl object-cover border border-violet-200 shadow-sm flex-shrink-0">
+                    @elseif($isService)
                         <div class="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center flex-shrink-0 border border-violet-200">
                             <svg class="w-7 h-7 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -246,7 +249,10 @@
                         <tr class="hover:bg-gray-50 transition-all duration-200 group">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
-                                    @if($isService)
+                                    @if($isService && $product->primaryImage)
+                                        <img src="{{ Storage::url($product->primaryImage->path) }}"
+                                            class="w-12 h-12 rounded-xl object-cover border border-violet-200 shadow-sm flex-shrink-0">
+                                    @elseif($isService)
                                         <div class="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0 border border-violet-200">
                                             <svg class="w-6 h-6 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>

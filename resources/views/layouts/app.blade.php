@@ -188,6 +188,8 @@ x-init="init()">
                 <x-sidebar-subitem route="inventory.warehouses.index" label="Almacenes" />
                 <x-sidebar-subitem route="inventory.movements.index" label="Movimientos" />
                 <x-sidebar-subitem route="inventory.transfers.index" label="Transferencias" />
+                <x-sidebar-subitem route="inventory.lots.index" label="Lotes PEPS" />
+                <x-sidebar-subitem route="inventory.kardex" label="Kardex PEPS" />
                 @endcan
             </x-sidebar-menu>
             @endcanany

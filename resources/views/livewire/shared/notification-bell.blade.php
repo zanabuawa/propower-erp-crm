@@ -26,7 +26,12 @@
                     @php
                         $isUnread  = is_null($notification->read_at);
                         $type      = $notification->data['type'] ?? '';
-                        $hasLink   = !empty($notification->data['requisition_id']) || !empty($notification->data['order_id']);
+                        $hasLink   = !empty($notification->data['requisition_id'])
+                            || !empty($notification->data['order_id'])
+                            || !empty($notification->data['transfer_id'])
+                            || !empty($notification->data['asset_id'])
+                            || !empty($notification->data['product_id'])
+                            || !empty($notification->data['customer_id']);
 
                         $typeIcon = match($type) {
                             'requisition_submitted'       => ['bg' => 'bg-amber-100',  'color' => 'text-amber-600',  'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
@@ -37,6 +42,10 @@
                             'requisition_authorized'      => ['bg' => 'bg-green-100',  'color' => 'text-green-600',  'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
                             'requisition_rejected'        => ['bg' => 'bg-red-100',    'color' => 'text-red-600',    'icon' => 'M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z'],
                             'order_created'               => ['bg' => 'bg-green-100',  'color' => 'text-green-700',  'icon' => 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z'],
+                            'low_stock'                   => ['bg' => 'bg-amber-100',  'color' => 'text-amber-600',  'icon' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
+                            'no_stock'                    => ['bg' => 'bg-red-100',    'color' => 'text-red-600',    'icon' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
+                            'customer_anniversary'        => ['bg' => 'bg-pink-100',   'color' => 'text-pink-600',   'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
+                            'incomplete_product'          => ['bg' => 'bg-orange-100', 'color' => 'text-orange-600', 'icon' => 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
                             default                       => ['bg' => 'bg-gray-100',   'color' => 'text-gray-500',   'icon' => 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                         };
                     @endphp

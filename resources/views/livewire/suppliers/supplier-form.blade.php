@@ -75,6 +75,28 @@
                         <option value="inactive">Inactivo</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Tipo de servicio</label>
+                    <select wire:model="service_type"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                        <option value="">— Sin especificar —</option>
+                        @foreach(\App\Models\Supplier::SERVICE_TYPES as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('service_type') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Rubro / Giro</label>
+                    <select wire:model="supplier_category"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                        <option value="">— Sin especificar —</option>
+                        @foreach(\App\Models\Supplier::CATEGORIES as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('supplier_category') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
         </div>
 
