@@ -15,6 +15,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public static array $modules = [
         'inventory'  => 'Inventario',
+        'assets'     => 'Activos Fijos',
         'purchases'  => 'Compras',
         'sales'      => 'Ventas',
         'contacts'   => 'Clientes / CRM',
@@ -36,6 +37,14 @@ class RolesAndPermissionsSeeder extends Seeder
     ];
 
     /**
+     * Groups that only have granular permissions (no CRUD base).
+     * key   = group slug, value = human-readable label (used in UI)
+     */
+    public static array $standaloneGroups = [
+        'dashboard' => 'Dashboard',
+    ];
+
+    /**
      * Extra granular permissions beyond basic CRUD, grouped by module.
      * key   = permission name
      * value = human-readable label (used in UI)
@@ -44,6 +53,9 @@ class RolesAndPermissionsSeeder extends Seeder
         'inventory' => [
             'adjust inventory'     => 'Ajustar stock',
             'edit product prices'  => 'Modificar precios',
+        ],
+        'assets' => [
+            'transfer assets'      => 'Transferir activos fijos',
         ],
         'purchases' => [
             'receive goods'        => 'Recibir mercancía',
@@ -61,6 +73,12 @@ class RolesAndPermissionsSeeder extends Seeder
         ],
         'users' => [
             'manage permissions'   => 'Gestionar permisos',
+        ],
+        'dashboard' => [
+            'view sales summary'     => 'Ver resumen de ventas en dashboard',
+            'view purchases summary' => 'Ver resumen de compras en dashboard',
+            'view inventory summary' => 'Ver resumen de inventario en dashboard',
+            'view finance summary'   => 'Ver resumen de cobranza en dashboard',
         ],
     ];
 
@@ -112,6 +130,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view reports',
             'stamp invoices',
             'apply discounts',
+            'view sales summary',
+            'view finance summary',
         ]);
 
         // almacenista: inventory management + purchases + stock adjustments + receiving
@@ -121,6 +141,9 @@ class RolesAndPermissionsSeeder extends Seeder
             'adjust inventory',
             'view purchases', 'create purchases', 'edit purchases',
             'receive goods',
+            'view assets', 'create assets', 'edit assets', 'transfer assets',
+            'view inventory summary',
+            'view purchases summary',
         ]);
 
         // comprador: purchase management + inventory view + receiving + approvals
@@ -133,6 +156,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'view suppliers',
             'view reports',
             'export reports',
+            'view purchases summary',
+            'view inventory summary',
         ]);
 
         // empleado: read-only on core modules

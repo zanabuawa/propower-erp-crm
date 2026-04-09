@@ -129,6 +129,7 @@
                         </p>
                     @endif
                 </div>
+                <livewire:shared.product-picker />
             </div>
 
             {{-- Buscador manual --}}

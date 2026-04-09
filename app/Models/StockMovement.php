@@ -17,7 +17,7 @@ class StockMovement extends Model
         'moved_at' => 'datetime',
     ];
 
-    const TYPES = [
+    public const TYPES = [
         'entry'        => 'Entrada',
         'exit'         => 'Salida',
         'adjustment'   => 'Ajuste',
@@ -25,11 +25,34 @@ class StockMovement extends Model
         'return'       => 'Devolución',
     ];
 
-    const STATUS = [
-        'draft'     => 'Borrador',
-        'confirmed' => 'Confirmado',
-        'cancelled' => 'Cancelado',
+    public const STATUS = [
+        'draft'               => 'Borrador',
+        'confirmed'           => 'Confirmado',
+        'cancelled'           => 'Cancelado',
+        // Transfer-specific statuses
+        'requested'           => 'Solicitada',
+        'in_transit'          => 'En tránsito',
+        'partially_received'  => 'Recepción parcial',
+        'completed'           => 'Completada',
     ];
+
+    public const TRANSFER_STATUSES = [
+        'requested'          => 'Solicitada',
+        'in_transit'         => 'En tránsito',
+        'partially_received' => 'Recepción parcial',
+        'completed'          => 'Completada',
+        'cancelled'          => 'Cancelada',
+    ];
+
+    public function isTransfer(): bool
+    {
+        return $this->type === 'transfer';
+    }
+
+    public function isEditable(): bool
+    {
+        return in_array($this->status, ['requested', 'in_transit', 'partially_received']);
+    }
 
     public function company(): BelongsTo
     {

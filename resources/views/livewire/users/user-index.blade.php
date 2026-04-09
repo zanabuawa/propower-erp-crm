@@ -1,82 +1,84 @@
 <div>
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-xl font-medium text-gray-900">Usuarios</h1>
-            <p class="text-sm text-gray-500 mt-0.5">Gestiona los usuarios del sistema</p>
+    <x-page-header title="Usuarios" description="Gestiona los usuarios del sistema">
+        <x-slot:actions>
+            <a wire:navigate href="{{ route('users.create') }}"
+                class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Nuevo usuario
+            </a>
+        </x-slot:actions>
+    </x-page-header>
+
+    <x-alert />
+
+    <div class="mb-5">
+        <div class="relative w-full sm:w-80">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input wire:model.live.debounce.300ms="search" type="text"
+                placeholder="Buscar por nombre o email..."
+                aria-label="Buscar usuarios"
+                class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-transparent transition">
         </div>
-        <a wire:navigate href="{{ route('users.create') }}"
-            class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-            + Nuevo usuario
-        </a>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">{{ session('success') }}</div>
-    @endif
-    @if(session('error'))
-        <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">{{ session('error') }}</div>
-    @endif
-
-    <div class="mb-4">
-        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar por nombre o email..."
-            class="w-full sm:w-80 border border-gray-200 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-    </div>
-
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full text-sm min-w-[480px]">
                 <thead>
-                    <tr class="border-b border-gray-100 bg-gray-50">
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Usuario</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Empresa</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden md:table-cell">Sucursal</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500 hidden sm:table-cell">Rol</th>
-                        <th class="text-left px-5 py-3 text-xs font-medium text-gray-500">Estado</th>
+                    <tr class="border-b border-gray-200 bg-gray-50">
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Usuario</th>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden md:table-cell">Empresa</th>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden md:table-cell">Sucursal</th>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden sm:table-cell">Rol</th>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Estado</th>
                         <th class="px-5 py-3"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($users as $user)
-                        <tr class="hover:bg-gray-50 transition">
+                        <tr class="hover:bg-gray-50 transition group">
                             <td class="px-5 py-3">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold text-xs flex-shrink-0">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold text-xs flex-shrink-0"
+                                        aria-hidden="true">
                                         {{ strtoupper(substr($user->name, 0, 2)) }}
                                     </div>
                                     <div>
                                         <p class="font-medium text-gray-900">{{ $user->name }}</p>
                                         <p class="text-xs text-gray-400">{{ $user->email }}</p>
-                                        <p class="text-xs text-gray-400 sm:hidden">{{ $user->roles->first()?->name ?? '—' }}</p>
+                                        <p class="text-xs text-gray-400 sm:hidden mt-0.5">{{ $user->roles->first()?->name ?? '—' }}</p>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-5 py-3 text-gray-600 hidden md:table-cell">{{ $user->company?->name ?? '—' }}</td>
                             <td class="px-5 py-3 text-gray-600 hidden md:table-cell">{{ $user->branch?->name ?? '—' }}</td>
                             <td class="px-5 py-3 hidden sm:table-cell">
-                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
+                                <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700">
                                     {{ $user->roles->first()?->name ?? '—' }}
                                 </span>
                             </td>
                             <td class="px-5 py-3">
-                                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium
-                                    {{ $user->is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                                <span class="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {{ $user->is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
                                     {{ $user->is_active ? 'Activo' : 'Inactivo' }}
                                 </span>
                             </td>
                             <td class="px-5 py-3 text-right">
-                                <div class="flex items-center justify-end gap-3">
+                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition">
                                     <a wire:navigate href="{{ route('users.edit', $user) }}"
-                                        class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Editar</a>
+                                        class="text-xs text-indigo-600 hover:text-indigo-800 font-medium px-2 py-1 rounded hover:bg-indigo-50 transition">Editar</a>
                                     @if($user->id !== auth()->id())
                                         <button wire:click="confirmDelete({{ $user->id }})"
-                                            class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
+                                            class="text-xs text-red-500 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition">Eliminar</button>
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-10 text-center text-gray-400 text-sm">No se encontraron usuarios.</td>
+                            <td colspan="6"><x-empty-state message="No se encontraron usuarios." /></td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -87,16 +89,9 @@
         @endif
     </div>
 
-    @if($confirmingDelete)
-        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl border border-gray-200 p-6 w-full max-w-sm">
-                <h3 class="font-medium text-gray-900 mb-1">¿Eliminar usuario?</h3>
-                <p class="text-sm text-gray-500 mb-5">Esta acción no se puede deshacer.</p>
-                <div class="flex gap-3 justify-end">
-                    <button wire:click="cancelDelete" class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">Cancelar</button>
-                    <button wire:click="delete" class="px-4 py-2 text-sm bg-red-600 hover:bg-red-700 text-white rounded-lg transition">Sí, eliminar</button>
-                </div>
-            </div>
-        </div>
-    @endif
+    <x-delete-modal
+        :show="$confirmingDelete"
+        title="¿Eliminar usuario?"
+        description="Esta acción no se puede deshacer."
+    />
 </div>

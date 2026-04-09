@@ -24,6 +24,7 @@ class UserForm extends Component
     public ?int $branch_id = null;
     public string $role = '';
     public bool $is_active = true;
+    public string $signatureData = ''; // base64 PNG para firma registrada
 
     /** Direct extra permissions granted to this user beyond their role */
     public array $selectedPermissions = [];
@@ -87,38 +88,47 @@ class UserForm extends Component
     }
 
     /**
-     * All permissions grouped by module with labels (CRUD + extras).
+     * All permissions grouped by module with labels (CRUD + extras + standalone groups).
      */
     public function getGroupedPermissionsProperty(): array
     {
         $groups = [];
+
+        // Modules with CRUD base + optional granular extras
         foreach (RolesAndPermissionsSeeder::$modules as $module => $label) {
             $permissions = [];
 
-            // Base CRUD actions
             foreach (RolesAndPermissionsSeeder::$actions as $action => $actionLabel) {
-                $permName = "{$action} {$module}";
+                $permissions[] = [
+                    'name'        => "{$action} {$module}",
+                    'actionLabel' => $actionLabel,
+                ];
+            }
+
+            foreach (RolesAndPermissionsSeeder::$extraPermissions[$module] ?? [] as $permName => $actionLabel) {
                 $permissions[] = [
                     'name'        => $permName,
                     'actionLabel' => $actionLabel,
                 ];
             }
 
-            // Extra granular permissions for this module
-            $extras = RolesAndPermissionsSeeder::$extraPermissions[$module] ?? [];
-            foreach ($extras as $permName => $actionLabel) {
-                $permissions[] = [
-                    'name'        => $permName,
-                    'actionLabel' => $actionLabel,
-                ];
-            }
-
-            $groups[] = [
-                'module'      => $module,
-                'label'       => $label,
-                'permissions' => $permissions,
-            ];
+            $groups[] = ['module' => $module, 'label' => $label, 'permissions' => $permissions];
         }
+
+        // Standalone groups: only granular permissions, no CRUD base (e.g. dashboard)
+        foreach (RolesAndPermissionsSeeder::$standaloneGroups as $module => $label) {
+            $permissions = [];
+            foreach (RolesAndPermissionsSeeder::$extraPermissions[$module] ?? [] as $permName => $actionLabel) {
+                $permissions[] = [
+                    'name'        => $permName,
+                    'actionLabel' => $actionLabel,
+                ];
+            }
+            if (!empty($permissions)) {
+                $groups[] = ['module' => $module, 'label' => $label, 'permissions' => $permissions];
+            }
+        }
+
         return $groups;
     }
 
@@ -170,6 +180,34 @@ class UserForm extends Component
         }
 
         $this->redirect(route('users.index'), navigate: true);
+    }
+
+    public function saveSignature(): void
+    {
+        if (empty($this->signatureData)) {
+            $this->addError('signatureData', 'Dibuja tu firma antes de guardar.');
+            return;
+        }
+
+        $target = $this->user ?? auth()->user();
+        $target->update([
+            'signature'            => $this->signatureData,
+            'signature_updated_at' => now(),
+        ]);
+
+        $this->signatureData = '';
+        session()->flash('signatureSuccess', 'Firma guardada correctamente.');
+    }
+
+    public function clearSignature(): void
+    {
+        $target = $this->user ?? auth()->user();
+        $target->update([
+            'signature'            => null,
+            'signature_updated_at' => null,
+        ]);
+
+        session()->flash('signatureSuccess', 'Firma eliminada.');
     }
 
     public function render()

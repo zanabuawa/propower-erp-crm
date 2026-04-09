@@ -6,6 +6,7 @@ use App\Models\PriceList;
 use App\Models\Product;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 #[Layout('layouts.app')]
 class PriceListForm extends Component
@@ -63,6 +64,7 @@ class PriceListForm extends Component
             ->toArray();
     }
 
+    #[On('product-picked')]
     public function addProduct(int $productId): void
     {
         $product = Product::find($productId);

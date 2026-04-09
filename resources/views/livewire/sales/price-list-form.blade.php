@@ -54,7 +54,10 @@
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Productos y precios</h2>
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h2 class="text-sm font-medium text-gray-700">Productos y precios</h2>
+                <livewire:shared.product-picker />
+            </div>
 
             <div class="relative">
                 <input wire:model.live.debounce.300ms="productSearch" type="text"

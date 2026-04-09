@@ -8,6 +8,7 @@ use App\Models\PurchaseRequisition;
 use App\Notifications\PurchaseNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -26,8 +27,10 @@ class RequisitionShow extends Component
     public string $requesterNotes = '';
 
     // ── Autorización ────────────────────────────────────────────────────────
-    public string $approvalComment = '';
-    public string $signatureData   = ''; // base64 PNG capturado en canvas
+    public string $approvalComment  = '';
+    public string $signatureData    = ''; // base64 PNG capturado en canvas
+    public string $authPassword     = ''; // contraseña de verificación antes de firmar
+    public bool   $passwordVerified = false;
 
     // ── Rechazo ──────────────────────────────────────────────────────────────
     public bool   $showRejectForm  = false;
@@ -351,19 +354,48 @@ class RequisitionShow extends Component
         ));
     }
 
+    // ── AUTORIZADORES: verificar contraseña antes de firmar ─────────────────
+
+    public function verifyAuthPassword(): void
+    {
+        if (!Hash::check($this->authPassword, auth()->user()->password)) {
+            $this->addError('authPassword', 'Contraseña incorrecta.');
+            return;
+        }
+
+        $this->passwordVerified = true;
+        $this->authPassword     = '';
+        $this->resetErrorBag('authPassword');
+    }
+
     // ── AUTORIZADORES: aprobar cotización final ──────────────────────────────
 
     public function approveQuotation(): void
     {
+        if (!$this->passwordVerified) {
+            $this->addError('authPassword', 'Debes verificar tu contraseña primero.');
+            return;
+        }
+
         $approval = $this->getPendingApprovalForCurrentUser();
         if (!$approval) return;
 
+        // Sello digital HMAC-SHA256 (user + quotation + timestamp + signature PNG)
+        $signatureHash = $this->signatureData
+            ? hash_hmac(
+                'sha256',
+                implode('|', [auth()->id(), $approval->purchase_quotation_id, $approval->id, now()->toIso8601String(), $this->signatureData]),
+                config('app.key')
+            )
+            : null;
+
         $approval->update([
-            'user_id'    => auth()->id(),
-            'status'     => 'approved',
-            'comments'   => $this->approvalComment,
-            'signature'  => $this->signatureData ?: null,
-            'decided_at' => now(),
+            'user_id'        => auth()->id(),
+            'status'         => 'approved',
+            'comments'       => $this->approvalComment,
+            'signature'      => $this->signatureData ?: auth()->user()->signature,
+            'signature_hash' => $signatureHash,
+            'decided_at'     => now(),
         ]);
 
         $finalQuotation   = $this->requisition->finalQuotation;
@@ -383,7 +415,7 @@ class RequisitionShow extends Component
             ));
         }
 
-        $this->reset(['approvalComment', 'signatureData']);
+        $this->reset(['approvalComment', 'signatureData', 'passwordVerified']);
         $this->loadRequisition($this->requisition->id);
         session()->flash('success', 'Autorización registrada.');
     }

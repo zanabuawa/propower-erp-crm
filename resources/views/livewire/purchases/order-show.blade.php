@@ -52,11 +52,7 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">
-            {{ session('success') }}
-        </div>
-    @endif
+    <x-alert />
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
@@ -174,7 +170,7 @@
                                         </td>
                                         <td class="px-5 py-3 text-gray-700">{{ $item->quantity }}</td>
                                         <td class="px-5 py-3">
-                                            <span class="{{ $item->quantity_received >= $item->quantity ? 'text-green-600' : 'text-amber-600' }} font-medium">
+                                            <span class="{{ $item->quantity_received >= $item->quantity ? 'text-emerald-600' : 'text-amber-600' }} font-medium">
                                                 {{ $item->quantity_received }}
                                             </span>
                                         </td>

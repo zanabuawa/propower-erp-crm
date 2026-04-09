@@ -60,6 +60,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/almacenes/{warehouse}/editar', \App\Livewire\Inventory\WarehouseForm::class)->name('inventory.warehouses.edit');
         Route::get('/inventario/movimientos/{stockMovement}', \App\Livewire\Inventory\StockMovementForm::class)->name('inventory.movements.show');
     });
+    Route::middleware('can:adjust inventory')->get('/inventario/transferencias/crear', \App\Livewire\Inventory\InventoryTransferForm::class)->name('inventory.transfers.create');
+    Route::middleware('can:view inventory')->group(function () {
+        Route::get('/inventario/transferencias', \App\Livewire\Inventory\InventoryTransferIndex::class)->name('inventory.transfers.index');
+        Route::get('/inventario/transferencias/{stockMovement}', \App\Livewire\Inventory\InventoryTransferForm::class)->name('inventory.transfers.show');
+    });
+
+    // ── Activos Fijos ─────────────────────────────────────────────────────────
+    Route::middleware('can:view assets')->group(function () {
+        Route::get('/activos', \App\Livewire\Assets\AssetIndex::class)->name('assets.index');
+        Route::get('/activos/inventario', \App\Livewire\Assets\AssetInventoryView::class)->name('assets.inventory');
+        Route::get('/activos/transferencias', \App\Livewire\Assets\AssetTransferIndex::class)->name('assets.transfers.index');
+    });
+    Route::middleware('can:create assets')->get('/activos/crear', \App\Livewire\Assets\AssetForm::class)->name('assets.create');
+    Route::middleware('can:edit assets')->get('/activos/{asset}/editar', \App\Livewire\Assets\AssetForm::class)->name('assets.edit');
+    Route::middleware('can:transfer assets')->get('/activos/transferencias/nueva', \App\Livewire\Assets\AssetTransferForm::class)->name('assets.transfers.create');
 
     // ── Clientes ──────────────────────────────────────────────────────────────
     Route::middleware('can:create contacts')->get('/clientes/crear', \App\Livewire\Customers\CustomerForm::class)->name('contacts.create');

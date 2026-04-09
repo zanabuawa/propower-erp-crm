@@ -145,6 +145,148 @@
         </div>
         @endif
 
+        {{-- Firma digital registrada --}}
+        @if($user?->exists || auth()->id() === $user?->id)
+        <div
+            x-data="{
+                drawing: false,
+                initCanvas() {
+                    const canvas = this.$refs.sigCanvasProfile;
+                    if (!canvas || canvas._initialized) return;
+                    canvas._initialized = true;
+                    const ctx = canvas.getContext('2d');
+                    ctx.strokeStyle = '#1e293b';
+                    ctx.lineWidth   = 2.5;
+                    ctx.lineCap     = 'round';
+                    ctx.lineJoin    = 'round';
+                    let points = [];
+                    const SMOOTH = 0.35;
+                    const pos = (e) => {
+                        const r   = canvas.getBoundingClientRect();
+                        const src = e.touches ? e.touches[0] : e;
+                        return {
+                            x: (src.clientX - r.left) * (canvas.width  / r.width),
+                            y: (src.clientY - r.top)  * (canvas.height / r.height)
+                        };
+                    };
+                    const lerp = (a, b, t) => a + (b - a) * t;
+                    const start = (e) => {
+                        e.preventDefault();
+                        this.drawing = true;
+                        points = [];
+                        const p = pos(e);
+                        points.push(p);
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                    };
+                    const move = (e) => {
+                        if (!this.drawing) return;
+                        e.preventDefault();
+                        const p = pos(e);
+                        const prev = points[points.length - 1];
+                        const s = { x: lerp(prev.x, p.x, 1 - SMOOTH), y: lerp(prev.y, p.y, 1 - SMOOTH) };
+                        points.push(s);
+                        if (points.length >= 3) {
+                            const p0 = points[points.length - 3], p1 = points[points.length - 2], p2 = points[points.length - 1];
+                            const mid01 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+                            const mid12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+                            ctx.beginPath();
+                            ctx.moveTo(mid01.x, mid01.y);
+                            ctx.quadraticCurveTo(p1.x, p1.y, mid12.x, mid12.y);
+                            ctx.stroke();
+                        } else {
+                            ctx.beginPath(); ctx.moveTo(prev.x, prev.y); ctx.lineTo(s.x, s.y); ctx.stroke();
+                        }
+                        $wire.set('signatureData', canvas.toDataURL('image/png'));
+                    };
+                    const stop = () => {
+                        if (this.drawing && points.length >= 2) {
+                            const last = points[points.length - 1];
+                            ctx.lineTo(last.x, last.y); ctx.stroke();
+                            $wire.set('signatureData', canvas.toDataURL('image/png'));
+                        }
+                        this.drawing = false; points = [];
+                    };
+                    canvas.addEventListener('mousedown',  start);
+                    canvas.addEventListener('mousemove',  move);
+                    canvas.addEventListener('mouseup',    stop);
+                    canvas.addEventListener('mouseleave', stop);
+                    canvas.addEventListener('touchstart', start, { passive: false });
+                    canvas.addEventListener('touchmove',  move,  { passive: false });
+                    canvas.addEventListener('touchend',   stop);
+                },
+                clearCanvas() {
+                    const canvas = this.$refs.sigCanvasProfile;
+                    if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                    $wire.set('signatureData', '');
+                }
+            }"
+            x-init="initCanvas()"
+            class="bg-white rounded-xl border border-gray-200 p-5 space-y-4"
+        >
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <div>
+                    <h2 class="text-sm font-medium text-gray-700">Firma digital</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Se usará al autorizar documentos. Puedes dibujarla o actualizarla cuando quieras.</p>
+                </div>
+                @if($user?->signature)
+                    <span class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full font-medium">Registrada</span>
+                @else
+                    <span class="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full font-medium">Sin firma</span>
+                @endif
+            </div>
+
+            @if(session('signatureSuccess'))
+                <div class="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    {{ session('signatureSuccess') }}
+                </div>
+            @endif
+
+            {{-- Firma actual guardada --}}
+            @if($user?->signature)
+            <div>
+                <p class="text-xs text-gray-500 mb-2">Firma actual <span class="text-gray-400">(guardada el {{ $user->signature_updated_at?->format('d/m/Y H:i') ?? '—' }})</span>:</p>
+                <div class="border border-gray-200 rounded-xl bg-gray-50 p-3 flex items-center justify-center" style="min-height: 72px;">
+                    <img src="{{ $user->signature }}" alt="Firma registrada" class="max-h-16 object-contain">
+                </div>
+            </div>
+            @endif
+
+            {{-- Canvas para dibujar nueva firma --}}
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-xs font-medium text-gray-600">
+                        {{ $user?->signature ? 'Nueva firma (reemplazará la actual)' : 'Dibuja tu firma' }}
+                    </label>
+                    <button type="button" @click="clearCanvas()"
+                        class="text-[10px] text-gray-400 hover:text-red-500 underline transition">Limpiar</button>
+                </div>
+                <div class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50 cursor-crosshair select-none hover:border-indigo-300 transition"
+                     style="touch-action: none;">
+                    <canvas x-ref="sigCanvasProfile" width="800" height="160"
+                        class="w-full block"
+                        style="touch-action: none;"></canvas>
+                </div>
+                @error('signatureData') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                <p class="text-[10px] text-gray-400 mt-1">Traza tu firma con el ratón o dedo.</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" wire:click="saveSignature"
+                    class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition">
+                    Guardar firma
+                </button>
+                @if($user?->signature)
+                <button type="button" wire:click="clearSignature"
+                    wire:confirm="¿Eliminar la firma registrada?"
+                    class="px-4 py-2 text-sm border border-red-200 text-red-600 hover:bg-red-50 rounded-lg font-medium transition">
+                    Eliminar firma
+                </button>
+                @endif
+            </div>
+        </div>
+        @endif
+
         {{-- Estado --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5">
             <label class="flex items-center gap-3 cursor-pointer">

@@ -22,6 +22,8 @@ class User extends Authenticatable
         'branch_id',
         'is_active',
         'avatar',
+        'signature',
+        'signature_updated_at',
     ];
 
     protected $hidden = [
@@ -32,9 +34,10 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
+            'email_verified_at'    => 'datetime',
+            'password'             => 'hashed',
+            'is_active'            => 'boolean',
+            'signature_updated_at' => 'datetime',
         ];
     }
 

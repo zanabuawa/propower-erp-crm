@@ -9,6 +9,7 @@ use App\Models\StockMovementItem;
 use App\Models\Warehouse;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\DB;
 
 #[Layout('layouts.app')]
@@ -67,6 +68,7 @@ class StockMovementForm extends Component
             ->toArray();
     }
 
+    #[On('product-picked')]
     public function addProduct(int $productId): void
     {
         $product = Product::find($productId);

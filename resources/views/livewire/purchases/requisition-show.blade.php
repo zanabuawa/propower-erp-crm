@@ -32,11 +32,7 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
-            {{ session('success') }}
-        </div>
-    @endif
+    <x-alert />
 
     {{-- Timeline de estados --}}
     @php
@@ -292,7 +288,7 @@
                     @elseif($qTotal >= 2000)
                         <div class="text-amber-600 font-medium">Requiere: Compras + Admin</div>
                     @else
-                        <div class="text-green-600 font-medium">Requiere: Solo Compras</div>
+                        <div class="text-emerald-600 font-medium">Requiere: Solo Compras</div>
                     @endif
                 @endif
             </div>
@@ -384,7 +380,7 @@
             <p class="text-xs text-gray-500">¿Estás de acuerdo con esta cotización preliminar?</p>
             <div class="flex items-start gap-3 flex-wrap">
                 <button wire:click="confirmQuotation" type="button"
-                    class="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+                    class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition">
                     Confirmar y continuar
                 </button>
                 <div class="flex-1 min-w-[240px] space-y-2">
@@ -478,7 +474,7 @@
             <div class="space-y-2">
                 @foreach($requisition->finalQuotation->approvals->sortBy('level') as $approval)
                 <div class="flex items-center justify-between py-2 px-3 rounded-lg
-                    {{ $approval->status === 'approved' ? 'bg-green-50 border border-green-100' : ($approval->status === 'rejected' ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100') }}">
+                    {{ $approval->status === 'approved' ? 'bg-emerald-50 border border-emerald-100' : ($approval->status === 'rejected' ? 'bg-red-50 border border-red-100' : 'bg-gray-50 border border-gray-100') }}">
                     <div class="flex items-center gap-3">
                         <div class="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
                             {{ $approval->level }}
@@ -497,7 +493,7 @@
                             <span class="text-[10px] text-gray-500 italic max-w-[200px] truncate">{{ $approval->comments }}</span>
                         @endif
                         <span class="px-2 py-0.5 text-[10px] rounded-full font-medium
-                            {{ $approval->status === 'approved' ? 'bg-green-100 text-green-700' : ($approval->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700') }}">
+                            {{ $approval->status === 'approved' ? 'bg-emerald-100 text-emerald-700' : ($approval->status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700') }}">
                             {{ ['pending' => 'Pendiente', 'approved' => 'Autorizado', 'rejected' => 'Rechazado'][$approval->status] }}
                         </span>
                     </div>
@@ -507,91 +503,319 @@
 
             {{-- Botones de autorización: cualquier usuario con el rol pendiente puede actuar --}}
             @if($this->canApprove)
-            <div class="mt-4 pt-3 border-t border-gray-100 space-y-3">
-                <p class="text-xs font-medium text-gray-700">Tu rol tiene autorización pendiente en esta cotización:</p>
-                <textarea wire:model="approvalComment" rows="2"
-                    placeholder="Comentario (opcional)..."
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"></textarea>
+            <div
+                x-data="{
+                    showModal: false,
+                    step: 1,
+                    sigMethod: '{{ auth()->user()->signature ? 'saved' : 'draw' }}',
+                    hasSavedSig: {{ auth()->user()->signature ? 'true' : 'false' }},
+                    drawing: false,
 
-                {{-- Firma digital --}}
-                <div
-                    x-data="{
-                        drawing: false,
-                        lastX: 0, lastY: 0,
-                        init() {
-                            const canvas = this.$refs.sigCanvas;
-                            const ctx = canvas.getContext('2d');
-                            ctx.strokeStyle = '#1e293b';
-                            ctx.lineWidth   = 2;
-                            ctx.lineCap     = 'round';
-                            ctx.lineJoin    = 'round';
+                    openModal() {
+                        this.step = 1;
+                        this.sigMethod = this.hasSavedSig ? 'saved' : 'draw';
+                        this.showModal = true;
+                    },
 
-                            const pos = (e) => {
-                                const r = canvas.getBoundingClientRect();
-                                const src = e.touches ? e.touches[0] : e;
-                                return { x: src.clientX - r.left, y: src.clientY - r.top };
-                            };
+                    goToStep2() {
+                        this.step = 2;
+                        if (this.sigMethod === 'draw') {
+                            this.$nextTick(() => this.initCanvas());
+                        }
+                    },
 
-                            const start = (e) => {
-                                e.preventDefault();
-                                this.drawing = true;
-                                const p = pos(e);
-                                this.lastX = p.x; this.lastY = p.y;
-                                ctx.beginPath();
-                                ctx.moveTo(p.x, p.y);
-                            };
-                            const move = (e) => {
-                                if (!this.drawing) return;
-                                e.preventDefault();
-                                const p = pos(e);
-                                ctx.lineTo(p.x, p.y);
-                                ctx.stroke();
-                                this.lastX = p.x; this.lastY = p.y;
-                                $wire.set('signatureData', canvas.toDataURL('image/png'));
-                            };
-                            const stop = () => { this.drawing = false; };
-
-                            canvas.addEventListener('mousedown',  start);
-                            canvas.addEventListener('mousemove',  move);
-                            canvas.addEventListener('mouseup',    stop);
-                            canvas.addEventListener('mouseleave', stop);
-                            canvas.addEventListener('touchstart', start, { passive: false });
-                            canvas.addEventListener('touchmove',  move,  { passive: false });
-                            canvas.addEventListener('touchend',   stop);
-                        },
-                        clear() {
-                            const canvas = this.$refs.sigCanvas;
-                            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                    switchToMethod(method) {
+                        this.sigMethod = method;
+                        if (method === 'draw') {
+                            this.$nextTick(() => this.initCanvas());
+                        } else {
+                            // usar firma guardada: limpiar canvas y vaciar signatureData
                             $wire.set('signatureData', '');
                         }
-                    }"
-                    class="space-y-1"
-                >
-                    <div class="flex items-center justify-between">
-                        <label class="text-xs text-gray-500 font-medium">Firma digital <span class="text-red-500">*</span></label>
-                        <button type="button" @click="clear()"
-                            class="text-[10px] text-gray-400 hover:text-red-500 underline transition">
-                            Limpiar firma
-                        </button>
-                    </div>
-                    <div class="border border-gray-300 rounded-lg overflow-hidden bg-white cursor-crosshair select-none"
-                         style="touch-action: none;">
-                        <canvas x-ref="sigCanvas" width="560" height="120"
-                            class="w-full block"
-                            style="touch-action: none;"></canvas>
-                    </div>
-                    <p class="text-[10px] text-gray-400">Dibuja tu firma con el ratón o dedo. Es obligatoria para autorizar.</p>
-                </div>
+                    },
 
+                    initCanvas() {
+                        const canvas = this.$refs.sigCanvas;
+                        if (!canvas) return;
+                        // reset para permitir re-inicializar al cambiar método
+                        canvas._initialized = false;
+                        if (canvas._initialized) return;
+                        canvas._initialized = true;
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.strokeStyle = '#1e293b';
+                        ctx.lineWidth   = 2.5;
+                        ctx.lineCap     = 'round';
+                        ctx.lineJoin    = 'round';
+
+                        let points = [];
+                        const SMOOTH = 0.35;
+
+                        const pos = (e) => {
+                            const r   = canvas.getBoundingClientRect();
+                            const src = e.touches ? e.touches[0] : e;
+                            const scaleX = canvas.width  / r.width;
+                            const scaleY = canvas.height / r.height;
+                            return {
+                                x: (src.clientX - r.left) * scaleX,
+                                y: (src.clientY - r.top)  * scaleY
+                            };
+                        };
+
+                        const lerp = (a, b, t) => a + (b - a) * t;
+
+                        const start = (e) => {
+                            e.preventDefault();
+                            this.drawing = true;
+                            points = [];
+                            const p = pos(e);
+                            points.push(p);
+                            ctx.beginPath();
+                            ctx.moveTo(p.x, p.y);
+                        };
+
+                        const move = (e) => {
+                            if (!this.drawing) return;
+                            e.preventDefault();
+                            const p = pos(e);
+                            const prev = points[points.length - 1];
+                            const smoothed = {
+                                x: lerp(prev.x, p.x, 1 - SMOOTH),
+                                y: lerp(prev.y, p.y, 1 - SMOOTH)
+                            };
+                            points.push(smoothed);
+                            if (points.length >= 3) {
+                                const p0 = points[points.length - 3];
+                                const p1 = points[points.length - 2];
+                                const p2 = points[points.length - 1];
+                                const mid01 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+                                const mid12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+                                ctx.beginPath();
+                                ctx.moveTo(mid01.x, mid01.y);
+                                ctx.quadraticCurveTo(p1.x, p1.y, mid12.x, mid12.y);
+                                ctx.stroke();
+                            } else {
+                                ctx.beginPath();
+                                ctx.moveTo(prev.x, prev.y);
+                                ctx.lineTo(smoothed.x, smoothed.y);
+                                ctx.stroke();
+                            }
+                            $wire.set('signatureData', canvas.toDataURL('image/png'));
+                        };
+
+                        const stop = () => {
+                            if (this.drawing && points.length >= 2) {
+                                const last = points[points.length - 1];
+                                ctx.lineTo(last.x, last.y);
+                                ctx.stroke();
+                                $wire.set('signatureData', canvas.toDataURL('image/png'));
+                            }
+                            this.drawing = false;
+                            points = [];
+                        };
+
+                        canvas.addEventListener('mousedown',  start);
+                        canvas.addEventListener('mousemove',  move);
+                        canvas.addEventListener('mouseup',    stop);
+                        canvas.addEventListener('mouseleave', stop);
+                        canvas.addEventListener('touchstart', start, { passive: false });
+                        canvas.addEventListener('touchmove',  move,  { passive: false });
+                        canvas.addEventListener('touchend',   stop);
+                    },
+
+                    clearCanvas() {
+                        const canvas = this.$refs.sigCanvas;
+                        if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                        $wire.set('signatureData', '');
+                    },
+
+                    closeModal() {
+                        this.showModal = false;
+                        this.step = 1;
+                        this.clearCanvas();
+                        $wire.set('approvalComment', '');
+                        $wire.set('authPassword', '');
+                    },
+
+                    async confirmPassword() {
+                        await $wire.verifyAuthPassword();
+                        // si no hay errores en authPassword, avanzar
+                        if (!$wire.__instance?.effects?.errors?.authPassword) {
+                            this.goToStep2();
+                        }
+                    }
+                }"
+                class="mt-4 pt-3 border-t border-gray-100"
+            >
+                <p class="text-xs font-medium text-gray-700 mb-3">Tu rol tiene autorización pendiente en esta cotización:</p>
                 <div class="flex flex-wrap gap-3">
-                    <button wire:click="approveQuotation" type="button"
-                        class="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+                    <button type="button" @click="openModal()"
+                        class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                         Autorizar
                     </button>
                     <button wire:click="rejectQuotation" type="button"
                         class="px-4 py-2 text-sm border border-red-200 text-red-600 hover:bg-red-50 rounded-lg font-medium transition">
                         Rechazar
                     </button>
+                </div>
+
+                {{-- ── Modal multi-paso ── --}}
+                <div
+                    x-show="showModal"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                    style="display: none;"
+                    @keydown.escape.window="closeModal()"
+                    @click.self="closeModal()"
+                >
+                    <div
+                        x-show="showModal"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="bg-white rounded-2xl shadow-2xl w-full max-w-md"
+                        @click.stop
+                    >
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center"
+                                    :class="step === 1 ? 'bg-indigo-100' : 'bg-emerald-100'">
+                                    <svg x-show="step === 1" class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    <svg x-show="step === 2" class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6.536-6.536a2 2 0 112.828 2.828L11.828 13.828a4 4 0 01-1.414.94l-3.414.853.853-3.414a4 4 0 01.94-1.414z"/></svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-semibold text-gray-800" x-text="step === 1 ? 'Verificar identidad' : 'Firma de autorización'"></h3>
+                                    <p class="text-[10px] text-gray-400" x-text="step === 1 ? 'Paso 1 de 2' : 'Paso 2 de 2'"></p>
+                                </div>
+                            </div>
+                            <button type="button" @click="closeModal()"
+                                class="text-gray-400 hover:text-gray-600 transition rounded-lg p-1 hover:bg-gray-100">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        {{-- ── Paso 1: contraseña ── --}}
+                        <div x-show="step === 1" class="px-5 py-5 space-y-4">
+                            <p class="text-xs text-gray-500">Ingresa tu contraseña para confirmar tu identidad antes de firmar.</p>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Contraseña <span class="text-red-500">*</span></label>
+                                <input
+                                    wire:model="authPassword"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    @keydown.enter="confirmPassword()"
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                    autocomplete="current-password"
+                                >
+                                @error('authPassword')
+                                    <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- ── Paso 2: firma ── --}}
+                        <div x-show="step === 2" class="px-5 py-4 space-y-4">
+
+                            {{-- Selector de método (solo si hay firma guardada) --}}
+                            <template x-if="hasSavedSig">
+                                <div class="flex gap-2">
+                                    <button type="button"
+                                        @click="switchToMethod('saved')"
+                                        :class="sigMethod === 'saved'
+                                            ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-medium'
+                                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'"
+                                        class="flex-1 text-xs py-2 px-3 rounded-lg border transition flex items-center justify-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        Usar firma registrada
+                                    </button>
+                                    <button type="button"
+                                        @click="switchToMethod('draw')"
+                                        :class="sigMethod === 'draw'
+                                            ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-medium'
+                                            : 'border-gray-200 text-gray-500 hover:bg-gray-50'"
+                                        class="flex-1 text-xs py-2 px-3 rounded-lg border transition flex items-center justify-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6.536-6.536a2 2 0 112.828 2.828L11.828 13.828a4 4 0 01-1.414.94l-3.414.853.853-3.414a4 4 0 01.94-1.414z"/></svg>
+                                        Firmar ahora
+                                    </button>
+                                </div>
+                            </template>
+
+                            {{-- Firma guardada --}}
+                            <div x-show="sigMethod === 'saved'">
+                                <p class="text-xs text-gray-500 mb-2">Se usará tu firma registrada en el sistema:</p>
+                                <div class="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 p-2 flex items-center justify-center" style="min-height: 80px;">
+                                    @if(auth()->user()->signature)
+                                        <img src="{{ auth()->user()->signature }}" alt="Firma registrada" class="max-h-20 object-contain">
+                                    @endif
+                                </div>
+                                <p class="text-[10px] text-gray-400 mt-1">
+                                    Registrada el {{ auth()->user()->signature_updated_at?->format('d/m/Y') ?? '—' }}.
+                                    <a href="{{ route('users.edit', auth()->user()) }}" wire:navigate class="underline hover:text-indigo-500">Actualizar firma</a>
+                                </p>
+                            </div>
+
+                            {{-- Panel de dibujo --}}
+                            <div x-show="sigMethod === 'draw'">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-xs font-medium text-gray-600">Dibuja tu firma <span class="text-red-500">*</span></label>
+                                    <button type="button" @click="clearCanvas()"
+                                        class="text-[10px] text-gray-400 hover:text-red-500 underline transition">Limpiar</button>
+                                </div>
+                                <div class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50 cursor-crosshair select-none hover:border-gray-400 transition"
+                                     style="touch-action: none;">
+                                    <canvas x-ref="sigCanvas" width="800" height="160"
+                                        class="w-full block"
+                                        style="touch-action: none;"></canvas>
+                                </div>
+                                <p class="text-[10px] text-gray-400 mt-1">Traza tu firma con el ratón o dedo.</p>
+                            </div>
+
+                            {{-- Comentario --}}
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Comentario <span class="text-gray-400">(opcional)</span></label>
+                                <textarea wire:model="approvalComment" rows="2"
+                                    placeholder="Agrega un comentario sobre tu autorización..."
+                                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"></textarea>
+                            </div>
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="flex items-center justify-between gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+                            <button type="button" @click="step === 1 ? closeModal() : (step = 1)"
+                                class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg font-medium transition"
+                                x-text="step === 1 ? 'Cancelar' : '← Atrás'">
+                            </button>
+
+                            {{-- Paso 1: verificar contraseña --}}
+                            <button x-show="step === 1"
+                                type="button"
+                                @click="confirmPassword()"
+                                wire:loading.attr="disabled"
+                                class="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                Verificar y continuar
+                            </button>
+
+                            {{-- Paso 2: confirmar autorización --}}
+                            <button x-show="step === 2"
+                                type="button"
+                                @click="closeModal(); $wire.approveQuotation();"
+                                class="px-5 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Confirmar autorización
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
             @endif
@@ -602,13 +826,13 @@
 
     {{-- ── Orden de compra generada ── --}}
     @if($requisition->status === 'ordered' && $requisition->order)
-    <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <p class="text-sm font-medium text-green-800">Orden de compra generada</p>
-            <p class="text-xs text-green-600 mt-0.5">Folio: {{ $requisition->order->folio }}</p>
+            <p class="text-sm font-medium text-emerald-800">Orden de compra generada</p>
+            <p class="text-xs text-emerald-600 mt-0.5">Folio: {{ $requisition->order->folio }}</p>
         </div>
         <a href="{{ route('purchases.orders.show', $requisition->order) }}" wire:navigate
-            class="px-4 py-2 text-sm bg-green-700 hover:bg-green-800 text-white rounded-lg transition whitespace-nowrap self-start sm:self-auto">
+            class="px-4 py-2 text-sm bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg transition whitespace-nowrap self-start sm:self-auto">
             Ver orden de compra
         </a>
     </div>
@@ -633,7 +857,7 @@
             Tu requisición está en proceso de autorización.
         </div>
         @elseif($requisition->status === 'authorized')
-        <div class="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-700">
             ¡Tu requisición fue aprobada en evaluación! El área de compras generará la orden de compra a la brevedad.
         </div>
         @endif

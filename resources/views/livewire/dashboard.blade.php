@@ -7,7 +7,16 @@
                 <h1 class="text-xl font-bold">¡Bienvenido, {{ auth()->user()->name }}!</h1>
                 <p class="text-indigo-200 text-sm mt-0.5">{{ now()->translatedFormat('l, d \d\e F \d\e Y') }}</p>
             </div>
-            <div class="flex gap-2 flex-wrap">
+            <div class="flex gap-2 flex-wrap items-center">
+                @if($branches->count() > 1)
+                <select wire:model.live="branchId"
+                        class="text-sm bg-white/15 border border-white/20 text-white rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-white/40 [&>option]:text-gray-800">
+                    <option value="">Todas las sucursales</option>
+                    @foreach($branches as $branch)
+                        <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                    @endforeach
+                </select>
+                @endif
                 @can('create sales')
                 <a wire:navigate href="{{ route('sales.quotations.create') }}"
                    class="inline-flex items-center gap-1.5 bg-white/15 hover:bg-white/25 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition">
@@ -27,6 +36,7 @@
     </div>
 
     {{-- KPIs fila 1: Ventas --}}
+    @can('view sales summary')
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
         {{-- Ventas del mes --}}
@@ -41,7 +51,7 @@
             </div>
             <p class="text-2xl font-bold text-gray-900">${{ number_format($salesThisMonth, 0) }}</p>
             @if($salesGrowth !== null)
-                <span class="text-xs {{ $salesGrowth >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50' }} px-2 py-0.5 rounded-full self-start font-medium">
+                <span class="text-xs {{ $salesGrowth >= 0 ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50' }} px-2 py-0.5 rounded-full self-start font-medium">
                     {{ $salesGrowth >= 0 ? '+' : '' }}{{ $salesGrowth }}% vs mes anterior
                 </span>
             @else
@@ -91,10 +101,13 @@
             <span class="text-xs text-gray-400">Este mes</span>
         </div>
     </div>
+    @endcan
 
-    {{-- KPIs fila 2: Compras e Inventario --}}
-    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
+    {{-- KPIs fila 2: Compras + Inventario + Cobranza --}}
+    @if(auth()->user()->canAny(['view purchases summary', 'view inventory summary', 'view finance summary']))
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
+        @can('view purchases summary')
         {{-- Requisiciones en proceso --}}
         <div class="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-2">
             <div class="flex items-center justify-between">
@@ -122,9 +135,11 @@
             <p class="text-2xl font-bold text-gray-900">{{ $openPurchaseOrders }}</p>
             <a wire:navigate href="{{ route('purchases.orders.index') }}" class="text-xs text-teal-600 hover:underline self-start">Ver órdenes →</a>
         </div>
+        @endcan
 
+        @can('view inventory summary')
         {{-- Stock bajo mínimo --}}
-        <div class="bg-white rounded-xl border {{ $lowStockProducts > 0 ? 'border-red-200 bg-red-50/30' : 'border-gray-200' }} p-4 flex flex-col gap-2 col-span-2 lg:col-span-1">
+        <div class="bg-white rounded-xl border {{ $lowStockProducts > 0 ? 'border-red-200 bg-red-50/30' : 'border-gray-200' }} p-4 flex flex-col gap-2">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-medium {{ $lowStockProducts > 0 ? 'text-red-500' : 'text-gray-500' }} uppercase tracking-wide">Productos bajo mínimo</span>
                 <div class="w-8 h-8 {{ $lowStockProducts > 0 ? 'bg-red-100' : 'bg-gray-100' }} rounded-lg flex items-center justify-center">
@@ -140,9 +155,32 @@
                 <span class="text-xs text-gray-400">Todo en orden</span>
             @endif
         </div>
-    </div>
+        @endcan
 
-    {{-- Gráfico + Últimas órdenes --}}
+        @can('view finance summary')
+        {{-- Facturas vencidas --}}
+        <div class="bg-white rounded-xl border {{ $overdueInvoices > 0 ? 'border-orange-200 bg-orange-50/20' : 'border-gray-200' }} p-4 flex flex-col gap-2">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-medium {{ $overdueInvoices > 0 ? 'text-orange-500' : 'text-gray-500' }} uppercase tracking-wide">Facturas vencidas</span>
+                <div class="w-8 h-8 {{ $overdueInvoices > 0 ? 'bg-orange-100' : 'bg-gray-100' }} rounded-lg flex items-center justify-center">
+                    <svg class="w-4 h-4 {{ $overdueInvoices > 0 ? 'text-orange-600' : 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-2xl font-bold {{ $overdueInvoices > 0 ? 'text-orange-700' : 'text-gray-900' }}">{{ $overdueInvoices }}</p>
+            @if($overdueInvoices > 0)
+                <span class="text-xs text-orange-600 font-medium">${{ number_format($overdueTotal, 0) }} por cobrar</span>
+            @else
+                <span class="text-xs text-gray-400">Sin vencidas</span>
+            @endif
+        </div>
+        @endcan
+    </div>
+    @endif
+
+    {{-- Gráfico ventas + Últimas órdenes --}}
+    @can('view sales summary')
     <div class="grid grid-cols-1 lg:grid-cols-5 gap-4">
 
         {{-- Gráfico ventas 6 meses --}}
@@ -219,7 +257,92 @@
         </div>
     </div>
 
+    {{-- Top 5 productos del mes --}}
+    @if($topProducts->isNotEmpty())
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 class="text-sm font-semibold text-gray-800 mb-4">Top 5 productos más vendidos este mes</h3>
+        <div class="space-y-3">
+            @foreach($topProducts as $i => $item)
+            @php
+                $maxQty = $topProducts->max('total_qty');
+                $pct    = $maxQty > 0 ? ($item->total_qty / $maxQty) * 100 : 0;
+            @endphp
+            <div class="flex items-center gap-3">
+                <span class="w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                    {{ $i + 1 }}
+                </span>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <p class="text-xs font-medium text-gray-800 truncate">{{ $item->product?->name ?? '—' }}</p>
+                        <span class="text-xs text-gray-500 flex-shrink-0">{{ number_format($item->total_qty, 0) }} uds · ${{ number_format($item->total_revenue, 0) }}</span>
+                    </div>
+                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-indigo-400 rounded-full transition-all" style="width: {{ $pct }}%"></div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+    @endcan
+
+    {{-- Facturas pendientes de cobro --}}
+    @can('view finance summary')
+    @if($pendingInvoicesList->isNotEmpty())
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-800">Facturas pendientes de cobro</h3>
+            <a wire:navigate href="{{ route('sales.invoices.index') }}" class="text-xs text-indigo-600 hover:underline">Ver todas</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="text-left text-gray-400 border-b border-gray-100">
+                        <th class="pb-2 font-medium">Folio</th>
+                        <th class="pb-2 font-medium">Cliente</th>
+                        <th class="pb-2 font-medium">Vencimiento</th>
+                        <th class="pb-2 font-medium text-right">Saldo</th>
+                        <th class="pb-2 font-medium">Estado</th>
+                        <th class="pb-2"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @foreach($pendingInvoicesList as $inv)
+                    @php
+                        $balance   = $inv->total - $inv->paid_amount;
+                        $isOverdue = $inv->due_at && $inv->due_at->isPast();
+                    @endphp
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="py-2.5 font-mono font-medium text-gray-700">{{ $inv->folio }}</td>
+                        <td class="py-2.5 text-gray-600">{{ $inv->customer?->name ?? '—' }}</td>
+                        <td class="py-2.5 {{ $isOverdue ? 'text-red-600 font-medium' : 'text-gray-400' }}">
+                            {{ $inv->due_at ? $inv->due_at->format('d/m/Y') : '—' }}
+                            @if($isOverdue)
+                                <span class="ml-1 text-[10px] bg-red-100 text-red-600 px-1 rounded">vencida</span>
+                            @endif
+                        </td>
+                        <td class="py-2.5 text-right font-semibold text-gray-700">${{ number_format($balance, 0) }}</td>
+                        <td class="py-2.5">
+                            @php $invColors = \App\Models\SaleInvoice::STATUS_COLORS[$inv->status] ?? 'bg-gray-100 text-gray-600'; @endphp
+                            <span class="px-2 py-0.5 rounded-full font-medium {{ $invColors }}">
+                                {{ \App\Models\SaleInvoice::STATUS[$inv->status] ?? $inv->status }}
+                            </span>
+                        </td>
+                        <td class="py-2.5 text-right">
+                            <a wire:navigate href="{{ route('sales.invoices.show', $inv) }}" class="text-indigo-600 hover:underline">Ver →</a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+    @endcan
+
     {{-- Requisiciones pendientes --}}
+    @can('view purchases summary')
     @if($pendingReqList->isNotEmpty())
     <div class="bg-white rounded-xl border border-gray-200 p-5">
         <div class="flex items-center justify-between mb-4">
@@ -259,6 +382,7 @@
         </div>
     </div>
     @endif
+    @endcan
 
 </div>
 

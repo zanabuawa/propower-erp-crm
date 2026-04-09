@@ -80,7 +80,10 @@
 
         {{-- Productos --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Productos</h2>
+            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                <h2 class="text-sm font-medium text-gray-700">Productos</h2>
+                <livewire:shared.product-picker />
+            </div>
 
             {{-- Buscador de productos --}}
             <div class="relative">

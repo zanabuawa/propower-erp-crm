@@ -18,7 +18,7 @@
                 <div class="flex items-center gap-3 flex-wrap">
                     <h1 class="text-xl font-medium text-gray-900">{{ $supplier->name }}</h1>
                     <span class="text-xs px-2 py-0.5 rounded-full
-                        {{ $supplier->status === 'active' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}">
+                        {{ $supplier->status === 'active' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500' }}">
                         {{ \App\Models\Supplier::STATUS[$supplier->status] }}
                     </span>
                 </div>
@@ -34,11 +34,7 @@
         </a>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">
-            {{ session('success') }}
-        </div>
-    @endif
+    <x-alert />
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 

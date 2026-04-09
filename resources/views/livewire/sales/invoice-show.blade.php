@@ -57,7 +57,7 @@
             @endif
             @if(in_array($invoice->status, ['stamped', 'draft']) && $invoice->balance > 0)
                 <button wire:click="$set('showPaymentForm', true)"
-                    class="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition">
+                    class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
                     Registrar pago
                 </button>
             @endif
@@ -70,11 +70,7 @@
         </div>
     </div>
 
-    @if(session('success'))
-        <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg">
-            {{ session('success') }}
-        </div>
-    @endif
+    <x-alert />
 
     @if($stampError)
         <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
@@ -205,11 +201,11 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">Pagado</span>
-                        <span class="font-medium text-green-600">${{ number_format($invoice->paid_amount, 2) }}</span>
+                        <span class="font-medium text-emerald-600">${{ number_format($invoice->paid_amount, 2) }}</span>
                     </div>
                     <div class="flex justify-between border-t border-gray-100 pt-2">
                         <span class="font-medium text-gray-900">Saldo pendiente</span>
-                        <span class="font-medium {{ $invoice->balance > 0 ? 'text-red-600' : 'text-green-600' }}">
+                        <span class="font-medium {{ $invoice->balance > 0 ? 'text-red-600' : 'text-emerald-600' }}">
                             ${{ number_format($invoice->balance, 2) }}
                         </span>
                     </div>
@@ -343,7 +339,7 @@
                                 <button type="button" wire:click="$set('showPaymentForm', false)"
                                     class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
                                 <button type="button" wire:click="savePayment"
-                                    class="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700">Guardar pago</button>
+                                    class="px-3 py-1.5 text-xs bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Guardar pago</button>
                             </div>
                         </div>
                     @endif
@@ -361,7 +357,7 @@
                                         · {{ $payment->paid_at->format('d/m/Y H:i') }}
                                     </p>
                                 </div>
-                                <span class="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full">Aplicado</span>
+                                <span class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">Aplicado</span>
                             </div>
                         </div>
                     @empty

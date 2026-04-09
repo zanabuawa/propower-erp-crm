@@ -1,3 +1,4 @@
+@php $company = auth()->user()->company; @endphp
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -5,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name') }}</title>
+    @if($company?->icon)
+        <link rel="icon" href="{{ Storage::url($company->icon) }}">
+    @elseif($company?->logo)
+        <link rel="icon" href="{{ Storage::url($company->logo) }}">
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <style>
@@ -19,9 +25,16 @@
         .sb-animated .sb-sub { transition: max-height .25s ease; }
         .sb-chevron { transition: transform .2s; }
         .sb-chevron.open { transform: rotate(90deg); }
+        /* Focus visible para navegación por teclado */
+        :focus-visible { outline: 2px solid #6366f1; outline-offset: 2px; border-radius: 4px; }
+        /* Skip link */
+        .skip-link { position: absolute; left: -9999px; z-index: 999; padding: 0.5rem 1rem; background: #6366f1; color: white; font-size: 0.875rem; font-weight: 500; border-radius: 0 0 0.5rem 0.5rem; }
+        .skip-link:focus { left: 50%; transform: translateX(-50%); }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900 antialiased">
+
+<a href="#main-content" class="skip-link">Ir al contenido principal</a>
 
 <div class="flex h-screen overflow-hidden" x-data="{
     sidebarOpen: true,
@@ -98,9 +111,10 @@ x-init="init()">
 
     {{-- SIDEBAR --}}
     <aside
+        aria-label="Menú de navegación principal"
         class="bg-[#1a1d2e] text-white flex flex-col z-40 flex-shrink-0
                fixed inset-y-0 left-0 lg:relative lg:translate-x-0
-               transition-all duration-300"
+               transition-[width] duration-300"
         :class="{
             'w-56': sidebarOpen,
             'w-14': !sidebarOpen && !mobileOpen,
@@ -109,7 +123,6 @@ x-init="init()">
         }"
     >
         {{-- LOGO --}}
-        @php $company = auth()->user()->company; @endphp
         <div class="overflow-hidden flex-shrink-0">
             <div class="flex items-center justify-center p-4"
                 :style="sidebarOpen ? 'padding:16px' : 'padding:8px'">
@@ -174,6 +187,7 @@ x-init="init()">
                 <x-sidebar-subitem route="inventory.units.index" label="Unidades" />
                 <x-sidebar-subitem route="inventory.warehouses.index" label="Almacenes" />
                 <x-sidebar-subitem route="inventory.movements.index" label="Movimientos" />
+                <x-sidebar-subitem route="inventory.transfers.index" label="Transferencias" />
                 @endcan
             </x-sidebar-menu>
             @endcanany
@@ -240,8 +254,19 @@ x-init="init()">
 
             {{-- Licitaciones --}}
             @canany(['view projects', 'create projects'])
-            <x-sidebar-menu id="lic" label="Licitaciones e ingeniería" icon="inventory" :routes="['licitaciones.*']">
+            <x-sidebar-menu id="lic" label="Licitaciones e ingeniería" icon="licitaciones" :routes="['licitaciones.*']">
                 <x-sidebar-subitem route="projects.index" label="Licitaciones" />
+            </x-sidebar-menu>
+            @endcanany
+
+            {{-- Activos Fijos --}}
+            @canany(['view assets', 'create assets', 'transfer assets'])
+            <x-sidebar-menu id="assets" label="Activos fijos" icon="assets" :routes="['assets.*']">
+                @can('view assets')
+                <x-sidebar-subitem route="assets.index" label="Equipo y bienes" />
+                <x-sidebar-subitem route="assets.inventory" label="Inventario de activos" />
+                <x-sidebar-subitem route="assets.transfers.index" label="Transferencias" />
+                @endcan
             </x-sidebar-menu>
             @endcanany
 
@@ -283,14 +308,18 @@ x-init="init()">
         {{-- TOPBAR --}}
         <header class="bg-white border-b border-gray-200 h-12 flex items-center px-4 gap-3 flex-shrink-0">
             {{-- Toggle desktop --}}
-            <button @click="sidebarOpen = !sidebarOpen; saveState()" class="hidden lg:flex text-gray-500 hover:text-gray-800">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="sidebarOpen = !sidebarOpen; saveState()"
+                class="hidden lg:flex text-gray-500 hover:text-gray-800 rounded-md p-0.5"
+                :aria-label="sidebarOpen ? 'Contraer menú lateral' : 'Expandir menú lateral'">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
             {{-- Toggle mobile --}}
-            <button @click="mobileOpen = !mobileOpen" class="flex lg:hidden text-gray-500 hover:text-gray-800">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button @click="mobileOpen = !mobileOpen"
+                class="flex lg:hidden text-gray-500 hover:text-gray-800 rounded-md p-0.5"
+                :aria-label="mobileOpen ? 'Cerrar menú' : 'Abrir menú'">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
@@ -304,6 +333,7 @@ x-init="init()">
                         request()->routeIs('hr.*')           => 'Recursos humanos',
                         request()->routeIs('accounting.*')   => 'Contabilidad',
                         request()->routeIs('projects.*', 'licitaciones.*') => 'Proyectos',
+                        request()->routeIs('assets.*')        => 'Activos fijos',
                         request()->routeIs('companies.*', 'branches.*', 'users.*') => 'Administración',
                         default => $title ?? 'Dashboard',
                     };
@@ -319,7 +349,7 @@ x-init="init()">
         </header>
 
         {{-- MAIN --}}
-        <main class="flex-1 overflow-y-auto p-4 lg:p-6">
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 lg:p-6" tabindex="-1">
             @hasSection('content')
                 @yield('content')
             @else

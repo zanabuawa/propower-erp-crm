@@ -30,7 +30,14 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
                     </svg>
-                    <h2 class="text-base font-semibold text-gray-900 flex-1">Catálogo de productos</h2>
+                    <div class="flex-1">
+                        <h2 class="text-base font-semibold text-gray-900">
+                            {{ $warehouseId ? 'Productos disponibles' : 'Catálogo de productos' }}
+                        </h2>
+                        @if($warehouse)
+                            <p class="text-xs text-gray-400 mt-0.5">Almacén: {{ $warehouse->name }}</p>
+                        @endif
+                    </div>
                     <button type="button" wire:click="close" class="text-gray-400 hover:text-gray-600 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -66,6 +73,7 @@
                                 <option value="{{ $cat->id }}">{{ $cat->name }}</option>
                             @endforeach
                         </select>
+                        @if(!$warehouseId)
                         <select wire:model.live="supplierId"
                             class="px-3 py-1.5 border border-gray-200 rounded-lg text-xs bg-white
                                    focus:outline-none focus:ring-2 focus:ring-indigo-300 text-gray-600">
@@ -74,6 +82,7 @@
                                 <option value="{{ $sup->id }}">{{ $sup->name }}</option>
                             @endforeach
                         </select>
+                        @endif
                         @if($search || $categoryId || $supplierId)
                             <button type="button" wire:click="$set('search',''); $set('categoryId', null); $set('supplierId', null)"
                                 class="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
@@ -100,9 +109,12 @@
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                             @foreach($products as $product)
                                 @php
-                                    $totalStock = $product->stocks->sum('quantity');
-                                    $isService  = $product->type === 'service';
-                                    $lowStock   = !$isService && $totalStock <= $product->min_stock && $product->min_stock > 0;
+                                    $isService    = $product->type === 'service';
+                                    $displayStock = $warehouseId
+                                        ? (float) ($product->stocks->first()?->quantity ?? 0)
+                                        : (float) $product->stocks->sum('quantity');
+                                    $totalStock   = $displayStock;
+                                    $lowStock     = !$isService && !$warehouseId && $totalStock <= $product->min_stock && $product->min_stock > 0;
                                 @endphp
                                 <button
                                     type="button"
@@ -164,9 +176,15 @@
                                                 <span class="text-[10px] text-gray-400 truncate">{{ $product->category->name }}</span>
                                             </div>
                                         @endif
-                                        <p class="text-sm font-bold text-indigo-600 mt-auto pt-1">
-                                            ${{ number_format($product->sale_price, 2) }}
-                                        </p>
+                                        @if($warehouseId)
+                                            <p class="text-sm font-bold text-emerald-600 mt-auto pt-1">
+                                                Stock: {{ number_format($displayStock, 2) }}
+                                            </p>
+                                        @else
+                                            <p class="text-sm font-bold text-indigo-600 mt-auto pt-1">
+                                                ${{ number_format($product->sale_price, 2) }}
+                                            </p>
+                                        @endif
                                     </div>
 
                                     {{-- Hover overlay add --}}

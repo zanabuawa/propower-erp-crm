@@ -1,16 +1,13 @@
 <div class="space-y-5">
 
-    {{-- Header --}}
-    <div class="flex items-center justify-between gap-4">
-        <div>
-            <h1 class="text-xl font-medium text-gray-900">Reporte de compras</h1>
-            <p class="text-xs text-gray-400 mt-0.5">Órdenes de compra · resumen y detalle</p>
-        </div>
-        <button wire:click="clearFilters"
-            class="px-3 py-1.5 text-xs border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 transition">
-            Limpiar filtros
-        </button>
-    </div>
+    <x-page-header title="Reporte de compras" description="Órdenes de compra · resumen y detalle">
+        <x-slot:actions>
+            <button wire:click="clearFilters"
+                class="px-3 py-2 text-sm border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 transition">
+                Limpiar filtros
+            </button>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Filtros --}}
     <div class="bg-white rounded-xl border border-gray-200 p-4">
@@ -129,19 +126,19 @@
         @else
         <div class="overflow-x-auto">
             <table class="w-full text-sm min-w-[700px]">
-                <thead class="bg-gray-50 text-xs text-gray-500">
-                    <tr>
-                        <th class="px-4 py-2 text-left">Folio</th>
-                        <th class="px-4 py-2 text-left">Fecha</th>
-                        <th class="px-4 py-2 text-left">Proveedor</th>
-                        <th class="px-4 py-2 text-left">Sucursal</th>
-                        <th class="px-4 py-2 text-left">Responsable</th>
-                        <th class="px-4 py-2 text-center">Moneda</th>
-                        <th class="px-4 py-2 text-right">Subtotal</th>
-                        <th class="px-4 py-2 text-right">IVA</th>
-                        <th class="px-4 py-2 text-right">Total</th>
-                        <th class="px-4 py-2 text-center">Estatus</th>
-                        <th class="px-4 py-2 text-center">Acciones</th>
+                <thead>
+                    <tr class="border-b border-gray-200 bg-gray-50">
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Folio</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Fecha</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Proveedor</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Sucursal</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">Responsable</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">Moneda</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">Subtotal</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">IVA</th>
+                        <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">Total</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">Estatus</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wide">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">

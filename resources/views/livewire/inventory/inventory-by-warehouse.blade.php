@@ -1,14 +1,12 @@
 <div>
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-            <h1 class="text-xl font-medium text-gray-900">Inventario por almacén</h1>
-            <p class="text-sm text-gray-400 mt-0.5">Existencias locales por almacén</p>
-        </div>
-        <a wire:navigate href="{{ route('inventory.general') }}"
-            class="text-sm text-indigo-600 hover:underline self-start sm:self-auto">
-            ← Ver inventario general
-        </a>
-    </div>
+    <x-page-header title="Inventario por almacén" description="Existencias locales por almacén">
+        <x-slot:actions>
+            <a wire:navigate href="{{ route('inventory.general') }}"
+                class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                ← Inventario general
+            </a>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Selector de almacén --}}
     <div class="bg-white rounded-xl border border-gray-200 p-4 mb-5">
@@ -93,17 +91,17 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-sm min-w-[640px]">
                     <thead>
-                        <tr class="border-b border-gray-100 bg-gray-50">
-                            <th class="text-left text-xs text-gray-500 font-medium px-4 py-3">Producto</th>
-                            <th class="text-left text-xs text-gray-500 font-medium px-4 py-3 hidden sm:table-cell">SKU</th>
-                            <th class="text-left text-xs text-gray-500 font-medium px-4 py-3 hidden md:table-cell">Categoría</th>
-                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3">Existencias</th>
-                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden md:table-cell">Mín.</th>
-                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden lg:table-cell">Precio costo</th>
-                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden lg:table-cell">Precio venta</th>
-                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden lg:table-cell">Desc. máx.</th>
-                            <th class="text-right text-xs text-gray-500 font-medium px-4 py-3 hidden sm:table-cell">Valor</th>
-                            <th class="text-center text-xs text-gray-500 font-medium px-4 py-3">Estado</th>
+                        <tr class="border-b border-gray-200 bg-gray-50">
+                            <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3">Producto</th>
+                            <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden sm:table-cell">SKU</th>
+                            <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden md:table-cell">Categoría</th>
+                            <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3">Existencias</th>
+                            <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden md:table-cell">Mín.</th>
+                            <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden lg:table-cell">Precio costo</th>
+                            <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden lg:table-cell">Precio venta</th>
+                            <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden lg:table-cell">Desc. máx.</th>
+                            <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden sm:table-cell">Valor</th>
+                            <th class="text-center text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3">Estado</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
@@ -141,7 +139,7 @@
                                 <td class="px-4 py-3 text-right text-gray-400 text-xs hidden md:table-cell">{{ number_format($p->min_stock, 2) }}</td>
                                 <td class="px-4 py-3 text-right text-gray-600 hidden lg:table-cell">${{ number_format($p->purchase_price, 2) }}</td>
                                 <td class="px-4 py-3 text-right text-gray-800 hidden lg:table-cell">${{ number_format($p->sale_price, 2) }}</td>
-                                <td class="px-4 py-3 text-right hidden lg:table-cell {{ $maxDisc > 0 ? 'text-green-600' : 'text-gray-300' }}">
+                                <td class="px-4 py-3 text-right hidden lg:table-cell {{ $maxDisc > 0 ? 'text-emerald-600' : 'text-gray-300' }}">
                                     ${{ number_format($maxDisc, 2) }}
                                 </td>
                                 <td class="px-4 py-3 text-right font-medium text-indigo-600 hidden sm:table-cell">
@@ -153,7 +151,7 @@
                                     @elseif($isLow)
                                         <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-amber-50 text-amber-600 font-medium">Stock bajo</span>
                                     @else
-                                        <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-600 font-medium">Normal</span>
+                                        <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-emerald-50 text-emerald-600 font-medium">Normal</span>
                                     @endif
                                 </td>
                             </tr>

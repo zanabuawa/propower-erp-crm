@@ -50,6 +50,10 @@ class NotificationBell extends Component
             $this->redirect(route('purchases.requisitions.show', $data['requisition_id']), navigate: true);
         } elseif (!empty($data['order_id'])) {
             $this->redirect(route('purchases.orders.show', $data['order_id']), navigate: true);
+        } elseif (!empty($data['transfer_id'])) {
+            $this->redirect(route('inventory.transfers.show', $data['transfer_id']), navigate: true);
+        } elseif (!empty($data['asset_id'])) {
+            $this->redirect(route('assets.edit', $data['asset_id']), navigate: true);
         }
     }
 
