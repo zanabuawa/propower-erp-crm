@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class FinanceTransaction extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'account_id', 'transfer_to_account_id', 'project_id', 'registered_by',
+        'folio', 'type', 'concept', 'category', 'amount', 'currency',
+        'exchange_rate', 'transaction_date', 'reference', 'status', 'notes',
+    ];
+
+    protected $casts = [
+        'amount'           => 'decimal:2',
+        'exchange_rate'    => 'decimal:6',
+        'transaction_date' => 'date',
+    ];
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(FinanceAccount::class, 'account_id');
+    }
+
+    public function transferToAccount(): BelongsTo
+    {
+        return $this->belongsTo(FinanceAccount::class, 'transfer_to_account_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
+    }
+
+    public function registeredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'registered_by');
+    }
+
+    public function getAmountMxnAttribute(): float
+    {
+        return $this->amount * $this->exchange_rate;
+    }
+}

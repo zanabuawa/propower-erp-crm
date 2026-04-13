@@ -261,6 +261,18 @@ x-init="init()">
             </x-sidebar-menu>
             @endcanany
 
+            {{-- Finanzas --}}
+            @canany(['view finance', 'create finance', 'edit finance', 'delete finance'])
+            <x-sidebar-menu id="fin" label="Finanzas" icon="finance" :routes="['finance.*']">
+                @can('view finance')
+                <x-sidebar-subitem route="finance.accounts.index" label="Cuentas" />
+                <x-sidebar-subitem route="finance.transactions.index" label="Transacciones" />
+                <x-sidebar-subitem route="finance.budgets.index" label="Presupuestos" />
+                <x-sidebar-subitem route="finance.cashflow.index" label="Flujo de caja" />
+                @endcan
+            </x-sidebar-menu>
+            @endcanany
+
             {{-- Activos Fijos --}}
             @canany(['view assets', 'create assets', 'transfer assets'])
             <x-sidebar-menu id="assets" label="Activos fijos" icon="assets" :routes="['assets.*']">
@@ -335,6 +347,7 @@ x-init="init()">
                         request()->routeIs('hr.*')           => 'Recursos humanos',
                         request()->routeIs('accounting.*')   => 'Contabilidad',
                         request()->routeIs('projects.*', 'licitaciones.*') => 'Proyectos',
+                        request()->routeIs('finance.*')       => 'Finanzas',
                         request()->routeIs('assets.*')        => 'Activos fijos',
                         request()->routeIs('companies.*', 'branches.*', 'users.*') => 'Administración',
                         default => $title ?? 'Dashboard',

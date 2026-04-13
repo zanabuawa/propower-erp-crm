@@ -142,6 +142,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/ventas/facturas/{invoice}/descargar/{type}', \App\Http\Controllers\Sales\InvoiceDownloadController::class)->name('sales.invoices.download');
     });
 
+
+    // ── Proyectos ─────────────────────────────────────────────────────────────
+    Route::middleware('can:create projects')->get('/proyectos/crear', \App\Livewire\Projects\ProjectForm::class)->name('projects.create');
+    Route::middleware('can:view projects')->group(function () {
+        Route::get('/proyectos', \App\Livewire\Projects\ProjectIndex::class)->name('projects.index');
+        Route::get('/proyectos/{project}', \App\Livewire\Projects\ProjectShow::class)->name('projects.show');
+        Route::get('/proyectos/{project}/gastos', \App\Livewire\Projects\ProjectExpenseIndex::class)->name('projects.expenses.index');
+        Route::get('/proyectos/{project}/tablero', \App\Livewire\Projects\ProjectTaskBoard::class)->name('projects.board');
+    });
+    Route::middleware('can:edit projects')->get('/proyectos/{project}/editar', \App\Livewire\Projects\ProjectForm::class)->name('projects.edit');
+
+    // ── Finanzas ──────────────────────────────────────────────────────────────
+    Route::middleware('can:view finance')->group(function () {
+        Route::get('/finanzas/cuentas', \App\Livewire\Finance\FinanceAccountIndex::class)->name('finance.accounts.index');
+        Route::get('/finanzas/transacciones', \App\Livewire\Finance\FinanceTransactionIndex::class)->name('finance.transactions.index');
+        Route::get('/finanzas/presupuestos', \App\Livewire\Finance\FinanceBudgetIndex::class)->name('finance.budgets.index');
+        Route::get('/finanzas/flujo-caja', \App\Livewire\Finance\FinanceCashflowIndex::class)->name('finance.cashflow.index');
+    });
+    Route::middleware('can:create finance')->group(function () {
+        Route::get('/finanzas/cuentas/crear', \App\Livewire\Finance\FinanceAccountForm::class)->name('finance.accounts.create');
+        Route::get('/finanzas/transacciones/crear', \App\Livewire\Finance\FinanceTransactionForm::class)->name('finance.transactions.create');
+        Route::get('/finanzas/presupuestos/crear', \App\Livewire\Finance\FinanceBudgetForm::class)->name('finance.budgets.create');
+        Route::get('/finanzas/flujo-caja/crear', \App\Livewire\Finance\FinanceCashflowForm::class)->name('finance.cashflow.create');
+    });
+    Route::middleware('can:edit finance')->group(function () {
+        Route::get('/finanzas/cuentas/{account}/editar', \App\Livewire\Finance\FinanceAccountForm::class)->name('finance.accounts.edit');
+        Route::get('/finanzas/transacciones/{transaction}/editar', \App\Livewire\Finance\FinanceTransactionForm::class)->name('finance.transactions.edit');
+        Route::get('/finanzas/presupuestos/{budget}/editar', \App\Livewire\Finance\FinanceBudgetForm::class)->name('finance.budgets.edit');
+        Route::get('/finanzas/flujo-caja/{cashflow}/editar', \App\Livewire\Finance\FinanceCashflowForm::class)->name('finance.cashflow.edit');
+    });
+
 });
 
 require __DIR__ . '/auth.php';
