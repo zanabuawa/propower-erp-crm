@@ -43,7 +43,7 @@
                     Esperando mercancía
                 </button>
             @endif
-            @if(in_array($order->status, ['sent', 'waiting_delivery', 'partial_received']))
+            @if(in_array($order->status, ['draft', 'sent', 'waiting_delivery', 'partial_received']))
                 <a wire:navigate href="{{ route('purchases.receipts.create', $order) }}"
                     class="px-4 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition">
                     Registrar recepción
@@ -61,10 +61,12 @@
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Información</h2>
                 <div class="space-y-2 text-sm">
+                    @if($order->supplier)
                     <div class="flex justify-between">
                         <span class="text-gray-500">Proveedor</span>
                         <span class="font-medium">{{ $order->supplier->name }}</span>
                     </div>
+                    @endif
                     <div class="flex justify-between">
                         <span class="text-gray-500">Moneda</span>
                         <span class="font-medium">{{ $order->currency }}</span>
@@ -97,6 +99,7 @@
                 </div>
             </div>
 
+            @can('view prices')
             <div class="bg-white rounded-xl border border-gray-200 p-5">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Totales</h2>
                 <div class="space-y-2 text-sm">
@@ -116,6 +119,7 @@
                     </div>
                 </div>
             </div>
+            @endcan
 
             @if($order->supplierBankAccount)
                 <div class="bg-white rounded-xl border border-gray-200 p-5">
@@ -154,11 +158,14 @@
                             <thead>
                                 <tr class="bg-gray-50 border-b border-gray-100">
                                     <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Producto</th>
+                                    <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 hidden sm:table-cell">Proveedor</th>
                                     <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Cant.</th>
                                     <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Recibido</th>
+                                    @can('view prices')
                                     <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 hidden sm:table-cell">Precio</th>
                                     <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 hidden sm:table-cell">IVA</th>
                                     <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500">Subtotal</th>
+                                    @endcan
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -166,7 +173,12 @@
                                     <tr>
                                         <td class="px-5 py-3">
                                             <p class="font-medium text-gray-900">{{ $item->description }}</p>
-                                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">${{ number_format($item->unit_price, 2) }} · IVA {{ $item->tax_rate }}%</p>
+                                            @can('view prices')
+                                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">${{ number_format($item->unit_price, 2) }} · IVA {{ $item->tax_rate == 0 ? 'incluido' : $item->tax_rate . '%' }}</p>
+                                            @endcan
+                                        </td>
+                                        <td class="px-5 py-3 text-gray-600 hidden sm:table-cell text-sm">
+                                            {{ $item->supplier?->name ?? '—' }}
                                         </td>
                                         <td class="px-5 py-3 text-gray-700">{{ $item->quantity }}</td>
                                         <td class="px-5 py-3">
@@ -174,9 +186,11 @@
                                                 {{ $item->quantity_received }}
                                             </span>
                                         </td>
+                                        @can('view prices')
                                         <td class="px-5 py-3 text-gray-700 hidden sm:table-cell">${{ number_format($item->unit_price, 2) }}</td>
-                                        <td class="px-5 py-3 text-gray-600 hidden sm:table-cell">{{ $item->tax_rate }}%</td>
+                                        <td class="px-5 py-3 text-gray-600 hidden sm:table-cell">{{ $item->tax_rate == 0 ? 'Incluido' : $item->tax_rate . '%' }}</td>
                                         <td class="px-5 py-3 font-medium text-gray-900">${{ number_format($item->subtotal, 2) }}</td>
+                                        @endcan
                                     </tr>
                                 @endforeach
                             </tbody>

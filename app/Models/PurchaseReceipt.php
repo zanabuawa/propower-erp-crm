@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\SaleDelivery;
+use App\Models\StockMovement;
 
 class PurchaseReceipt extends Model
 {
@@ -16,7 +18,7 @@ class PurchaseReceipt extends Model
     ];
 
     protected $fillable = [
-        'company_id', 'purchase_order_id', 'received_by',
+        'company_id', 'purchase_order_id', 'sale_delivery_id', 'origin_movement_id', 'received_by',
         'warehouse_id', 'folio', 'status', 'reception_type',
         'operating_expenses', 'notes', 'received_at',
     ];
@@ -34,6 +36,16 @@ class PurchaseReceipt extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrder::class, 'purchase_order_id');
+    }
+
+    public function saleDelivery(): BelongsTo
+    {
+        return $this->belongsTo(SaleDelivery::class, 'sale_delivery_id');
+    }
+
+    public function originMovement(): BelongsTo
+    {
+        return $this->belongsTo(StockMovement::class, 'origin_movement_id');
     }
 
     public function receivedBy(): BelongsTo

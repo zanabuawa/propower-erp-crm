@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Purchases;
 
+use App\Models\FinanceAccount;
+use App\Models\FinanceTransaction;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -22,6 +24,10 @@ class ReceiptForm extends Component
     public float   $operating_expenses = 0;
     public string  $notes              = '';
     public array   $items              = [];
+
+    // Finanzas
+    public ?int   $financeAccountId = null;
+    public array  $financeAccounts  = [];
 
     // Modal de confirmación
     public bool    $showConfirmModal   = false;
@@ -49,6 +55,12 @@ class ReceiptForm extends Component
                 'notes'             => '',
                 'received'          => true,
             ])->values()->toArray();
+
+        $this->financeAccounts = FinanceAccount::where('company_id', auth()->user()->company_id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'type', 'currency', 'current_balance'])
+            ->toArray();
     }
 
     private function setDefaultWarehouse(): void
@@ -91,7 +103,7 @@ class ReceiptForm extends Component
 
     private function validationRules(): array
     {
-        return [
+        $rules = [
             'warehouse_id'               => 'required|exists:warehouses,id',
             'reception_type'             => 'required|in:purchase,return,transfer,defective',
             'operating_expenses'         => 'required|numeric|min:0',
@@ -100,6 +112,12 @@ class ReceiptForm extends Component
             'items.*.warehouse_id'       => 'required|exists:warehouses,id',
             'items.*.operational_cost'   => 'required|numeric|min:0',
         ];
+
+        if ($this->reception_type === 'purchase') {
+            $rules['financeAccountId'] = 'required|exists:finance_accounts,id';
+        }
+
+        return $rules;
     }
 
     public function confirm(): void
@@ -141,6 +159,29 @@ class ReceiptForm extends Component
                 'transfer'  => 'transfer',
                 default     => 'entry',
             };
+
+            // Registrar egreso en finanzas para recepciones de compra
+            if ($this->reception_type === 'purchase' && $this->financeAccountId) {
+                $receivedItems  = collect($this->items)->filter(fn($i) => ($i['received'] ?? true) && $i['quantity_received'] > 0);
+                $totalMercancia = $receivedItems->sum(fn($i) => (float) $i['quantity_received'] * (float) $i['purchase_price']);
+                $totalEgreso    = $totalMercancia + (float) $this->operating_expenses;
+
+                FinanceTransaction::create([
+                    'account_id'       => $this->financeAccountId,
+                    'registered_by'    => auth()->id(),
+                    'folio'            => 'TXN-' . $receipt->folio,
+                    'type'             => 'egreso',
+                    'concept'          => 'Compra: ' . $receipt->folio . ' — OC ' . $this->order->folio,
+                    'category'         => 'compra',
+                    'amount'           => $totalEgreso,
+                    'currency'         => $this->order->currency ?? 'MXN',
+                    'exchange_rate'    => 1,
+                    'transaction_date' => now()->toDateString(),
+                    'reference'        => $receipt->folio,
+                    'status'           => 'confirmado',
+                    'notes'            => $this->notes ?: null,
+                ]);
+            }
 
             foreach ($this->items as $item) {
                 if (!($item['received'] ?? true)) continue;

@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Sales;
 
 use App\Http\Controllers\Controller;
 use App\Models\SaleInvoice;
-use App\Services\FacturamaService;
+use App\Services\FacturapiService;
 
 class InvoiceDownloadController extends Controller
 {
-    public function __invoke(SaleInvoice $invoice, string $type, FacturamaService $facturama)
+    public function __invoke(SaleInvoice $invoice, string $type, FacturapiService $facturapi)
     {
         abort_unless(
-            in_array($type, ['pdf', 'xml']) && $invoice->cfdi_uuid,
+            in_array($type, ['pdf', 'xml']) && $invoice->cfdi_uuid && $invoice->facturapi_id,
             404
         );
 
@@ -20,12 +20,9 @@ class InvoiceDownloadController extends Controller
             403
         );
 
-        $fileType = $type === 'pdf'
-            ? \Facturama\Client::FILE_TYPE_PDF
-            : \Facturama\Client::FILE_TYPE_XML;
-
-        $result  = $facturama->client()->get("cfdi/{$fileType}/issued/{$invoice->cfdi_uuid}");
-        $content = base64_decode($result->Content ?? (is_array($result) ? end($result) : ''));
+        $content = $type === 'pdf'
+            ? $facturapi->downloadPdf($invoice->facturapi_id)
+            : $facturapi->downloadXml($invoice->facturapi_id);
 
         $mimeType    = $type === 'pdf' ? 'application/pdf' : 'application/xml';
         $filename    = $invoice->folio . '.' . $type;

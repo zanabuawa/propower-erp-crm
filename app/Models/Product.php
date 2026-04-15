@@ -193,12 +193,13 @@ class Product extends Model
         'company_id', 'type', 'category_id', 'subcategory_id', 'unit_of_measure_id', 'supplier_id',
         'name', 'sku', 'sat_product_code', 'sat_unit_code', 'barcode', 'description',
         'brand', 'model', 'color',
-        'purchase_price', 'profit_margin', 'operational_costs', 'sale_price',
+        'purchase_price', 'purchase_price_includes_iva', 'profit_margin', 'operational_costs', 'sale_price',
         'min_stock', 'max_stock', 'is_active',
     ];
 
     protected $casts = [
-        'is_active'          => 'boolean',
+        'is_active'                  => 'boolean',
+        'purchase_price_includes_iva' => 'boolean',
         'purchase_price'     => 'decimal:2',
         'profit_margin'      => 'decimal:4',
         'operational_costs'  => 'decimal:4',

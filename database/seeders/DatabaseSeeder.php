@@ -9,14 +9,31 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // ── Geodatos (países, estados, ciudades) ─────────────────────────
+            WorldSeeder::class,
+
+            // ── Infraestructura base ─────────────────────────────────────────
             RolesAndPermissionsSeeder::class,
             CompanySeeder::class,
+            BranchWarehouseSeeder::class,
             UserSeeder::class,
+
+            // ── Catálogos ────────────────────────────────────────────────────
+            CatalogSeeder::class,
+            SupplierSeeder::class,
+            CustomerSeeder::class,
+
+            // ── Inventario y finanzas ────────────────────────────────────────
+            ProductSeeder::class,
+            FinanceSeeder::class,
+
+            // ── Operaciones ──────────────────────────────────────────────────
+            PurchaseSeeder::class,
+            SalesSeeder::class,
+
+            // ── Otros módulos ────────────────────────────────────────────────
+            ProjectSeeder::class,
+            AssetSeeder::class,
         ]);
-        // Configuración de compras para la empresa de prueba
-        \App\Models\PurchaseSetting::firstOrCreate(
-            ['company_id' => \App\Models\Company::first()->id],
-            ['currency' => 'MXN', 'level1_amount' => 2000, 'level2_amount' => 10000]
-        );
     }
 }

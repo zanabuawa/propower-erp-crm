@@ -418,6 +418,11 @@
                             class="w-full border border-gray-200 rounded-lg lg:rounded-xl pl-7 lg:pl-8 pr-3 lg:pr-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
                     </div>
                     @error('purchase_price') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
+                    <label class="flex items-center gap-2 mt-2 cursor-pointer select-none w-fit">
+                        <input wire:model="purchase_price_includes_iva" type="checkbox"
+                            class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <span class="text-xs text-gray-600">IVA incluido en el precio <span class="text-gray-400">(16%)</span></span>
+                    </label>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">Margen de utilidad *</label>

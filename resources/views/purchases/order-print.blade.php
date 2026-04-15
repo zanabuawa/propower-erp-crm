@@ -292,6 +292,7 @@
         </div>
 
         {{-- Supplier --}}
+        @if($supplier)
         <div class="info-box">
             <div class="info-box-title">{{ $labels['supplier_title'] }}</div>
             <div class="info-row"><span class="info-label">{{ $en ? 'Company' : 'Empresa' }}:</span><span class="info-value">{{ $supplier->name }}</span></div>
@@ -314,6 +315,12 @@
             <div class="info-row"><span class="info-label">{{ $labels['city'] }}:</span><span class="info-value">{{ $supplier->city }}{{ $supplier->state ? ', ' . $supplier->state : '' }}</span></div>
             @endif
         </div>
+        @else
+        <div class="info-box">
+            <div class="info-box-title">{{ $labels['supplier_title'] }}</div>
+            <p style="font-size:10px;color:#64748b;">{{ $en ? 'Multiple suppliers — see line items.' : 'Múltiples proveedores — ver partidas.' }}</p>
+        </div>
+        @endif
     </div>
 
     {{-- ── ITEMS TABLE ──────────────────────────────────────────────────── --}}
@@ -323,6 +330,7 @@
             <tr>
                 <th style="width:28px;" class="center">#</th>
                 <th>{{ $labels['col_desc'] }}</th>
+                <th style="width:90px;">{{ $labels['supplier_title'] }}</th>
                 <th style="width:55px;" class="center">{{ $labels['col_sku'] }}</th>
                 <th style="width:45px;" class="center">{{ $labels['col_unit'] }}</th>
                 <th style="width:50px;" class="center">{{ $labels['col_qty'] }}</th>
@@ -336,6 +344,7 @@
             <tr>
                 <td class="center">{{ $i + 1 }}</td>
                 <td>{{ $item->description }}</td>
+                <td style="color:#475569;font-size:9.5px;">{{ $item->supplier?->name ?? '—' }}</td>
                 <td class="center" style="color:#64748b;font-size:9px;">{{ $item->product?->sku ?? '—' }}</td>
                 <td class="center">{{ $item->unit ?: '—' }}</td>
                 <td class="center">{{ number_format((float)$item->quantity, 2) }}</td>

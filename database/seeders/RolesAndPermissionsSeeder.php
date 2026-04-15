@@ -52,6 +52,7 @@ class RolesAndPermissionsSeeder extends Seeder
     public static array $extraPermissions = [
         'inventory' => [
             'adjust inventory'     => 'Ajustar stock',
+            'view prices'          => 'Ver precios y costos',
             'edit product prices'  => 'Modificar precios',
         ],
         'assets' => [
@@ -124,6 +125,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $seller = Role::firstOrCreate(['name' => 'vendedor']);
         $seller->syncPermissions([
             'view inventory',
+            'view prices',
             'view sales', 'create sales', 'edit sales',
             'view contacts', 'create contacts', 'edit contacts',
             'view suppliers',
@@ -150,6 +152,7 @@ class RolesAndPermissionsSeeder extends Seeder
         $buyer = Role::firstOrCreate(['name' => 'comprador']);
         $buyer->syncPermissions([
             'view inventory',
+            'view prices',
             'view purchases', 'create purchases', 'edit purchases',
             'receive goods',
             'approve requisitions',

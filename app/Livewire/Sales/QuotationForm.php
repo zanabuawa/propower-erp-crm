@@ -27,7 +27,7 @@ class QuotationForm extends Component
 
     public function mount(): void
     {
-        $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100]];
+        $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 0, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100]];
     }
 
     public function updatedCustomerId(): void
@@ -93,7 +93,7 @@ class QuotationForm extends Component
             'quantity'        => 1,
             'unit_price'      => $price,
             'discount_pct'    => 0,
-            'tax_rate'        => 16,
+            'tax_rate'        => 0,
             'unit'            => '',
             'notes'           => '',
             'min_sale_price'  => $minSalePrice,
@@ -106,13 +106,27 @@ class QuotationForm extends Component
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100];
+        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 0, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100];
+    }
+
+    public function setAllIva(bool $add): void
+    {
+        foreach ($this->items as &$item) {
+            $item['tax_rate'] = $add ? 16 : 0;
+        }
     }
 
     public function removeItem(int $index): void
     {
         array_splice($this->items, $index, 1);
         $this->items = array_values($this->items);
+    }
+
+    public function toggleItemIva(int $index): void
+    {
+        if (!isset($this->items[$index])) return;
+        // Alterna entre IVA incluido (0%) e IVA no incluido (16%)
+        $this->items[$index]['tax_rate'] = ($this->items[$index]['tax_rate'] != 0) ? 0 : 16;
     }
 
     public function getSubtotalProperty(): float

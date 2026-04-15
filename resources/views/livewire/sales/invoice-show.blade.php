@@ -56,7 +56,7 @@
                 </a>
             @endif
             @if(in_array($invoice->status, ['stamped', 'draft']) && $invoice->balance > 0)
-                <button wire:click="$set('showPaymentForm', true)"
+                <button wire:click="openPaymentForm"
                     class="px-4 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition">
                     Registrar pago
                 </button>
@@ -304,6 +304,11 @@
                     @if($showPaymentForm)
                         <div class="bg-white rounded-xl border border-indigo-200 p-5 space-y-3">
                             <h2 class="text-sm font-medium text-gray-700">Registrar pago</h2>
+                            @if($paymentError)
+                                <div class="px-3 py-2 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg">
+                                    {{ $paymentErrorMessage }}
+                                </div>
+                            @endif
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs text-gray-500 mb-1">Monto *</label>
@@ -333,6 +338,20 @@
                                     <label class="block text-xs text-gray-500 mb-1">Notas</label>
                                     <input wire:model="paymentNotes" type="text"
                                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs text-gray-500 mb-1">Cuenta que recibe el pago *</label>
+                                    <select wire:model="paymentAccountId"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                        <option value="">— Selecciona una cuenta —</option>
+                                        @foreach($financeAccounts as $account)
+                                            <option value="{{ $account['id'] }}">
+                                                {{ $account['name'] }}
+                                                ({{ $account['currency'] }} ${{ number_format($account['current_balance'], 2) }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('paymentAccountId') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                                 </div>
                             </div>
                             <div class="flex justify-end gap-2">

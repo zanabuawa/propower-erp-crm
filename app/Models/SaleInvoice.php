@@ -14,7 +14,7 @@ class SaleInvoice extends Model
 
     protected $fillable = [
         'company_id', 'sale_order_id', 'customer_id', 'created_by',
-        'folio', 'cfdi_uuid', 'cfdi_xml', 'cfdi_pdf', 'type', 'currency',
+        'folio', 'cfdi_uuid', 'facturapi_id', 'cfdi_xml', 'cfdi_pdf', 'type', 'currency',
         'status', 'payment_method', 'subtotal', 'discount_amount', 'tax',
         'total', 'paid_amount', 'notes', 'issued_at', 'due_at',
     ];

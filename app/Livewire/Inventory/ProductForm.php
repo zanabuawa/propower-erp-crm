@@ -34,8 +34,9 @@ class ProductForm extends Component
     public string  $brand              = '';
     public string  $model              = '';
     public string  $color              = '';
-    public string  $purchase_price     = '0';
-    public string  $profit_margin      = '10';
+    public string  $purchase_price             = '0';
+    public bool    $purchase_price_includes_iva = false;
+    public string  $profit_margin               = '10';
     public string  $min_stock          = '0';
     public string  $max_stock          = '0';
     public bool    $is_active          = true;
@@ -100,8 +101,9 @@ class ProductForm extends Component
             $this->brand              = $this->product->brand ?? '';
             $this->model              = $this->product->model ?? '';
             $this->color              = $this->product->color ?? '';
-            $this->purchase_price     = $this->product->purchase_price;
-            $this->profit_margin      = max(10, (float) ($this->product->profit_margin ?? 10));
+            $this->purchase_price             = $this->product->purchase_price;
+            $this->purchase_price_includes_iva = (bool) $this->product->purchase_price_includes_iva;
+            $this->profit_margin               = max(10, (float) ($this->product->profit_margin ?? 10));
             $this->min_stock          = $this->product->min_stock;
             $this->max_stock          = $this->product->max_stock;
             $this->is_active          = $this->product->is_active;
@@ -265,7 +267,8 @@ class ProductForm extends Component
             'brand'              => 'nullable|string|max:100',
             'model'              => 'nullable|string|max:100',
             'color'              => 'nullable|string|max:60',
-            'purchase_price'     => 'required|numeric|min:0',
+            'purchase_price'             => 'required|numeric|min:0',
+            'purchase_price_includes_iva' => 'boolean',
             'profit_margin'      => 'required|numeric|min:10|max:999',
             'min_stock'          => 'required|numeric|min:0',
             'max_stock'          => 'required|numeric|min:0',
@@ -297,8 +300,9 @@ class ProductForm extends Component
             'brand'              => $this->brand ?: null,
             'model'              => $this->model ?: null,
             'color'              => $this->color ?: null,
-            'purchase_price'     => $this->purchase_price,
-            'profit_margin'      => $this->profit_margin,
+            'purchase_price'             => $this->purchase_price,
+            'purchase_price_includes_iva' => $this->purchase_price_includes_iva,
+            'profit_margin'              => $this->profit_margin,
             'sale_price'         => $salePrice,
             'min_stock'          => $this->type === 'product' ? $this->min_stock : 0,
             'max_stock'          => $this->type === 'product' ? $this->max_stock : 0,

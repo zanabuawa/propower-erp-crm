@@ -13,30 +13,35 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $company = Company::first();
-        $branch  = Branch::first();
+        $matriz  = Branch::where('code', 'MAT')->first() ?? Branch::first();
+        $norte   = Branch::where('code', 'NTE')->first() ?? $matriz;
 
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'superadmin@sistema.com'],
-            [
-                'name'       => 'Super Admin',
-                'password'   => Hash::make('password'),
-                'company_id' => $company->id,
-                'branch_id'  => $branch->id,
-                'is_active'  => true,
-            ]
-        );
-        $superAdmin->assignRole('super-admin');
+        $users = [
+            ['email' => 'superadmin@sistema.com', 'name' => 'Super Administrador',    'role' => 'super-admin',  'branch' => $matriz],
+            ['email' => 'admin@miempresa.com',     'name' => 'Administrador General',  'role' => 'admin',        'branch' => $matriz],
+            ['email' => 'gerente@miempresa.com',   'name' => 'Roberto Valenzuela',     'role' => 'gerente',      'branch' => $matriz],
+            ['email' => 'vendedor@miempresa.com',  'name' => 'Carlos Mendoza',         'role' => 'vendedor',     'branch' => $matriz],
+            ['email' => 'vendedor2@miempresa.com', 'name' => 'Sofía Ramírez',          'role' => 'vendedor',     'branch' => $norte],
+            ['email' => 'comprador@miempresa.com', 'name' => 'Ana Luisa Torres',       'role' => 'comprador',    'branch' => $matriz],
+            ['email' => 'almacen@miempresa.com',   'name' => 'Miguel Ángel Soto',      'role' => 'almacenista',  'branch' => $matriz],
+            ['email' => 'empleado@miempresa.com',  'name' => 'Luis Enrique Flores',    'role' => 'empleado',     'branch' => $matriz],
+        ];
 
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@miempresa.com'],
-            [
-                'name'       => 'Administrador',
-                'password'   => Hash::make('password'),
-                'company_id' => $company->id,
-                'branch_id'  => $branch->id,
-                'is_active'  => true,
-            ]
-        );
-        $admin->assignRole('admin');
+        foreach ($users as $data) {
+            $user = User::firstOrCreate(
+                ['email' => $data['email']],
+                [
+                    'name'       => $data['name'],
+                    'password'   => Hash::make('password'),
+                    'company_id' => $company->id,
+                    'branch_id'  => $data['branch']->id,
+                    'is_active'  => true,
+                ]
+            );
+
+            if (! $user->hasRole($data['role'])) {
+                $user->assignRole($data['role']);
+            }
+        }
     }
 }

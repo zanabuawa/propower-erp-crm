@@ -6,27 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-public function up(): void
-{
-    Schema::create('sale_credit_note_items', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('sale_credit_note_id')->constrained()->cascadeOnDelete();
-        $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
-        $table->foreignId('warehouse_id')->nullable()->constrained()->nullOnDelete();
-        $table->string('description');
-        $table->decimal('quantity', 10, 2);
-        $table->decimal('unit_price', 12, 2);
-        $table->decimal('tax_rate', 5, 2)->default(16);
-        $table->decimal('subtotal', 12, 2)->default(0);
-        $table->timestamps();
-    });
-}
-    /**
-     * Reverse the migrations.
-     */
+    public function up(): void
+    {
+        Schema::create('sale_credit_notes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('sale_invoice_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->string('folio')->nullable();
+            $table->enum('currency', ['MXN', 'USD'])->default('MXN');
+            $table->enum('status', ['draft', 'applied', 'cancelled'])->default('draft');
+            $table->text('reason')->nullable();
+            $table->decimal('subtotal', 12, 2)->default(0);
+            $table->decimal('tax', 12, 2)->default(0);
+            $table->decimal('total', 12, 2)->default(0);
+            $table->timestamps();
+        });
+    }
+
     public function down(): void
     {
         Schema::dropIfExists('sale_credit_notes');

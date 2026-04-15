@@ -76,6 +76,28 @@
                 <livewire:shared.product-picker />
             </div>
 
+            {{-- Nota IVA + controles bulk --}}
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5">
+                <div class="flex items-start gap-2 flex-1 min-w-0">
+                    <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-xs text-amber-700">
+                        <strong>IVA:</strong> por defecto se asume que el precio ya incluye IVA. Marca la casilla en cada producto cuyo precio <em>no</em> incluye IVA para que se calcule el 16% adicional.
+                    </p>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                    <button type="button" wire:click="setAllIva(true)"
+                        class="px-2.5 py-1 text-xs border border-amber-300 text-amber-700 hover:bg-amber-100 rounded-lg transition whitespace-nowrap">
+                        Marcar todos
+                    </button>
+                    <button type="button" wire:click="setAllIva(false)"
+                        class="px-2.5 py-1 text-xs border border-amber-300 text-amber-700 hover:bg-amber-100 rounded-lg transition whitespace-nowrap">
+                        Quitar todos
+                    </button>
+                </div>
+            </div>
+
             {{-- Búsqueda rápida inline --}}
             <div class="relative">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
@@ -118,7 +140,7 @@
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Cant.</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Desc %</th>
-                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-16">IVA %</th>
+                            <th class="text-center px-4 py-2.5 text-xs font-medium text-gray-500 w-28">IVA</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Subtotal</th>
                             <th class="w-8"></th>
                         </tr>
@@ -167,8 +189,16 @@
                                     @enderror
                                 </td>
                                 <td class="px-4 py-2">
-                                    <input wire:model.live="items.{{ $index }}.tax_rate" type="number" step="0.01" min="0" max="100"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                    @php $ivaNoIncluido = ($item['tax_rate'] ?? 0) != 0; @endphp
+                                    <label class="flex items-center gap-2 cursor-pointer justify-center select-none">
+                                        <input type="checkbox"
+                                            wire:click="toggleItemIva({{ $index }})"
+                                            {{ $ivaNoIncluido ? 'checked' : '' }}
+                                            class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                        <span class="text-xs {{ $ivaNoIncluido ? 'text-gray-700' : 'text-indigo-600 font-medium' }}">
+                                            {{ $ivaNoIncluido ? '+ 16%' : 'Incluido' }}
+                                        </span>
+                                    </label>
                                 </td>
                                 <td class="px-4 py-2 font-medium text-xs {{ $discExceeded ? 'text-red-600' : 'text-gray-700' }}">
                                     ${{ number_format($sub - $disc, 2) }}

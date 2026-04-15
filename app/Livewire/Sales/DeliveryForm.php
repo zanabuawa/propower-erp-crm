@@ -140,11 +140,11 @@ class DeliveryForm extends Component
             ->filter(fn($i) => $i->pending_quantity > 0)
             ->values()
             ->map(function ($i) use ($fifo, $warehouseId) {
-                $lotLines     = $warehouseId
-                    ? $fifo->suggestAllocations($i->product_id, $warehouseId, (float) $i->pending_quantity)
+                $lotLines     = ($warehouseId && $i->product_id)
+                    ? $fifo->suggestAllocations((int) $i->product_id, $warehouseId, (float) $i->pending_quantity)
                     : [];
-                $lotAvailable = $warehouseId
-                    ? $fifo->availableInLots($i->product_id, $warehouseId)
+                $lotAvailable = ($warehouseId && $i->product_id)
+                    ? $fifo->availableInLots((int) $i->product_id, $warehouseId)
                     : 0;
 
                 return [

@@ -67,9 +67,11 @@
                         <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden md:table-cell">Categoría</th>
                         <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3">Existencias</th>
                         <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden md:table-cell">Mín.</th>
+                        @can('view prices')
                         <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden lg:table-cell">Precio costo</th>
                         <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden lg:table-cell">Precio venta</th>
                         <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3 hidden sm:table-cell">Valor total</th>
+                        @endcan
                         <th class="text-center text-xs text-gray-600 font-semibold uppercase tracking-wide px-4 py-3">Estado</th>
                     </tr>
                 </thead>
@@ -99,11 +101,13 @@
                                 {{ number_format($qty, 2) }}
                             </td>
                             <td class="px-4 py-3 text-right text-gray-400 text-xs hidden md:table-cell">{{ number_format($product->min_stock, 2) }}</td>
+                            @can('view prices')
                             <td class="px-4 py-3 text-right text-gray-600 hidden lg:table-cell">${{ number_format($product->purchase_price, 2) }}</td>
                             <td class="px-4 py-3 text-right text-gray-800 hidden lg:table-cell">${{ number_format($product->sale_price, 2) }}</td>
                             <td class="px-4 py-3 text-right font-medium text-indigo-600 hidden sm:table-cell">
                                 ${{ number_format($qty * (float)$product->purchase_price, 2) }}
                             </td>
+                            @endcan
                             <td class="px-4 py-3 text-center">
                                 @if($isOut)
                                     <span class="inline-flex px-2 py-0.5 text-xs rounded-full bg-red-50 text-red-600 font-medium">Sin stock</span>

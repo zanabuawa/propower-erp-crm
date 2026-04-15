@@ -22,6 +22,7 @@ return new class extends Migration
             $table->date('expected_date');
             $table->date('realized_date')->nullable();
             $table->boolean('is_realized')->default(false);
+            $table->string('reference')->nullable()->index();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

@@ -6,7 +6,6 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseQuotation;
 use App\Models\PurchaseRequisition;
 use App\Models\Supplier;
-use App\Models\SupplierBankAccount;
 use App\Models\Product;
 use App\Models\Branch;
 use App\Notifications\PurchaseNotification;
@@ -18,27 +17,20 @@ use Illuminate\Support\Facades\DB;
 #[Layout('layouts.app')]
 class OrderForm extends Component
 {
-    public ?int    $requisition_id          = null;
-    public ?int    $supplier_id             = null;
-    public ?int    $branch_id               = null;
-    public ?int    $supplier_bank_account_id = null;
-    public string  $currency               = 'MXN';
-    public string  $payment_terms          = '0';
-    public string  $expected_at            = '';
-    public string  $required_at            = '';
-    public string  $shipping_address       = '';
-    public string  $billing_address        = '';
-    public string  $print_language         = 'es';
-    public string  $notes                  = '';
-    public array   $items                  = [];
-    public string  $productSearch          = '';
-    public array   $productResults         = [];
-    public array   $bankAccounts           = [];
-    public ?string $sourceLabel            = null;
-
-    // Datos del proveedor cargados al seleccionarlo
-    public array   $supplierInfo           = [];   // credit_limit, payment_terms, city, etc.
-    public array   $supplierProducts       = [];   // productos del proveedor
+    public ?int    $requisition_id = null;
+    public ?int    $branch_id      = null;
+    public string  $currency       = 'MXN';
+    public string  $payment_terms  = '0';
+    public string  $expected_at    = '';
+    public string  $required_at    = '';
+    public string  $shipping_address = '';
+    public string  $billing_address  = '';
+    public string  $print_language   = 'es';
+    public string  $notes            = '';
+    public array   $items            = [];
+    public string  $productSearch    = '';
+    public array   $productResults   = [];
+    public ?string $sourceLabel      = null;
 
     public function mount(): void
     {
@@ -54,6 +46,7 @@ class OrderForm extends Component
                 $this->sourceLabel    = $quotation->requisition->folio;
                 $this->items          = $quotation->items->map(fn($i) => [
                     'product_id'  => $i->product_id,
+                    'supplier_id' => null,
                     'description' => $i->description,
                     'quantity'    => (float) $i->quantity,
                     'unit_price'  => (float) $i->unit_price,
@@ -72,6 +65,7 @@ class OrderForm extends Component
                 $this->sourceLabel    = $requisition->folio;
                 $this->items          = $requisition->items->map(fn($i) => [
                     'product_id'  => $i->product_id,
+                    'supplier_id' => null,
                     'description' => $i->description,
                     'quantity'    => $i->quantity,
                     'unit_price'  => $i->unit_price,
@@ -82,45 +76,8 @@ class OrderForm extends Component
         }
 
         if (empty($this->items)) {
-            $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'tax_rate' => 16, 'unit' => '']];
+            $this->items = [['product_id' => null, 'supplier_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'tax_rate' => 16, 'unit' => '']];
         }
-    }
-
-    public function updatedSupplierId(): void
-    {
-        $this->bankAccounts             = [];
-        $this->supplier_bank_account_id = null;
-        $this->supplierInfo             = [];
-        $this->supplierProducts         = [];
-
-        if (!$this->supplier_id) return;
-
-        $supplier = Supplier::with(['phones', 'emails', 'contacts'])->find($this->supplier_id);
-        if (!$supplier) return;
-
-        // Auto-llenar días de crédito del proveedor
-        $this->payment_terms = (string) ($supplier->payment_terms ?? 0);
-
-        $this->supplierInfo = [
-            'credit_limit'  => $supplier->credit_limit,
-            'payment_terms' => $supplier->payment_terms ?? 0,
-            'city'          => $supplier->city,
-            'phone'         => $supplier->phones->first()?->phone ?? null,
-            'email'         => $supplier->emails->first()?->email ?? null,
-            'contact'       => $supplier->contacts->first()?->name ?? null,
-        ];
-
-        $this->bankAccounts = SupplierBankAccount::where('supplier_id', $this->supplier_id)
-            ->get(['id', 'bank_name', 'account_number', 'clabe', 'is_primary'])
-            ->toArray();
-
-        // Productos registrados con este proveedor
-        $this->supplierProducts = Product::where('company_id', auth()->user()->company_id)
-            ->where('supplier_id', $this->supplier_id)
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'sku', 'purchase_price'])
-            ->toArray();
     }
 
     public function updatedProductSearch(): void
@@ -130,19 +87,15 @@ class OrderForm extends Component
             return;
         }
 
-        $query = Product::where('company_id', auth()->user()->company_id)
+        $this->productResults = Product::where('company_id', auth()->user()->company_id)
             ->where('is_active', true)
             ->where(fn($q) => $q
                 ->where('name', 'like', "%{$this->productSearch}%")
                 ->orWhere('sku',  'like', "%{$this->productSearch}%")
-                ->orWhere('barcode', 'like', "%{$this->productSearch}%"));
-
-        // Priorizar productos del proveedor seleccionado
-        if ($this->supplier_id) {
-            $query->orderByRaw('CASE WHEN supplier_id = ? THEN 0 ELSE 1 END', [$this->supplier_id]);
-        }
-
-        $this->productResults = $query->limit(8)->get(['id', 'name', 'sku', 'barcode', 'purchase_price', 'supplier_id'])->toArray();
+                ->orWhere('barcode', 'like', "%{$this->productSearch}%"))
+            ->limit(8)
+            ->get(['id', 'name', 'sku', 'barcode', 'purchase_price'])
+            ->toArray();
     }
 
     #[On('product-picked')]
@@ -156,12 +109,16 @@ class OrderForm extends Component
         $product = Product::find($productId);
         if (!$product) return;
 
+        // Si el precio de obtención ya incluye IVA, no se agrega IVA adicional en compras
+        $taxRate = $product->purchase_price_includes_iva ? 0 : 16;
+
         $this->items[] = [
             'product_id'  => $product->id,
+            'supplier_id' => $product->supplier_id ?? null,
             'description' => $product->name,
             'quantity'    => 1,
             'unit_price'  => $product->purchase_price,
-            'tax_rate'    => 16,
+            'tax_rate'    => $taxRate,
             'unit'        => '',
         ];
 
@@ -169,14 +126,9 @@ class OrderForm extends Component
         $this->productResults = [];
     }
 
-    public function addSupplierProduct(int $productId): void
-    {
-        $this->addProduct($productId);
-    }
-
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'tax_rate' => 16, 'unit' => ''];
+        $this->items[] = ['product_id' => null, 'supplier_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'tax_rate' => 16, 'unit' => ''];
     }
 
     public function removeItem(int $index): void
@@ -205,22 +157,21 @@ class OrderForm extends Component
     public function rules(): array
     {
         return [
-            'supplier_id'              => 'required|exists:suppliers,id',
-            'currency'                 => 'required|in:MXN,USD',
-            'payment_terms'            => 'required|integer|min:0',
-            'expected_at'              => 'required|date',
-            'required_at'              => 'nullable|date',
-            'shipping_address'         => 'nullable|string|max:500',
-            'billing_address'          => 'nullable|string|max:500',
-            'print_language'           => 'required|in:es,en',
-            'branch_id'                => 'nullable|exists:branches,id',
-            'supplier_bank_account_id' => 'nullable|exists:supplier_bank_accounts,id',
-            'notes'                    => 'nullable|string',
-            'items'                    => 'required|array|min:1',
-            'items.*.description'      => 'required|string|max:255',
-            'items.*.quantity'         => 'required|numeric|min:0.01',
-            'items.*.unit_price'       => 'required|numeric|min:0',
-            'items.*.tax_rate'         => 'required|numeric|min:0|max:100',
+            'currency'            => 'required|in:MXN,USD',
+            'payment_terms'       => 'required|integer|min:0',
+            'expected_at'         => 'required|date',
+            'required_at'         => 'nullable|date',
+            'shipping_address'    => 'nullable|string|max:500',
+            'billing_address'     => 'nullable|string|max:500',
+            'print_language'      => 'required|in:es,en',
+            'branch_id'           => 'nullable|exists:branches,id',
+            'notes'               => 'nullable|string',
+            'items'               => 'required|array|min:1',
+            'items.*.description' => 'required|string|max:255',
+            'items.*.supplier_id' => 'nullable|exists:suppliers,id',
+            'items.*.quantity'    => 'required|numeric|min:0.01',
+            'items.*.unit_price'  => 'required|numeric|min:0',
+            'items.*.tax_rate'    => 'required|numeric|min:0|max:100',
         ];
     }
 
@@ -235,29 +186,28 @@ class OrderForm extends Component
             );
 
             $order = PurchaseOrder::create([
-                'company_id'               => auth()->user()->company_id,
-                'branch_id'                => $this->branch_id,
-                'supplier_id'              => $this->supplier_id,
-                'purchase_requisition_id'  => $this->requisition_id,
-                'created_by'               => auth()->id(),
-                'folio'                    => $folio,
-                'currency'                 => $this->currency,
-                'status'                   => 'draft',
-                'subtotal'                 => $this->subtotal,
-                'tax'                      => $this->tax,
-                'total'                    => $this->total,
-                'payment_terms'            => $this->payment_terms,
-                'supplier_bank_account_id' => $this->supplier_bank_account_id,
-                'notes'                    => $this->notes,
-                'expected_at'              => $this->expected_at,
-                'required_at'              => $this->required_at ?: null,
-                'shipping_address'         => $this->shipping_address ?: null,
-                'billing_address'          => $this->billing_address ?: null,
-                'print_language'           => $this->print_language,
+                'company_id'              => auth()->user()->company_id,
+                'branch_id'               => $this->branch_id,
+                'purchase_requisition_id' => $this->requisition_id,
+                'created_by'              => auth()->id(),
+                'folio'                   => $folio,
+                'currency'                => $this->currency,
+                'status'                  => 'draft',
+                'subtotal'                => $this->subtotal,
+                'tax'                     => $this->tax,
+                'total'                   => $this->total,
+                'payment_terms'           => $this->payment_terms,
+                'notes'                   => $this->notes,
+                'expected_at'             => $this->expected_at,
+                'required_at'             => $this->required_at ?: null,
+                'shipping_address'        => $this->shipping_address ?: null,
+                'billing_address'         => $this->billing_address ?: null,
+                'print_language'          => $this->print_language,
             ]);
 
             foreach ($this->items as $item) {
                 $order->items()->create([
+                    'supplier_id' => $item['supplier_id'] ?? null,
                     'product_id'  => $item['product_id'],
                     'description' => $item['description'],
                     'quantity'    => $item['quantity'],
@@ -294,7 +244,7 @@ class OrderForm extends Component
             'suppliers' => Supplier::where('company_id', auth()->user()->company_id)
                 ->where('status', 'active')
                 ->orderBy('name')
-                ->get(),
+                ->get(['id', 'name']),
             'branches' => Branch::where('is_active', true)->orderBy('name')->get(),
         ]);
     }

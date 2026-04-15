@@ -66,6 +66,27 @@
                     @error('operating_expenses') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Cuenta de finanzas (solo compras) --}}
+                @if($reception_type === 'purchase')
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">
+                        Cuenta de egreso <span class="text-red-500">*</span>
+                        <span class="text-gray-400 font-normal">(cuenta que absorbe el gasto)</span>
+                    </label>
+                    <select wire:model="financeAccountId"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Selecciona una cuenta —</option>
+                        @foreach($financeAccounts as $account)
+                            <option value="{{ $account['id'] }}">
+                                {{ $account['name'] }}
+                                ({{ $account['currency'] }} ${{ number_format($account['current_balance'], 2) }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('financeAccountId') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                @endif
+
                 {{-- Notas --}}
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Notas generales</label>

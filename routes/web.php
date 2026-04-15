@@ -40,7 +40,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/existencias', \App\Livewire\Inventory\InventoryGeneral::class)->name('inventory.general');
         Route::get('/inventario/existencias/almacen', \App\Livewire\Inventory\InventoryByWarehouse::class)->name('inventory.warehouse-stock');
         Route::get('/inventario/categorias', \App\Livewire\Inventory\CategoryIndex::class)->name('inventory.categories.index');
-        Route::get('/inventario/unidades', \App\Livewire\Inventory\UnitIndex::class)->name('inventory.units.index');
         Route::get('/inventario/almacenes', \App\Livewire\Inventory\WarehouseIndex::class)->name('inventory.warehouses.index');
         Route::get('/inventario/movimientos', \App\Livewire\Inventory\StockMovementIndex::class)->name('inventory.movements.index');
         Route::get('/inventario/lotes', \App\Livewire\Inventory\LotIndex::class)->name('inventory.lots.index');
@@ -50,7 +49,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:create inventory')->group(function () {
         Route::get('/inventario/productos/crear', \App\Livewire\Inventory\ProductForm::class)->name('inventory.products.create');
         Route::get('/inventario/categorias/crear', \App\Livewire\Inventory\CategoryForm::class)->name('inventory.categories.create');
-        Route::get('/inventario/unidades/crear', \App\Livewire\Inventory\UnitForm::class)->name('inventory.units.create');
         Route::get('/inventario/almacenes/crear', \App\Livewire\Inventory\WarehouseForm::class)->name('inventory.warehouses.create');
     });
     Route::middleware('can:adjust inventory')->group(function () {
@@ -59,7 +57,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:edit inventory')->group(function () {
         Route::get('/inventario/productos/{product}/editar', \App\Livewire\Inventory\ProductForm::class)->name('inventory.products.edit');
         Route::get('/inventario/categorias/{category}/editar', \App\Livewire\Inventory\CategoryForm::class)->name('inventory.categories.edit');
-        Route::get('/inventario/unidades/{unitOfMeasure}/editar', \App\Livewire\Inventory\UnitForm::class)->name('inventory.units.edit');
         Route::get('/inventario/almacenes/{warehouse}/editar', \App\Livewire\Inventory\WarehouseForm::class)->name('inventory.warehouses.edit');
         Route::get('/inventario/movimientos/{stockMovement}', \App\Livewire\Inventory\StockMovementForm::class)->name('inventory.movements.show');
     });
@@ -150,6 +147,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/proyectos/{project}', \App\Livewire\Projects\ProjectShow::class)->name('projects.show');
         Route::get('/proyectos/{project}/gastos', \App\Livewire\Projects\ProjectExpenseIndex::class)->name('projects.expenses.index');
         Route::get('/proyectos/{project}/tablero', \App\Livewire\Projects\ProjectTaskBoard::class)->name('projects.board');
+        Route::get('/proyectos/{project}/hitos', \App\Livewire\Projects\ProjectMilestones::class)->name('projects.milestones');
     });
     Route::middleware('can:edit projects')->get('/proyectos/{project}/editar', \App\Livewire\Projects\ProjectForm::class)->name('projects.edit');
 

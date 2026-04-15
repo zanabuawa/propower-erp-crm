@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Purchases;
 
+use App\Mail\ApprovalOtpMail;
+use App\Models\ApprovalOtpCode;
 use App\Models\PurchaseQuotation;
 use App\Models\PurchaseQuotationApproval;
 use App\Models\PurchaseRequisition;
@@ -9,6 +11,7 @@ use App\Notifications\PurchaseNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -31,6 +34,12 @@ class RequisitionShow extends Component
     public string $signatureData    = ''; // base64 PNG capturado en canvas
     public string $authPassword     = ''; // contraseña de verificación antes de firmar
     public bool   $passwordVerified = false;
+
+    // ── OTP 2FA ──────────────────────────────────────────────────────────────
+    public string $otpInput    = '';
+    public bool   $otpSent     = false;
+    public bool   $otpVerified = false;
+    public string $otpError    = '';
 
     // ── Rechazo ──────────────────────────────────────────────────────────────
     public bool   $showRejectForm  = false;
@@ -118,7 +127,7 @@ class RequisitionShow extends Component
             'quantity'    => (float) $i->quantity,
             'unit'        => $i->unit ?? '',
             'unit_price'  => (float) $i->unit_price,
-            'tax_rate'    => 16,
+            'tax_rate'    => 0,
         ])->toArray();
 
         $this->qNotes = '';
@@ -126,13 +135,26 @@ class RequisitionShow extends Component
 
     public function addQItem(): void
     {
-        $this->qItems[] = ['description' => '', 'quantity' => 1, 'unit' => '', 'unit_price' => 0, 'tax_rate' => 16];
+        $this->qItems[] = ['description' => '', 'quantity' => 1, 'unit' => '', 'unit_price' => 0, 'tax_rate' => 0];
+    }
+
+    public function setAllQIva(bool $add): void
+    {
+        foreach ($this->qItems as &$item) {
+            $item['tax_rate'] = $add ? 16 : 0;
+        }
     }
 
     public function removeQItem(int $index): void
     {
         array_splice($this->qItems, $index, 1);
         $this->qItems = array_values($this->qItems);
+    }
+
+    public function toggleQItemIva(int $index): void
+    {
+        if (!isset($this->qItems[$index])) return;
+        $this->qItems[$index]['tax_rate'] = ($this->qItems[$index]['tax_rate'] != 0) ? 0 : 16;
     }
 
     // ── COMPRAS: crear cotización (preliminar o final) ───────────────────────
@@ -354,6 +376,45 @@ class RequisitionShow extends Component
         ));
     }
 
+    // ── AUTORIZADORES: OTP 2FA ───────────────────────────────────────────────
+
+    public function requestOtp(): void
+    {
+        $approval = $this->getPendingApprovalForCurrentUser();
+        if (!$approval) return;
+
+        $user = auth()->user();
+        $code = ApprovalOtpCode::generate($user, 'approve_quotation', $approval->purchase_quotation_id);
+
+        Mail::to($user->email)->send(new ApprovalOtpMail(
+            $user,
+            $code,
+            'autorización de cotización ' . $this->requisition->folio,
+        ));
+
+        $this->otpSent  = true;
+        $this->otpError = '';
+        $this->otpInput = '';
+    }
+
+    public function verifyOtp(): void
+    {
+        $approval = $this->getPendingApprovalForCurrentUser();
+        if (!$approval) return;
+
+        if (ApprovalOtpCode::verify(
+            auth()->user(),
+            'approve_quotation',
+            $approval->purchase_quotation_id,
+            $this->otpInput,
+        )) {
+            $this->otpVerified = true;
+            $this->otpError    = '';
+        } else {
+            $this->otpError = 'Código inválido o expirado. Solicita uno nuevo.';
+        }
+    }
+
     // ── AUTORIZADORES: verificar contraseña antes de firmar ─────────────────
 
     public function verifyAuthPassword(): void
@@ -372,6 +433,11 @@ class RequisitionShow extends Component
 
     public function approveQuotation(): void
     {
+        if (!$this->otpVerified) {
+            $this->otpError = 'Debes completar la verificación en dos pasos.';
+            return;
+        }
+
         if (!$this->passwordVerified) {
             $this->addError('authPassword', 'Debes verificar tu contraseña primero.');
             return;
@@ -415,7 +481,7 @@ class RequisitionShow extends Component
             ));
         }
 
-        $this->reset(['approvalComment', 'signatureData', 'passwordVerified']);
+        $this->reset(['approvalComment', 'signatureData', 'passwordVerified', 'otpInput', 'otpSent', 'otpVerified', 'otpError']);
         $this->loadRequisition($this->requisition->id);
         session()->flash('success', 'Autorización registrada.');
     }
@@ -424,6 +490,11 @@ class RequisitionShow extends Component
 
     public function rejectQuotation(): void
     {
+        if (!$this->otpVerified) {
+            $this->otpError = 'Debes verificar tu código OTP antes de rechazar.';
+            return;
+        }
+
         $approval = $this->getPendingApprovalForCurrentUser();
         if (!$approval) return;
 
@@ -448,7 +519,7 @@ class RequisitionShow extends Component
             requisitionId: $this->requisition->id,
         ));
 
-        $this->reset('approvalComment');
+        $this->reset(['approvalComment', 'otpInput', 'otpSent', 'otpVerified', 'otpError']);
         $this->loadRequisition($this->requisition->id);
         session()->flash('success', 'Cotización rechazada.');
     }

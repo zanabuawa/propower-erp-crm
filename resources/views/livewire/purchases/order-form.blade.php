@@ -15,75 +15,6 @@
 
     <form wire:submit="save" class="space-y-5">
 
-        {{-- ── Proveedor ──────────────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Proveedor</h2>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
-                    <label class="block text-xs text-gray-500 mb-1">Proveedor *</label>
-                    <select wire:model.live="supplier_id"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                        <option value="">— Seleccionar proveedor —</option>
-                        @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}" {{ $supplier_id == $supplier->id ? 'selected' : '' }}>
-                                {{ $supplier->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('supplier_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Info del proveedor --}}
-                @if(!empty($supplierInfo))
-                <div class="sm:col-span-2">
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-indigo-50 border border-indigo-100 rounded-lg p-3">
-                        <div>
-                            <p class="text-[10px] text-indigo-400 uppercase tracking-wide">Días de crédito</p>
-                            <p class="text-sm font-semibold text-indigo-800">
-                                {{ ($supplierInfo['payment_terms'] ?? 0) == 0 ? 'Contado' : $supplierInfo['payment_terms'].' días' }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] text-indigo-400 uppercase tracking-wide">Límite de crédito</p>
-                            <p class="text-sm font-semibold text-indigo-800">
-                                {{ isset($supplierInfo['credit_limit']) && $supplierInfo['credit_limit'] ? '$'.number_format($supplierInfo['credit_limit'], 2) : 'Sin límite' }}
-                            </p>
-                        </div>
-                        @if(!empty($supplierInfo['phone']))
-                        <div>
-                            <p class="text-[10px] text-indigo-400 uppercase tracking-wide">Teléfono</p>
-                            <p class="text-sm text-indigo-700">{{ $supplierInfo['phone'] }}</p>
-                        </div>
-                        @endif
-                        @if(!empty($supplierInfo['contact']))
-                        <div>
-                            <p class="text-[10px] text-indigo-400 uppercase tracking-wide">Contacto</p>
-                            <p class="text-sm text-indigo-700">{{ $supplierInfo['contact'] }}</p>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-                @endif
-
-                @if(count($bankAccounts) > 0)
-                <div class="sm:col-span-2">
-                    <label class="block text-xs text-gray-500 mb-1">Cuenta bancaria del proveedor</label>
-                    <select wire:model="supplier_bank_account_id"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                        <option value="">— Sin especificar —</option>
-                        @foreach($bankAccounts as $account)
-                            <option value="{{ $account['id'] }}">
-                                {{ $account['bank_name'] }} — {{ $account['account_number'] ?? $account['clabe'] }}
-                                {{ $account['is_primary'] ? '(Principal)' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                @endif
-            </div>
-        </div>
-
         {{-- ── Datos generales ────────────────────────────────────────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos generales</h2>
@@ -154,32 +85,13 @@
             </div>
         </div>
 
-        {{-- ── Productos del proveedor (acceso rápido) ────────────────────────── --}}
-        @if(!empty($supplierProducts))
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">
-                Productos de este proveedor
-                <span class="text-xs font-normal text-gray-400 ml-1">({{ count($supplierProducts) }})</span>
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-52 overflow-y-auto pr-1">
-                @foreach($supplierProducts as $sp)
-                <button type="button" wire:click="addSupplierProduct({{ $sp['id'] }})"
-                    class="flex items-center justify-between px-3 py-2 border border-gray-100 rounded-lg hover:border-indigo-300 hover:bg-indigo-50 transition text-left">
-                    <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-800 truncate">{{ $sp['name'] }}</p>
-                        <p class="text-xs text-gray-400 font-mono">{{ $sp['sku'] ?? '—' }} · ${{ number_format($sp['purchase_price'], 2) }}</p>
-                    </div>
-                    <span class="text-indigo-500 text-xs font-medium ml-2 shrink-0">+ Agregar</span>
-                </button>
-                @endforeach
-            </div>
-        </div>
-        @endif
-
-        {{-- ── Ítems de la orden ───────────────────────────────────────────────── --}}
+        {{-- ── Productos de la orden ───────────────────────────────────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h2 class="text-sm font-medium text-gray-700">Productos de la orden</h2>
+                <div>
+                    <h2 class="text-sm font-medium text-gray-700">Productos de la orden</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Asigna el proveedor de cada producto de forma independiente</p>
+                </div>
                 <livewire:shared.product-picker />
             </div>
 
@@ -198,12 +110,7 @@
                             <button type="button" wire:click="addProduct({{ $result['id'] }})"
                                 class="w-full text-left px-4 py-2.5 hover:bg-indigo-50 transition flex items-center justify-between border-b border-gray-50 last:border-0">
                                 <div>
-                                    <p class="text-sm font-medium text-gray-900">
-                                        {{ $result['name'] }}
-                                        @if($supplier_id && ($result['supplier_id'] ?? null) == $supplier_id)
-                                            <span class="text-[10px] text-indigo-500 ml-1">(proveedor seleccionado)</span>
-                                        @endif
-                                    </p>
+                                    <p class="text-sm font-medium text-gray-900">{{ $result['name'] }}</p>
                                     <p class="text-xs text-gray-400">
                                         SKU: {{ $result['sku'] ?? '—' }}
                                         @if($result['barcode'] ?? null) · CB: {{ $result['barcode'] }} @endif
@@ -226,11 +133,14 @@
                     <thead>
                         <tr class="bg-gray-50 border-b border-gray-100">
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Descripción</th>
+                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-40">Proveedor</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Cantidad</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Unidad</th>
+                            @can('view prices')
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-32">Precio unit.</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">IVA %</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Subtotal</th>
+                            @endcan
                             <th class="w-10"></th>
                         </tr>
                     </thead>
@@ -243,6 +153,17 @@
                                     @error("items.{$index}.description") <p class="text-xs text-red-500">{{ $message }}</p> @enderror
                                 </td>
                                 <td class="px-4 py-2.5">
+                                    <select wire:model="items.{{ $index }}.supplier_id"
+                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        <option value="">— Sin asignar —</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}" {{ ($item['supplier_id'] ?? null) == $supplier->id ? 'selected' : '' }}>
+                                                {{ $supplier->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td class="px-4 py-2.5">
                                     <input wire:model.live="items.{{ $index }}.quantity" type="number" step="0.01" min="0.01"
                                         class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
                                 </td>
@@ -251,6 +172,7 @@
                                         class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300"
                                         placeholder="pza">
                                 </td>
+                                @can('view prices')
                                 <td class="px-4 py-2.5">
                                     <div class="relative">
                                         <span class="absolute left-2 top-1 text-xs text-gray-400">$</span>
@@ -265,6 +187,7 @@
                                 <td class="px-4 py-2.5 text-gray-700 font-medium">
                                     ${{ number_format(($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0), 2) }}
                                 </td>
+                                @endcan
                                 <td class="px-4 py-2.5">
                                     @if(count($items) > 1)
                                         <button type="button" wire:click="removeItem({{ $index }})"
@@ -278,23 +201,25 @@
                             </tr>
                         @endforeach
                     </tbody>
+                    @can('view prices')
                     <tfoot>
                         <tr class="bg-gray-50 border-t border-gray-100">
-                            <td colspan="5" class="px-4 py-2 text-xs text-gray-500 text-right">Subtotal:</td>
+                            <td colspan="6" class="px-4 py-2 text-xs text-gray-500 text-right">Subtotal:</td>
                             <td class="px-4 py-2 text-sm font-medium text-gray-900">${{ number_format($this->subtotal, 2) }}</td>
                             <td></td>
                         </tr>
                         <tr class="bg-gray-50">
-                            <td colspan="5" class="px-4 py-2 text-xs text-gray-500 text-right">IVA:</td>
+                            <td colspan="6" class="px-4 py-2 text-xs text-gray-500 text-right">IVA:</td>
                             <td class="px-4 py-2 text-sm font-medium text-gray-900">${{ number_format($this->tax, 2) }}</td>
                             <td></td>
                         </tr>
                         <tr class="bg-gray-50 border-t border-gray-200">
-                            <td colspan="5" class="px-4 py-2 text-xs font-semibold text-gray-700 text-right">Total:</td>
+                            <td colspan="6" class="px-4 py-2 text-xs font-semibold text-gray-700 text-right">Total:</td>
                             <td class="px-4 py-2 text-sm font-semibold text-gray-900">{{ $currency }} ${{ number_format($this->total, 2) }}</td>
                             <td></td>
                         </tr>
                     </tfoot>
+                    @endcan
                 </table>
             </div>
 

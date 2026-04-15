@@ -23,13 +23,6 @@
                 </svg>
                 Categorías
             </a>
-            <a wire:navigate href="{{ route('inventory.units.index') }}"
-                class="inline-flex items-center gap-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-3 py-2 rounded-xl transition-all duration-200 text-gray-700 shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-4 0h4"/>
-                </svg>
-                Unidades
-            </a>
             <a wire:navigate href="{{ route('inventory.warehouses.index') }}"
                 class="inline-flex items-center gap-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-3 py-2 rounded-xl transition-all duration-200 text-gray-700 shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -172,6 +165,7 @@
                                 <p class="text-xs text-gray-500">Unidad</p>
                                 <p class="text-xs text-gray-700 mt-1 font-medium">{{ $product->unitOfMeasure?->abbreviation ?? 'unidad' }}</p>
                             </div>
+                            @can('view prices')
                             <div class="bg-gray-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500">Precio compra</p>
                                 <p class="text-sm text-gray-700 mt-1">${{ number_format($product->purchase_price, 2) }}</p>
@@ -180,6 +174,7 @@
                                 <p class="text-xs text-gray-500">Precio venta</p>
                                 <p class="text-sm font-bold text-indigo-600 mt-1">${{ number_format($product->sale_price, 2) }}</p>
                             </div>
+                            @endcan
                             @if(!$isService)
                                 <div class="col-span-2 bg-gray-50 rounded-lg p-2">
                                     <p class="text-xs text-gray-500">Stock total</p>
@@ -235,8 +230,10 @@
                         <th class="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Nombre</th>
                         <th class="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">SKU</th>
                         <th class="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Tipo / Categoría</th>
+                        @can('view prices')
                         <th class="text-right px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Precio compra</th>
                         <th class="text-right px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Precio venta</th>
+                        @endcan
                         <th class="text-right px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Stock</th>
                         <th class="text-center px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
                         <th class="text-right px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
@@ -305,12 +302,14 @@
                                     @endif
                                 </div>
                             </td>
+                            @can('view prices')
                             <td class="px-6 py-4 text-right">
                                 <span class="text-gray-700">${{ number_format($product->purchase_price, 2) }}</span>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <span class="font-bold text-indigo-600">${{ number_format($product->sale_price, 2) }}</span>
                             </td>
+                            @endcan
                             <td class="px-6 py-4 text-right">
                                 @if($isService)
                                     <span class="text-xs text-gray-400 italic">N/A</span>

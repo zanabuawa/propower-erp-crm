@@ -184,7 +184,6 @@ x-init="init()">
                 <x-sidebar-subitem route="inventory.general" label="Existencias generales" />
                 <x-sidebar-subitem route="inventory.warehouse-stock" label="Existencias por almacén" />
                 <x-sidebar-subitem route="inventory.categories.index" label="Categorías" />
-                <x-sidebar-subitem route="inventory.units.index" label="Unidades" />
                 <x-sidebar-subitem route="inventory.warehouses.index" label="Almacenes" />
                 <x-sidebar-subitem route="inventory.movements.index" label="Movimientos" />
                 <x-sidebar-subitem route="inventory.transfers.index" label="Transferencias" />

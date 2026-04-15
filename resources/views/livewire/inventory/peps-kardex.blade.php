@@ -156,18 +156,24 @@
                             <th class="text-left px-4 py-3 font-medium text-gray-500">Referencia</th>
                             {{-- Entrada --}}
                             <th class="text-right px-4 py-3 font-medium text-green-600 bg-green-50/50">Cant. entrada</th>
+                            @can('view prices')
                             <th class="text-right px-4 py-3 font-medium text-green-600 bg-green-50/50">P. obtención</th>
                             <th class="text-right px-4 py-3 font-medium text-green-600 bg-green-50/50">Total entrada</th>
+                            @endcan
                             {{-- Salida --}}
                             <th class="text-right px-4 py-3 font-medium text-red-500 bg-red-50/50">Cant. salida</th>
+                            @can('view prices')
                             <th class="text-right px-4 py-3 font-medium text-red-500 bg-red-50/50">Costo PEPS</th>
                             <th class="text-right px-4 py-3 font-medium text-red-500 bg-red-50/50">P. venta</th>
                             <th class="text-right px-4 py-3 font-medium text-red-500 bg-red-50/50">Total venta</th>
                             <th class="text-right px-4 py-3 font-medium text-teal-600 bg-teal-50/50">Utilidad</th>
                             <th class="text-right px-4 py-3 font-medium text-teal-600 bg-teal-50/50">% Util.</th>
+                            @endcan
                             {{-- Saldo --}}
                             <th class="text-right px-4 py-3 font-medium text-gray-600 bg-gray-100">Saldo cant.</th>
+                            @can('view prices')
                             <th class="text-right px-4 py-3 font-medium text-gray-600 bg-gray-100">Saldo valor</th>
+                            @endcan
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -208,17 +214,20 @@
                                 <td class="px-4 py-2.5 text-right font-medium text-green-700 bg-green-50/30">
                                     {{ $isIn ? number_format($entry->quantity, 4) : '—' }}
                                 </td>
+                                @can('view prices')
                                 <td class="px-4 py-2.5 text-right text-green-600 bg-green-50/30">
                                     {{ $isIn ? '$' . number_format($entry->unit_cost, 4) : '—' }}
                                 </td>
                                 <td class="px-4 py-2.5 text-right font-medium text-green-700 bg-green-50/30">
                                     {{ $isIn ? '$' . number_format($entry->total_cost, 2) : '—' }}
                                 </td>
+                                @endcan
 
                                 {{-- Salidas --}}
                                 <td class="px-4 py-2.5 text-right font-medium text-red-600 bg-red-50/30">
                                     {{ !$isIn ? number_format($entry->quantity, 4) : '—' }}
                                 </td>
+                                @can('view prices')
                                 <td class="px-4 py-2.5 text-right text-red-500 bg-red-50/30">
                                     {{ !$isIn ? '$' . number_format($entry->unit_cost, 4) : '—' }}
                                 </td>
@@ -242,14 +251,17 @@
                                         : 'text-gray-300' }}">
                                     {{ (!$isIn && $entry->profit_pct !== null) ? number_format($entry->profit_pct, 2) . '%' : '—' }}
                                 </td>
+                                @endcan
 
                                 {{-- Saldo --}}
                                 <td class="px-4 py-2.5 text-right font-semibold text-gray-800 bg-gray-50">
                                     {{ number_format($entry->balance_quantity, 4) }}
                                 </td>
+                                @can('view prices')
                                 <td class="px-4 py-2.5 text-right font-semibold text-gray-800 bg-gray-50">
                                     ${{ number_format($entry->balance_value, 2) }}
                                 </td>
+                                @endcan
                             </tr>
                         @endforeach
                     </tbody>

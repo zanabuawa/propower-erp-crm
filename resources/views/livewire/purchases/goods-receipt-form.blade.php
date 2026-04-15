@@ -13,30 +13,7 @@
 
     <div class="space-y-5">
 
-        {{-- Orden de compra (opcional) --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Vincular a orden de compra</h2>
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Orden de compra</label>
-                <select wire:model.live="purchase_order_id"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                    <option value="">— Sin orden de compra (entrada directa) —</option>
-                    @foreach($purchaseOrders as $po)
-                        <option value="{{ $po->id }}">
-                            {{ $po->folio }} — {{ $po->supplier->name }}
-                            ({{ \App\Models\PurchaseOrder::STATUS[$po->status] ?? $po->status }})
-                        </option>
-                    @endforeach
-                </select>
-                @if($purchase_order_id)
-                    <p class="text-xs text-teal-600 mt-1">Los productos pendientes de esta orden se cargaron automáticamente.</p>
-                @else
-                    <p class="text-xs text-gray-400 mt-1">Opcional — los productos de la orden se cargarán automáticamente en la lista.</p>
-                @endif
-            </div>
-        </div>
-
-        {{-- Datos generales --}}
+        {{-- ── Datos generales (tipo de recepción primero) ───────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos de la recepción</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -59,32 +36,36 @@
                         <p class="mt-2 text-xs text-amber-600">
                             Los productos defectuosos se enviarán al almacén de defectuosos de tu sucursal. No se actualizarán precios.
                         </p>
+                    @elseif($reception_type === 'transfer')
+                        <p class="mt-2 text-xs text-blue-600">
+                            Los precios del producto no se actualizarán en transferencias. Se creará un lote PEPS en el almacén destino.
+                        </p>
                     @endif
                 </div>
 
-                {{-- Almacén --}}
+                {{-- Almacén origen (solo transferencias con movimiento vinculado) --}}
+                @if($reception_type === 'transfer' && $origin_warehouse_id)
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Almacén origen</label>
+                        <div class="w-full border border-gray-100 bg-gray-50 rounded-lg px-3 py-2 text-sm text-gray-600">
+                            {{ $originWarehouseName ?: '—' }}
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Almacén destino --}}
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Almacén destino *</label>
                     <select wire:model="warehouse_id"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                         <option value="">— Seleccionar almacén —</option>
                         @foreach($warehouses as $wh)
-                            <option value="{{ $wh->id }}">{{ $wh->name }}{{ $wh->branch ? ' — '.$wh->branch->name : '' }}{{ $wh->is_defective ? ' (Defectuosos)' : '' }}</option>
+                            <option value="{{ $wh->id }}">
+                                {{ $wh->name }}{{ $wh->branch ? ' — '.$wh->branch->name : '' }}{{ $wh->is_defective ? ' (Defectuosos)' : '' }}
+                            </option>
                         @endforeach
                     </select>
                     @error('warehouse_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Proveedor --}}
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Proveedor</label>
-                    <select wire:model="supplier_id"
-                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                        <option value="">— Sin proveedor —</option>
-                        @foreach($suppliers as $sup)
-                            <option value="{{ $sup->id }}">{{ $sup->name }}</option>
-                        @endforeach
-                    </select>
                 </div>
 
                 {{-- Referencia --}}
@@ -108,6 +89,27 @@
                     @error('operating_expenses') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Cuenta de finanzas (solo compras) --}}
+                @if($reception_type === 'purchase')
+                <div class="sm:col-span-2">
+                    <label class="block text-xs text-gray-500 mb-1">
+                        Cuenta de egreso <span class="text-red-500">*</span>
+                        <span class="text-gray-400 font-normal">(cuenta que absorbe el gasto de esta compra)</span>
+                    </label>
+                    <select wire:model="financeAccountId"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Selecciona una cuenta —</option>
+                        @foreach($financeAccounts as $account)
+                            <option value="{{ $account['id'] }}">
+                                {{ $account['name'] }}
+                                ({{ $account['currency'] }} ${{ number_format($account['current_balance'], 2) }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('financeAccountId') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                @endif
+
                 {{-- Notas --}}
                 <div class="sm:col-span-2">
                     <label class="block text-xs text-gray-500 mb-1">Notas generales</label>
@@ -118,14 +120,100 @@
             </div>
         </div>
 
-        {{-- Productos --}}
+        {{-- ── Documento origen (dinámico por tipo) ──────────────────────── --}}
+
+        {{-- Compra: vincular a OC --}}
+        @if($reception_type === 'purchase')
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Vincular a orden de compra</h2>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Orden de compra</label>
+                    <select wire:model.live="purchase_order_id"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Sin orden de compra (entrada directa) —</option>
+                        @foreach($purchaseOrders as $po)
+                            <option value="{{ $po->id }}">
+                                {{ $po->folio }}{{ $po->supplier ? ' — ' . $po->supplier->name : '' }}
+                                ({{ \App\Models\PurchaseOrder::STATUS[$po->status] ?? $po->status }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @if($purchase_order_id)
+                        <p class="text-xs text-teal-600 mt-1">Los productos pendientes de esta orden se cargaron automáticamente.</p>
+                    @else
+                        <p class="text-xs text-gray-400 mt-1">Opcional — los productos pendientes de la OC se cargarán en la lista.</p>
+                    @endif
+                    @error('purchase_order_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        @endif
+
+        {{-- Devolución: vincular a entrega de venta --}}
+        @if($reception_type === 'return')
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Vincular a entrega de venta (devolución)</h2>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Entrega de venta</label>
+                    <select wire:model.live="sale_delivery_id"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Sin entrega vinculada (devolución directa) —</option>
+                        @foreach($saleDeliveries as $del)
+                            <option value="{{ $del->id }}">
+                                {{ $del->folio }}
+                                @if($del->customer) — {{ $del->customer->name }} @endif
+                                @if($del->delivered_at) ({{ $del->delivered_at->format('d/m/Y') }}) @endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @if($sale_delivery_id)
+                        <p class="text-xs text-teal-600 mt-1">Los productos de la entrega se cargaron automáticamente. Ajusta las cantidades si la devolución es parcial.</p>
+                    @else
+                        <p class="text-xs text-gray-400 mt-1">Opcional — los productos entregados se cargarán para que ajustes las cantidades devueltas.</p>
+                    @endif
+                    @error('sale_delivery_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        @endif
+
+        {{-- Transferencia: vincular a movimiento en tránsito --}}
+        @if($reception_type === 'transfer')
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Vincular a transferencia en tránsito</h2>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Transferencia de inventario</label>
+                    <select wire:model.live="origin_movement_id"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Sin transferencia vinculada (recepción directa) —</option>
+                        @foreach($pendingTransfers as $tm)
+                            <option value="{{ $tm->id }}">
+                                {{ $tm->folio }}
+                                — De: {{ $tm->warehouse?->name ?? '?' }}
+                                → A: {{ $tm->warehouseDestination?->name ?? '?' }}
+                                ({{ $tm->status === 'in_transit' ? 'En tránsito' : 'Recibido parcialmente' }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @if($origin_movement_id && $originWarehouseName)
+                        <p class="text-xs text-blue-600 mt-1">
+                            Origen: <strong>{{ $originWarehouseName }}</strong>.
+                            El almacén destino y los productos se configuraron automáticamente.
+                        </p>
+                    @elseif(!$origin_movement_id)
+                        <p class="text-xs text-gray-400 mt-1">Opcional — los productos de la transferencia se cargarán con la cantidad pendiente de recibir.</p>
+                    @endif
+                    @error('origin_movement_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        @endif
+
+        {{-- ── Productos ─────────────────────────────────────────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div>
                     <h2 class="text-sm font-medium text-gray-700">Productos recibidos</h2>
                     @if(count($items) > 0)
                         <p class="text-xs text-gray-400 mt-0.5">
-                            Marca los productos que llegaron y agrega notas si es necesario
+                            Marca los productos que llegaron y ajusta las cantidades si es necesario
                         </p>
                     @endif
                 </div>
@@ -152,7 +240,7 @@
                                     <p class="text-xs text-gray-400">
                                         SKU: {{ $result['sku'] ?? '—' }}
                                         @if($result['barcode'] ?? null) · CB: {{ $result['barcode'] }} @endif
-                                        · Costo: ${{ number_format($result['purchase_price'], 2) }}
+                                        @can('view prices')· Costo: ${{ number_format($result['purchase_price'], 2) }}@endcan
                                     </p>
                                 </div>
                                 <span class="text-xs text-indigo-400 flex-shrink-0 ml-4">+ Agregar</span>
@@ -174,10 +262,12 @@
                                 </th>
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Producto</th>
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Cantidad</th>
-                                @if($reception_type !== 'defective')
+                                @if(!in_array($reception_type, ['defective', 'transfer']))
+                                    @can('view prices')
                                     <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio costo</th>
                                     <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Margen %</th>
                                     <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Precio venta</th>
+                                    @endcan
                                 @endif
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Notas / Observaciones</th>
                                 <th class="w-8"></th>
@@ -213,7 +303,8 @@
                                             <p class="text-xs text-red-500">{{ $message }}</p>
                                         @enderror
                                     </td>
-                                    @if($reception_type !== 'defective')
+                                    @if(!in_array($reception_type, ['defective', 'transfer']))
+                                        @can('view prices')
                                         <td class="px-4 py-2">
                                             <div class="relative">
                                                 <span class="absolute left-2 top-1.5 text-xs text-gray-400">$</span>
@@ -237,6 +328,7 @@
                                                 ${{ number_format($salePrice, 2) }}
                                             </p>
                                         </td>
+                                        @endcan
                                     @endif
                                     <td class="px-4 py-2">
                                         <input wire:model="items.{{ $index }}.notes"
@@ -269,16 +361,21 @@
                     <p class="text-xs text-gray-500">
                         {{ $receivedCount }} de {{ $totalCount }} producto(s) marcado(s) como recibido(s)
                         @if($receivedCount < $totalCount)
-                            <span class="text-amber-600">— {{ $totalCount - $receivedCount }} pendiente(s)</span>
+                            <span class="text-amber-600">— {{ $totalCount - $receivedCount }} sin marcar</span>
                         @endif
                     </p>
                 @endif
             @else
                 <div class="border-2 border-dashed border-gray-200 rounded-lg py-10 text-center text-sm text-gray-400">
-                    @if($purchase_order_id)
-                        Todos los productos de esta orden ya fueron recibidos.
+                    @php $hasSource = $purchase_order_id || $sale_delivery_id || $origin_movement_id; @endphp
+                    @if($hasSource)
+                        Todos los productos del documento vinculado ya fueron recibidos completamente.
+                    @elseif($reception_type === 'return')
+                        Selecciona una entrega de venta o agrega productos manualmente.
+                    @elseif($reception_type === 'transfer')
+                        Selecciona una transferencia en tránsito o agrega productos manualmente.
                     @else
-                        Selecciona una orden de compra o busca productos manualmente.
+                        Selecciona una orden de compra o agrega productos manualmente.
                     @endif
                 </div>
             @endif
@@ -298,7 +395,7 @@
         @endif
     </div>
 
-    {{-- Modal de confirmación --}}
+    {{-- ── Modal de confirmación ──────────────────────────────────────────── --}}
     @if($showConfirmModal)
         <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
             <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg">
@@ -308,6 +405,15 @@
                         Tipo: <strong>{{ \App\Models\PurchaseReceipt::RECEPTION_TYPES[$reception_type] }}</strong>
                         @php $wh = $warehouses->firstWhere('id', $warehouse_id); @endphp
                         @if($wh) · Almacén: <strong>{{ $wh->name }}</strong> @endif
+                        @if($reception_type === 'return' && $sale_delivery_id)
+                            @php $selDel = $saleDeliveries->firstWhere('id', $sale_delivery_id); @endphp
+                            @if($selDel) · Entrega: <strong>{{ $selDel->folio }}</strong> @endif
+                        @endif
+                        @if($reception_type === 'transfer' && $origin_movement_id)
+                            @php $selTm = $pendingTransfers->firstWhere('id', $origin_movement_id); @endphp
+                            @if($selTm) · Transferencia: <strong>{{ $selTm->folio }}</strong> @endif
+                            @if($originWarehouseName) · Origen: <strong>{{ $originWarehouseName }}</strong> @endif
+                        @endif
                     </p>
                 </div>
                 <div class="p-6 space-y-3 max-h-80 overflow-y-auto">
@@ -318,8 +424,10 @@
                                 <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
                                     <th class="text-left px-4 py-2">Producto</th>
                                     <th class="text-right px-4 py-2">Cantidad</th>
-                                    @if($reception_type !== 'defective')
+                                    @if(!in_array($reception_type, ['defective', 'transfer']))
+                                        @can('view prices')
                                         <th class="text-right px-4 py-2">Precio venta</th>
+                                        @endcan
                                     @endif
                                     <th class="text-left px-4 py-2">Notas</th>
                                 </tr>
@@ -333,8 +441,10 @@
                                         <tr>
                                             <td class="px-4 py-2.5 font-medium text-gray-900">{{ $item['product_name'] }}</td>
                                             <td class="px-4 py-2.5 text-right text-gray-700">{{ $item['quantity'] }}</td>
-                                            @if($reception_type !== 'defective')
+                                            @if(!in_array($reception_type, ['defective', 'transfer']))
+                                                @can('view prices')
                                                 <td class="px-4 py-2.5 text-right text-indigo-600 font-semibold">${{ number_format($sp, 2) }}</td>
+                                                @endcan
                                             @endif
                                             <td class="px-4 py-2.5 text-xs text-gray-500">{{ $item['notes'] ?: '—' }}</td>
                                         </tr>
@@ -353,6 +463,11 @@
                             Estos productos se registrarán en el almacén de defectuosos. No se actualizarán precios.
                         </p>
                     @endif
+                    @if($reception_type === 'transfer')
+                        <p class="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2">
+                            Los precios del producto no se actualizarán. Se creará un lote PEPS en el almacén destino.
+                        </p>
+                    @endif
                 </div>
                 <div class="p-6 border-t border-gray-100 flex justify-end gap-3">
                     <button type="button" wire:click="cancelConfirm"
@@ -360,8 +475,10 @@
                         Revisar
                     </button>
                     <button type="button" wire:click="save"
-                        class="px-5 py-2 text-sm bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium transition">
-                        Confirmar recepción
+                        wire:loading.attr="disabled" wire:target="save"
+                        class="px-5 py-2 text-sm bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white rounded-lg font-medium transition">
+                        <span wire:loading.remove wire:target="save">Confirmar recepción</span>
+                        <span wire:loading wire:target="save">Guardando...</span>
                     </button>
                 </div>
             </div>

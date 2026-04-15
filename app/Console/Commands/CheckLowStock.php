@@ -68,7 +68,6 @@ class CheckLowStock extends Command
 
             // Notificar solo a usuarios con permiso de ajustar inventario (almacenista, comprador, gerente, admin)
             User::where('company_id', $product->company_id)
-                ->whereNull('deleted_at')
                 ->permission('adjust inventory')
                 ->each(fn(User $user) => $user->notify(clone $notification));
         }

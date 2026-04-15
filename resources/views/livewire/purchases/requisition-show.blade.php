@@ -211,6 +211,28 @@
             </button>
         </div>
 
+        {{-- Nota IVA + controles bulk --}}
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 mb-3">
+            <div class="flex items-start gap-2 flex-1 min-w-0">
+                <svg class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p class="text-xs text-amber-700">
+                    <strong>IVA:</strong> por defecto se asume que el precio ya incluye IVA. Marca la casilla en cada partida cuyo precio <em>no</em> incluye IVA para que se calcule el 16% adicional.
+                </p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <button type="button" wire:click="setAllQIva(true)"
+                    class="px-2.5 py-1 text-xs border border-amber-300 text-amber-700 hover:bg-amber-100 rounded-lg transition whitespace-nowrap">
+                    Marcar todos
+                </button>
+                <button type="button" wire:click="setAllQIva(false)"
+                    class="px-2.5 py-1 text-xs border border-amber-300 text-amber-700 hover:bg-amber-100 rounded-lg transition whitespace-nowrap">
+                    Quitar todos
+                </button>
+            </div>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="w-full text-sm min-w-[540px]">
                 <thead class="bg-gray-50 text-xs text-gray-500">
@@ -219,7 +241,7 @@
                         <th class="px-3 py-2 text-center w-20">Cant. *</th>
                         <th class="px-3 py-2 text-center w-20">Unidad</th>
                         <th class="px-3 py-2 text-right w-28">Precio unit. *</th>
-                        <th class="px-3 py-2 text-center w-20">IVA %</th>
+                        <th class="px-3 py-2 text-center w-28">IVA</th>
                         <th class="px-3 py-2 text-right w-28">Subtotal</th>
                         <th class="w-8"></th>
                     </tr>
@@ -245,8 +267,16 @@
                                 class="w-full border border-gray-200 rounded px-2 py-1 text-xs text-right focus:outline-none focus:ring-1 focus:ring-indigo-300">
                         </td>
                         <td class="px-2 py-1">
-                            <input wire:model.live="qItems.{{ $idx }}.tax_rate" type="number" min="0" max="100" step="0.01"
-                                class="w-full border border-gray-200 rounded px-2 py-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                            @php $ivaNoInc = ($qi['tax_rate'] ?? 0) != 0; @endphp
+                            <label class="flex items-center gap-1.5 cursor-pointer justify-center select-none">
+                                <input type="checkbox"
+                                    wire:click="toggleQItemIva({{ $idx }})"
+                                    {{ $ivaNoInc ? 'checked' : '' }}
+                                    class="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                <span class="text-xs {{ $ivaNoInc ? 'text-gray-700' : 'text-indigo-600 font-medium' }}">
+                                    {{ $ivaNoInc ? '+ 16%' : 'Incluido' }}
+                                </span>
+                            </label>
                         </td>
                         <td class="px-2 py-1 text-right text-xs text-gray-600">
                             ${{ number_format(($qi['quantity'] ?? 0) * ($qi['unit_price'] ?? 0), 2) }}
@@ -350,7 +380,13 @@
                             <td class="px-4 py-2 text-center">{{ $qi->quantity }}</td>
                             <td class="px-4 py-2 text-xs text-gray-500 hidden sm:table-cell">{{ $qi->unit }}</td>
                             <td class="px-4 py-2 text-right">${{ number_format($qi->unit_price, 2) }}</td>
-                            <td class="px-4 py-2 text-center text-xs text-gray-500 hidden sm:table-cell">{{ $qi->tax_rate }}%</td>
+                            <td class="px-4 py-2 text-center text-xs hidden sm:table-cell">
+                                @if($qi->tax_rate == 0)
+                                    <span class="text-indigo-600 font-medium">Incluido</span>
+                                @else
+                                    <span class="text-gray-500">+ {{ $qi->tax_rate }}%</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-2 text-right font-medium">${{ number_format($qi->subtotal, 2) }}</td>
                         </tr>
                         @endforeach
@@ -438,11 +474,19 @@
                     <tr>
                         <td class="px-4 py-2">
                             {{ $qi->description }}
-                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">${{ number_format($qi->unit_price, 2) }} · IVA {{ $qi->tax_rate }}%</p>
+                            <p class="text-xs text-gray-400 sm:hidden mt-0.5">
+                                ${{ number_format($qi->unit_price, 2) }} · IVA {{ $qi->tax_rate == 0 ? 'incluido' : $qi->tax_rate . '%' }}
+                            </p>
                         </td>
                         <td class="px-4 py-2 text-center">{{ $qi->quantity }} {{ $qi->unit }}</td>
                         <td class="px-4 py-2 text-right hidden sm:table-cell">${{ number_format($qi->unit_price, 2) }}</td>
-                        <td class="px-4 py-2 text-center text-xs text-gray-500 hidden sm:table-cell">{{ $qi->tax_rate }}%</td>
+                        <td class="px-4 py-2 text-center text-xs hidden sm:table-cell">
+                            @if($qi->tax_rate == 0)
+                                <span class="text-indigo-600 font-medium">Incluido</span>
+                            @else
+                                <span class="text-gray-500">+ {{ $qi->tax_rate }}%</span>
+                            @endif
+                        </td>
                         <td class="px-4 py-2 text-right font-medium">${{ number_format($qi->subtotal, 2) }}</td>
                     </tr>
                     @endforeach
@@ -519,6 +563,10 @@
 
                     goToStep2() {
                         this.step = 2;
+                    },
+
+                    goToStep3() {
+                        this.step = 3;
                         if (this.sigMethod === 'draw') {
                             this.$nextTick(() => this.initCanvas());
                         }
@@ -529,7 +577,6 @@
                         if (method === 'draw') {
                             this.$nextTick(() => this.initCanvas());
                         } else {
-                            // usar firma guardada: limpiar canvas y vaciar signatureData
                             $wire.set('signatureData', '');
                         }
                     },
@@ -635,11 +682,14 @@
                         this.clearCanvas();
                         $wire.set('approvalComment', '');
                         $wire.set('authPassword', '');
+                        $wire.set('otpSent', false);
+                        $wire.set('otpVerified', false);
+                        $wire.set('otpInput', '');
+                        $wire.set('otpError', '');
                     },
 
                     async confirmPassword() {
                         await $wire.verifyAuthPassword();
-                        // si no hay errores en authPassword, avanzar
                         if (!$wire.__instance?.effects?.errors?.authPassword) {
                             this.goToStep2();
                         }
@@ -689,13 +739,19 @@
                         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                             <div class="flex items-center gap-2">
                                 <div class="w-8 h-8 rounded-full flex items-center justify-center"
-                                    :class="step === 1 ? 'bg-indigo-100' : 'bg-emerald-100'">
+                                    :class="step === 1 ? 'bg-indigo-100' : (step === 2 ? 'bg-violet-100' : 'bg-emerald-100')">
+                                    {{-- Paso 1: candado --}}
                                     <svg x-show="step === 1" class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                    <svg x-show="step === 2" class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6.536-6.536a2 2 0 112.828 2.828L11.828 13.828a4 4 0 01-1.414.94l-3.414.853.853-3.414a4 4 0 01.94-1.414z"/></svg>
+                                    {{-- Paso 2: escudo --}}
+                                    <svg x-show="step === 2" class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    {{-- Paso 3: pluma --}}
+                                    <svg x-show="step === 3" class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 11l6.536-6.536a2 2 0 112.828 2.828L11.828 13.828a4 4 0 01-1.414.94l-3.414.853.853-3.414a4 4 0 01.94-1.414z"/></svg>
                                 </div>
                                 <div>
-                                    <h3 class="text-sm font-semibold text-gray-800" x-text="step === 1 ? 'Verificar identidad' : 'Firma de autorización'"></h3>
-                                    <p class="text-[10px] text-gray-400" x-text="step === 1 ? 'Paso 1 de 2' : 'Paso 2 de 2'"></p>
+                                    <h3 class="text-sm font-semibold text-gray-800"
+                                        x-text="step === 1 ? 'Verificar contraseña' : (step === 2 ? 'Verificación en dos pasos' : 'Firma de autorización')"></h3>
+                                    <p class="text-[10px] text-gray-400"
+                                        x-text="'Paso ' + step + ' de 3'"></p>
                                 </div>
                             </div>
                             <button type="button" @click="closeModal()"
@@ -723,8 +779,82 @@
                             </div>
                         </div>
 
-                        {{-- ── Paso 2: firma ── --}}
-                        <div x-show="step === 2" class="px-5 py-4 space-y-4">
+                        {{-- ── Paso 2: OTP 2FA ── --}}
+                        <div x-show="step === 2" class="px-5 py-5 space-y-4">
+                            @if(!$otpVerified)
+                                @if(!$otpSent)
+                                <div class="text-center space-y-3 py-2">
+                                    <div class="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center mx-auto">
+                                        <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                    <p class="text-sm font-medium text-gray-800">Verificación en dos pasos</p>
+                                    <p class="text-xs text-gray-500">
+                                        Enviaremos un código de 6 dígitos a<br>
+                                        <strong>{{ auth()->user()->email }}</strong>
+                                    </p>
+                                    <button wire:click="requestOtp" type="button"
+                                        wire:loading.attr="disabled"
+                                        class="inline-flex items-center gap-2 px-5 py-2 text-sm bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        Enviar código
+                                    </button>
+                                </div>
+                                @else
+                                <div class="space-y-3">
+                                    <p class="text-xs text-gray-500">
+                                        Código enviado a <strong>{{ auth()->user()->email }}</strong>.
+                                        Ingresa los 6 dígitos que recibiste.
+                                    </p>
+                                    <div>
+                                        <label class="block text-xs font-medium text-gray-600 mb-1">Código de verificación <span class="text-red-500">*</span></label>
+                                        <div class="flex items-center gap-2">
+                                            <input
+                                                wire:model="otpInput"
+                                                type="text"
+                                                inputmode="numeric"
+                                                maxlength="6"
+                                                placeholder="000000"
+                                                @keydown.enter="$wire.verifyOtp()"
+                                                class="w-36 border border-gray-200 rounded-lg px-3 py-2 text-sm text-center tracking-[0.4em] font-mono focus:outline-none focus:ring-2 focus:ring-violet-300"
+                                                autofocus
+                                            >
+                                            <button wire:click="verifyOtp" type="button"
+                                                wire:loading.attr="disabled"
+                                                class="px-4 py-2 text-sm bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition">
+                                                Verificar
+                                            </button>
+                                        </div>
+                                        @if($otpError)
+                                            <p class="text-xs text-red-500 mt-1.5">{{ $otpError }}</p>
+                                        @endif
+                                    </div>
+                                    <button wire:click="requestOtp" type="button"
+                                        class="text-xs text-violet-600 hover:underline">
+                                        Reenviar código
+                                    </button>
+                                </div>
+                                @endif
+                            @else
+                            <div class="text-center py-4 space-y-2">
+                                <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto">
+                                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <p class="text-sm font-medium text-emerald-700">Identidad verificada</p>
+                                <p class="text-xs text-gray-400">Código correcto. Puedes continuar.</p>
+                            </div>
+                            @endif
+                        </div>
+
+                        {{-- ── Paso 3: firma ── --}}
+                        <div x-show="step === 3" class="px-5 py-4 space-y-4">
 
                             {{-- Selector de método (solo si hay firma guardada) --}}
                             <template x-if="hasSavedSig">
@@ -791,7 +921,8 @@
 
                         {{-- Footer --}}
                         <div class="flex items-center justify-between gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-                            <button type="button" @click="step === 1 ? closeModal() : (step = 1)"
+                            <button type="button"
+                                @click="step === 1 ? closeModal() : (step--)"
                                 class="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg font-medium transition"
                                 x-text="step === 1 ? 'Cancelar' : '← Atrás'">
                             </button>
@@ -806,8 +937,21 @@
                                 Verificar y continuar
                             </button>
 
-                            {{-- Paso 2: confirmar autorización --}}
+                            {{-- Paso 2: continuar (solo activo tras OTP verificado) --}}
                             <button x-show="step === 2"
+                                type="button"
+                                @click="goToStep3()"
+                                :disabled="!$wire.otpVerified"
+                                :class="$wire.otpVerified
+                                    ? 'bg-violet-600 hover:bg-violet-700 text-white'
+                                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'"
+                                class="px-5 py-2 text-sm rounded-lg font-medium transition flex items-center gap-1.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                Continuar
+                            </button>
+
+                            {{-- Paso 3: confirmar autorización --}}
+                            <button x-show="step === 3"
                                 type="button"
                                 @click="closeModal(); $wire.approveQuotation();"
                                 class="px-5 py-2 text-sm bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition flex items-center gap-1.5">
@@ -818,9 +962,26 @@
                     </div>
                 </div>
             </div>
-            @endif
+            @endif {{-- canApprove --}}
         </div>
         @endif
+    </div>
+    @endif
+
+    {{-- ── COMPRAS: requisición autorizada → crear OC ── --}}
+    @if($requisition->status === 'authorized' && $this->isComprador)
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <p class="text-sm font-semibold text-emerald-800">¡Requisición autorizada!</p>
+            <p class="text-xs text-emerald-600 mt-0.5">Ya puedes generar la orden de compra a partir de la cotización final aprobada.</p>
+        </div>
+        <a href="{{ route('purchases.orders.create', ['quotation' => $requisition->finalQuotation->id]) }}" wire:navigate
+            class="inline-flex items-center gap-2 px-4 py-2 text-sm bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-medium transition whitespace-nowrap self-start sm:self-auto">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Crear orden de compra
+        </a>
     </div>
     @endif
 
