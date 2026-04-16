@@ -1,4 +1,4 @@
-<div>
+<div class="max-w-4xl mx-auto">
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div class="flex items-center gap-3 flex-1">
             <a wire:navigate href="{{ route('sales.index') }}" class="text-gray-400 hover:text-gray-600">
@@ -57,7 +57,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <div class="space-y-4">
-            <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Información</h2>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -81,7 +81,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Totales</h2>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -119,7 +119,7 @@
         </div>
 
         <div class="md:col-span-1 lg:col-span-2 space-y-4">
-            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                 <div class="px-5 py-3 border-b border-gray-100">
                     <h2 class="text-sm font-medium text-gray-700">Productos</h2>
                 </div>
@@ -155,14 +155,14 @@
             </div>
 
             @if($quotation->notes)
-                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                     <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Notas</h2>
                     <p class="text-sm text-gray-700">{{ $quotation->notes }}</p>
                 </div>
             @endif
 
             @if($quotation->terms)
-                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                     <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Términos y condiciones</h2>
                     <p class="text-sm text-gray-700">{{ $quotation->terms }}</p>
                 </div>

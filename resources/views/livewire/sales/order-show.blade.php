@@ -1,4 +1,4 @@
-<div>
+<div class="max-w-4xl mx-auto">
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div class="flex items-center gap-3 flex-1">
             <a wire:navigate href="{{ route('sales.orders.index') }}" class="text-gray-400 hover:text-gray-600">
@@ -53,7 +53,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <div class="space-y-4">
-            <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Información</h2>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Totales</h2>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -130,7 +130,7 @@
             </div>
 
             @if($activeTab === 'items')
-                <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm min-w-[480px]">
                             <thead>
@@ -170,7 +170,7 @@
             @if($activeTab === 'deliveries')
                 <div class="space-y-3">
                     @forelse($order->deliveries as $delivery)
-                        <div class="bg-white rounded-xl border border-gray-200 p-5">
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
                             <div class="flex items-center justify-between mb-3">
                                 <div>
                                     <p class="text-sm font-medium text-gray-900">{{ $delivery->folio }}</p>
@@ -201,7 +201,7 @@
                             </div>
                         </div>
                     @empty
-                        <div class="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-400 text-sm">
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-8 text-center text-gray-400 text-sm">
                             No se han registrado remisiones.
                         </div>
                     @endforelse

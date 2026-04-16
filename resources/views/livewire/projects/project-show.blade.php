@@ -194,6 +194,108 @@
                 </ul>
             </div>
 
+            {{-- Personal asignado --}}
+            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+                    <h2 class="text-sm font-medium text-gray-700">
+                        Personal
+                        @php $activeCount = $project->employees->where('pivot.is_active', true)->count(); @endphp
+                        ({{ $activeCount }})
+                    </h2>
+                    @can('edit projects')
+                    <button wire:click="openEmployeeModal"
+                            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Asignar</button>
+                    @endcan
+                </div>
+                <ul class="divide-y divide-gray-100">
+                    @forelse($project->employees->where('pivot.is_active', true) as $emp)
+                    <li class="px-5 py-3 flex items-center justify-between gap-2 group">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <div class="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                                <span class="text-xs font-bold text-indigo-600">
+                                    {{ strtoupper(substr($emp->first_name,0,1).substr($emp->last_name,0,1)) }}
+                                </span>
+                            </div>
+                            <div class="min-w-0">
+                                <a href="{{ route('hr.employees.show', $emp) }}" wire:navigate
+                                   class="text-sm text-gray-800 hover:text-indigo-600 truncate block">{{ $emp->full_name }}</a>
+                                @if($emp->pivot->role)
+                                <p class="text-xs text-gray-400 truncate">{{ $emp->pivot->role }}</p>
+                                @endif
+                            </div>
+                        </div>
+                        @can('edit projects')
+                        <button wire:click="removeEmployee({{ $emp->id }})" wire:confirm="¿Quitar a {{ $emp->first_name }} del proyecto?"
+                                class="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                        @endcan
+                    </li>
+                    @empty
+                    <li class="px-5 py-6 text-center text-sm text-gray-400">Sin personal asignado.</li>
+                    @endforelse
+                </ul>
+            </div>
+
         </div>
     </div>
+
+    {{-- Modal: Asignar empleado --}}
+    @if($showEmployeeModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+         wire:click.self="$set('showEmployeeModal', false)">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <h2 class="text-base font-semibold text-gray-800 mb-4">Asignar empleado al proyecto</h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Empleado <span class="text-red-500">*</span></label>
+                    <select wire:model="addEmployeeId"
+                            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        <option value="">Seleccionar empleado</option>
+                        @foreach($availableEmployees as $emp)
+                            <option value="{{ $emp->id }}">{{ $emp->last_name }} {{ $emp->first_name }}</option>
+                        @endforeach
+                    </select>
+                    @error('addEmployeeId') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Rol en el proyecto</label>
+                    <input wire:model="addEmployeeRole" type="text" placeholder="Ej: Supervisor, Operario, Técnico..."
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Fecha inicio</label>
+                        <input wire:model="addEmployeeStart" type="date"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Fecha fin</label>
+                        <input wire:model="addEmployeeEnd" type="date"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        @error('addEmployeeEnd') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Horas asignadas</label>
+                    <input wire:model="addEmployeeHours" type="number" min="0" step="0.5" placeholder="0"
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Notas</label>
+                    <textarea wire:model="addEmployeeNotes" rows="2"
+                              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-5">
+                <button wire:click="$set('showEmployeeModal', false)"
+                        class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
+                <button wire:click="assignEmployee"
+                        class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">Asignar</button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

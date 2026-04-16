@@ -1,16 +1,16 @@
-<div class="max-w-4xl space-y-5">
+<div class="max-w-4xl mx-auto space-y-5">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div class="flex items-center gap-3">
-            <a href="{{ route('purchases.index') }}" wire:navigate class="text-gray-400 hover:text-gray-600 transition">
+            <a wire:navigate href="{{ route('purchases.index') }}" class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
                 </svg>
             </a>
             <div>
                 <h1 class="text-xl font-medium text-gray-900">{{ $requisition->folio }}</h1>
-                <p class="text-xs text-gray-400 mt-0.5">
+                <p class="text-xs text-gray-500 mt-0.5">
                     Solicitado por {{ $requisition->requestedBy->name }}
                     · {{ $requisition->created_at->format('d/m/Y H:i') }}
                     @if($requisition->branch) · {{ $requisition->branch->name }} @endif
@@ -22,7 +22,7 @@
                 {{ \App\Models\PurchaseRequisition::STATUS[$requisition->status] ?? $requisition->status }}
             </span>
             <a href="{{ route('purchases.requisitions.print', $requisition) }}" target="_blank"
-                class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition"
+                class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition shadow-sm"
                 title="Imprimir / Guardar PDF">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -53,7 +53,7 @@
     @endphp
 
     @if(!$isRejected)
-    <div class="bg-white rounded-xl border border-gray-200 px-5 py-4">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4">
         <div class="flex items-center">
             @foreach($steps as $i => $step)
             <div class="flex items-center {{ $i < count($steps) - 1 ? 'flex-1' : '' }}">
@@ -96,7 +96,7 @@
     @endif
 
     {{-- Justificación --}}
-    <div class="bg-white rounded-xl border border-gray-200 p-5">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <p class="text-xs text-gray-400 mb-1">Justificación</p>
         <p class="text-sm text-gray-700">{{ $requisition->justification }}</p>
         <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
@@ -108,7 +108,7 @@
     </div>
 
     {{-- Ítems de la requisición --}}
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-5 py-3 border-b border-gray-100">
             <h2 class="text-sm font-medium text-gray-700">Ítems solicitados</h2>
         </div>
@@ -450,7 +450,7 @@
 
     {{-- ── Cotización final y proceso de autorización ── --}}
     @if($requisition->finalQuotation && in_array($requisition->status, ['pending_auth', 'authorized', 'ordered']))
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="px-5 py-3 bg-purple-50 border-b border-purple-100 flex items-center justify-between">
             <h2 class="text-sm font-medium text-purple-800">Cotización final</h2>
             <span class="text-xs text-purple-600 font-semibold">

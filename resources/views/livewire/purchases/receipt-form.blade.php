@@ -1,4 +1,4 @@
-<div class="max-w-4xl">
+<div class="max-w-4xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
         <a wire:navigate href="{{ route('purchases.orders.show', $order) }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,7 +13,7 @@
 
     <div class="space-y-5">
 
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4 shadow-sm">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos de recepción</h2>
 
             {{-- Tipo de recepción --}}
@@ -98,7 +98,7 @@
         </div>
 
         {{-- Tabla de productos --}}
-        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
             <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                 <div>
                     <h2 class="text-sm font-medium text-gray-700">Checklist de productos</h2>

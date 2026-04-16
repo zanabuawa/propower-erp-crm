@@ -1,4 +1,4 @@
-<div class="max-w-3xl">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center gap-3 mb-6">
         <a wire:navigate href="{{ route('contacts.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,10 +13,10 @@
     <form wire:submit="save" class="space-y-5">
 
         {{-- Datos generales --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6 space-y-4 shadow-sm">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos generales</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
+                <div class="sm:col-span-2 lg:col-span-1 xl:col-span-2">
                     <label class="block text-xs text-gray-500 mb-1">Razón social *</label>
                     <input wire:model="name" type="text"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
@@ -210,10 +210,10 @@
         </div>
 
         {{-- Dirección fiscal --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6 space-y-4 shadow-sm">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Dirección fiscal</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
+                <div class="sm:col-span-2 lg:col-span-1 xl:col-span-2">
                     <label class="block text-xs text-gray-500 mb-1">Calle y número</label>
                     <input wire:model="address" type="text"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
@@ -228,9 +228,9 @@
         </div>
 
         {{-- Condiciones comerciales --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6 space-y-4 shadow-sm">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Condiciones comerciales</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Límite de crédito</label>
                     <div class="relative">
@@ -244,7 +244,7 @@
                     <input wire:model="payment_terms" type="number" min="0" placeholder="0 = contado"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 </div>
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-2 lg:col-span-1 xl:col-span-2">
                     <label class="block text-xs text-gray-500 mb-1">Notas / descripción</label>
                     <textarea wire:model="description" rows="3"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"></textarea>

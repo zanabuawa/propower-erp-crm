@@ -1,4 +1,4 @@
-<div class="max-w-4xl">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center gap-3 mb-6">
         <a wire:navigate href="{{ route('sales.invoices.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -9,10 +9,10 @@
     </div>
 
     <form wire:submit="save" class="space-y-5">
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6 space-y-4">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos generales</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="sm:col-span-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
+                <div class="sm:col-span-2 lg:col-span-1 xl:col-span-2">
                     <label class="block text-xs text-gray-500 mb-1">Cliente *</label>
                     <select wire:model="customer_id"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
@@ -65,7 +65,7 @@
                     <input wire:model.live="global_discount" type="number" step="0.01" min="0" max="100"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 </div>
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-2 lg:col-span-3 xl:col-span-4">
                     <label class="block text-xs text-gray-500 mb-1">Notas</label>
                     <textarea wire:model="notes" rows="2"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"></textarea>

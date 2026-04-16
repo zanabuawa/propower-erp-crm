@@ -28,6 +28,12 @@ class OrderForm extends Component
     public string $productSearch = '';
     public array $productResults = [];
 
+    public function getSourceLabelProperty(): ?string
+    {
+        if (!$this->quotation_id) return null;
+        return SaleQuotation::find($this->quotation_id)?->folio;
+    }
+
     public function mount(): void
     {
         $this->required_at = now()->addDays(3)->format('Y-m-d');

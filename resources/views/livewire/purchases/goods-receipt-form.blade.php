@@ -1,4 +1,4 @@
-<div class="max-w-5xl">
+<div class="max-w-5xl mx-auto">
     <div class="flex items-center gap-3 mb-6">
         <a wire:navigate href="{{ route('purchases.goods-receipts.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -7,14 +7,14 @@
         </a>
         <div>
             <h1 class="text-xl font-medium text-gray-900">Nueva recepción de mercancías</h1>
-            <p class="text-sm text-gray-400 mt-0.5">Registra la entrada de productos al inventario</p>
+            <p class="text-sm text-gray-500 mt-0.5">Registra la entrada de productos al inventario</p>
         </div>
     </div>
 
     <div class="space-y-5">
 
         {{-- ── Datos generales (tipo de recepción primero) ───────────────── --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4 shadow-sm">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos de la recepción</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
@@ -124,7 +124,7 @@
 
         {{-- Compra: vincular a OC --}}
         @if($reception_type === 'purchase')
-            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+            <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-3 shadow-sm">
                 <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Vincular a orden de compra</h2>
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Orden de compra</label>
@@ -207,7 +207,7 @@
         @endif
 
         {{-- ── Productos ─────────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4 shadow-sm">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div>
                     <h2 class="text-sm font-medium text-gray-700">Productos recibidos</h2>

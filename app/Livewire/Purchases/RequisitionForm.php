@@ -60,6 +60,24 @@ class RequisitionForm extends Component
         ];
     }
 
+    public function addProduct(int $productId): void
+    {
+        $product = Product::find($productId);
+        if (!$product) return;
+
+        $this->items[] = [
+            'product_id'  => $product->id,
+            'description' => $product->name,
+            'quantity'    => 1,
+            'unit_price'  => $product->purchase_price,
+            'unit'        => $product->unit_of_measure?->name ?? 'pz',
+            'notes'       => '',
+        ];
+
+        $this->productSearch  = '';
+        $this->productResults = [];
+    }
+
     public function selectProduct(int $index, int $productId): void
     {
         $product = Product::find($productId);

@@ -6,15 +6,23 @@ use App\Models\Category;
 use App\Models\Stock;
 use App\Models\Warehouse;
 use Livewire\Component;
+use Livewire\WithPagination;
 use Livewire\Attributes\Layout;
 
 #[Layout('layouts.app')]
 class InventoryByWarehouse extends Component
 {
+    use WithPagination;
+
     public ?int    $warehouse_id  = null;
     public string  $search        = '';
     public string  $category_id   = '';
     public string  $stock_filter  = '';
+
+    public function updatingWarehouseId(): void { $this->resetPage(); }
+    public function updatingSearch(): void      { $this->resetPage(); }
+    public function updatingCategoryId(): void  { $this->resetPage(); }
+    public function updatingStockFilter(): void { $this->resetPage(); }
 
     public function mount(): void
     {
@@ -76,7 +84,7 @@ class InventoryByWarehouse extends Component
         return view('livewire.inventory.inventory-by-warehouse', [
             'warehouses'        => $warehouses,
             'selectedWarehouse' => $selectedWarehouse,
-            'stocks'            => $stocks->values(),
+            'stocks'            => $stocks->paginate(20),
             'categories'        => Category::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get(),
             'totalValue'        => $totalValue,
             'outCount'          => $outCount,

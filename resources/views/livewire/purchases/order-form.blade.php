@@ -1,4 +1,4 @@
-<div class="max-w-4xl">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center gap-3 mb-6">
         <a wire:navigate href="{{ route('purchases.orders.index') }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16,9 +16,9 @@
     <form wire:submit="save" class="space-y-5">
 
         {{-- ── Datos generales ────────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6 space-y-4 shadow-sm">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos generales</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
                 <div>
                     <label class="block text-xs text-gray-500 mb-1">Sucursal (destino)</label>
                     <select wire:model="branch_id"
@@ -77,7 +77,7 @@
                         <option value="en">English</option>
                     </select>
                 </div>
-                <div class="sm:col-span-2">
+                <div class="sm:col-span-2 lg:col-span-3 xl:col-span-4">
                     <label class="block text-xs text-gray-500 mb-1">Notas</label>
                     <textarea wire:model="notes" rows="2"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"></textarea>
@@ -86,7 +86,7 @@
         </div>
 
         {{-- ── Productos de la orden ───────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4 shadow-sm">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
                 <div>
                     <h2 class="text-sm font-medium text-gray-700">Productos de la orden</h2>
@@ -149,12 +149,13 @@
                             <tr>
                                 <td class="px-4 py-2.5">
                                     <input wire:model="items.{{ $index }}.description" type="text"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
-                                    @error("items.{$index}.description") <p class="text-xs text-red-500">{{ $message }}</p> @enderror
+                                        class="w-full border-none focus:ring-0 p-0 text-sm placeholder-gray-300"
+                                        placeholder="Descripción...">
+                                    @error("items.{$index}.description") <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                                 </td>
                                 <td class="px-4 py-2.5">
                                     <select wire:model="items.{{ $index }}.supplier_id"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300">
                                         <option value="">— Sin asignar —</option>
                                         @foreach($suppliers as $supplier)
                                             <option value="{{ $supplier->id }}" {{ ($item['supplier_id'] ?? null) == $supplier->id ? 'selected' : '' }}>
@@ -165,26 +166,26 @@
                                 </td>
                                 <td class="px-4 py-2.5">
                                     <input wire:model.live="items.{{ $index }}.quantity" type="number" step="0.01" min="0.01"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300">
                                 </td>
                                 <td class="px-4 py-2.5">
                                     <input wire:model="items.{{ $index }}.unit" type="text"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300"
                                         placeholder="pza">
                                 </td>
                                 @can('view prices')
                                 <td class="px-4 py-2.5">
                                     <div class="relative">
-                                        <span class="absolute left-2 top-1 text-xs text-gray-400">$</span>
+                                        <span class="absolute left-2 top-1.5 text-xs text-gray-400">$</span>
                                         <input wire:model.live="items.{{ $index }}.unit_price" type="number" step="0.01" min="0"
-                                            class="w-full border border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                            class="w-full border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:ring-indigo-300">
                                     </div>
                                 </td>
                                 <td class="px-4 py-2.5">
                                     <input wire:model.live="items.{{ $index }}.tax_rate" type="number" step="0.01" min="0" max="100"
-                                        class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300">
+                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300">
                                 </td>
-                                <td class="px-4 py-2.5 text-gray-700 font-medium">
+                                <td class="px-4 py-2.5 text-gray-700 font-medium text-right">
                                     ${{ number_format(($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0), 2) }}
                                 </td>
                                 @endcan

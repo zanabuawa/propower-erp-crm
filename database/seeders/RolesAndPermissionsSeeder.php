@@ -62,6 +62,12 @@ class RolesAndPermissionsSeeder extends Seeder
             'receive goods'        => 'Recibir mercancía',
             'approve requisitions' => 'Aprobar requisiciones',
         ],
+        'hr' => [
+            'manage payroll'       => 'Gestionar nómina',
+            'approve leaves'       => 'Aprobar permisos y bajas',
+            'stamp payroll'        => 'Timbrar CFDI nómina',
+            'view payroll'         => 'Ver detalle de nómina',
+        ],
         'sales' => [
             'stamp invoices'       => 'Timbrar CFDI',
             'cancel invoices'      => 'Cancelar CFDI',
@@ -161,6 +167,14 @@ class RolesAndPermissionsSeeder extends Seeder
             'export reports',
             'view purchases summary',
             'view inventory summary',
+        ]);
+
+        // rrhh: HR management role
+        $hrManager = Role::firstOrCreate(['name' => 'rrhh']);
+        $hrManager->syncPermissions([
+            'view hr', 'create hr', 'edit hr',
+            'manage payroll', 'approve leaves', 'view payroll',
+            'view inventory',
         ]);
 
         // empleado: read-only on core modules

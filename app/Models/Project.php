@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\HrEmployee;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends Model
@@ -78,5 +79,13 @@ class Project extends Model
         return $this->belongsToMany(User::class, 'project_members')
             ->withPivot('role', 'is_active', 'joined_at', 'left_at', 'notes')
             ->withTimestamps();
+    }
+
+    public function employees(): BelongsToMany
+    {
+        return $this->belongsToMany(HrEmployee::class, 'project_employees', 'project_id', 'employee_id')
+            ->withPivot('role', 'start_date', 'end_date', 'hours_assigned', 'notes', 'is_active')
+            ->withTimestamps()
+            ->orderByPivot('is_active', 'desc');
     }
 }

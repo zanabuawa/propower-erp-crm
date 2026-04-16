@@ -1,4 +1,4 @@
-<div>
+<div class="max-w-4xl mx-auto">
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div class="flex items-center gap-3 flex-1">
             <a wire:navigate href="{{ route('purchases.orders.index') }}" class="text-gray-400 hover:text-gray-600">
@@ -58,7 +58,7 @@
 
         {{-- Columna izquierda --}}
         <div class="space-y-4">
-            <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Información</h2>
                 <div class="space-y-2 text-sm">
                     @if($order->supplier)
@@ -100,7 +100,7 @@
             </div>
 
             @can('view prices')
-            <div class="bg-white rounded-xl border border-gray-200 p-5">
+            <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                 <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Totales</h2>
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
@@ -122,7 +122,7 @@
             @endcan
 
             @if($order->supplierBankAccount)
-                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                     <h2 class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Cuenta de pago</h2>
                     <div class="space-y-1 text-sm">
                         <p class="font-medium text-gray-900">{{ $order->supplierBankAccount->bank_name }}</p>
@@ -202,7 +202,7 @@
             @if($activeTab === 'receipts')
                 <div class="space-y-3">
                     @forelse($order->receipts as $receipt)
-                        <div class="bg-white rounded-xl border border-gray-200 p-5">
+                        <div class="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                             <div class="flex items-start justify-between mb-3 gap-3">
                                 <div>
                                     <div class="flex items-center gap-2 flex-wrap">

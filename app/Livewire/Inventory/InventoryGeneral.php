@@ -63,7 +63,7 @@ class InventoryGeneral extends Component
         $totalStockValue = $products->sum(fn($p) => $p->total_qty * (float) $p->purchase_price);
 
         return view('livewire.inventory.inventory-general', [
-            'products'        => $products->values(),
+            'products'        => $products->paginate(15),
             'categories'      => Category::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get(),
             'totalProducts'   => $totalProducts,
             'outOfStock'      => $outOfStock,

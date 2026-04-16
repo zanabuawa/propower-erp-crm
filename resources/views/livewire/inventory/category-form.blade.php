@@ -61,7 +61,7 @@
                 Cancelar
             </a>
             <button type="submit"
-                class="px-4 lg:px-6 py-2 lg:py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg lg:rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02]">
+                class="px-5 lg:px-7 py-2 lg:py-2.5 text-sm font-semibold bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg lg:rounded-xl transition-all duration-200 shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30">
                 {{ $category?->exists ? 'Guardar cambios' : 'Crear categoría' }}
             </button>
         </div>

@@ -65,9 +65,9 @@
                 </svg>
                 Información general
             </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
 
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-2 xl:col-span-3 2xl:col-span-4">
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre *</label>
                     <input wire:model.live="name" type="text"
                         placeholder="{{ $type === 'service' ? 'Ej. Instalación eléctrica, Consultoría…' : 'Ej. Cable coaxial RG6…' }}"
@@ -116,25 +116,6 @@
                     </select>
                 </div>
 
-                {{-- Unidad de medida --}}
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-medium text-gray-600">Unidad de medida</label>
-                        <button type="button" wire:click="$set('showUnitModal', true)"
-                            class="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Nueva
-                        </button>
-                    </div>
-                    <select wire:model="unit_of_measure_id"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:border-indigo-300">
-                        <option value="">— Sin unidad —</option>
-                        @foreach($units as $unit)
-                            <option value="{{ $unit->id }}">{{ $unit->name }} ({{ $unit->abbreviation }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 {{-- Proveedor (solo productos) --}}
                 @if($type === 'product')
                 <div>
@@ -175,7 +156,7 @@
                 </div>
                 @endif
 
-                <div class="{{ $type === 'product' ? 'lg:col-span-2' : 'lg:col-span-2' }}">
+                <div class="lg:col-span-2 xl:col-span-3 2xl:col-span-4">
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">Descripción</label>
                     <textarea wire:model="description" rows="3"
                         class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"></textarea>
@@ -191,7 +172,7 @@
                 </svg>
                 Identificadores
             </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">SKU</label>
                     <div class="flex gap-2">
@@ -240,7 +221,7 @@
                 </svg>
                 Códigos SAT (CFDI)
             </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
 
                 {{-- Clave de producto / servicio --}}
                 <div x-data="{
@@ -407,7 +388,7 @@
                 </svg>
                 Precios y margen
             </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">
                         {{ $type === 'service' ? 'Costo del servicio *' : 'Precio de obtención *' }}
@@ -460,7 +441,7 @@
                 </svg>
                 Control de stock
             </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1.5">Stock mínimo</label>
                     <input wire:model="min_stock" type="number" step="0.01" min="0"
@@ -625,46 +606,6 @@
                     Crear subcategoría
                 </button>
                 <button type="button" wire:click="$set('showSubcategoryModal', false)"
-                    class="px-4 py-2 lg:py-2.5 text-sm font-medium border border-gray-200 rounded-lg lg:rounded-xl hover:bg-gray-50 transition-all">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    {{-- Modal: Nueva unidad --}}
-    @if($showUnitModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-         x-data x-on:keydown.escape.window="$wire.set('showUnitModal', false)">
-        <div class="bg-white rounded-xl lg:rounded-2xl shadow-2xl w-full max-w-md p-5 lg:p-6 space-y-4 lg:space-y-5" @click.stop>
-            <div class="flex items-center justify-between">
-                <h3 class="text-base lg:text-lg font-semibold text-gray-900">Nueva unidad de medida</h3>
-                <button type="button" wire:click="$set('showUnitModal', false)" 
-                    class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre *</label>
-                <input wire:model="newUnitName" type="text" autofocus
-                    class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="Ej. Kilogramo, Metro, Litro…">
-                @error('newUnitName') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Abreviatura *</label>
-                <input wire:model="newUnitAbbr" type="text" maxlength="10"
-                    class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="Ej. kg, m, L, pza…">
-                @error('newUnitAbbr') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-            </div>
-            <div class="flex gap-3 pt-2">
-                <button type="button" wire:click="saveUnit"
-                    class="flex-1 px-4 py-2 lg:py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg lg:rounded-xl transition-all">
-                    Crear unidad
-                </button>
-                <button type="button" wire:click="$set('showUnitModal', false)"
                     class="px-4 py-2 lg:py-2.5 text-sm font-medium border border-gray-200 rounded-lg lg:rounded-xl hover:bg-gray-50 transition-all">
                     Cancelar
                 </button>

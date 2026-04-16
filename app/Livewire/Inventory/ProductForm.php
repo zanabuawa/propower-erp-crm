@@ -6,7 +6,6 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Supplier;
-use App\Models\UnitOfMeasure;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -24,7 +23,6 @@ class ProductForm extends Component
     public string  $name               = '';
     public ?int    $category_id        = null;
     public ?int    $subcategory_id     = null;
-    public ?int    $unit_of_measure_id = null;
     public ?int    $supplier_id        = null;
     public string  $sku                = '';
     public string  $sat_product_code   = '';
@@ -52,11 +50,6 @@ class ProductForm extends Component
     // ── Modal: nueva subcategoría ────────────────────────────────────────────
     public bool   $showSubcategoryModal  = false;
     public string $newSubcategoryName    = '';
-
-    // ── Modal: nueva unidad ──────────────────────────────────────────────────
-    public bool   $showUnitModal   = false;
-    public string $newUnitName     = '';
-    public string $newUnitAbbr     = '';
 
     // ── Modal: nuevo proveedor ───────────────────────────────────────────────
     public bool   $showSupplierModal = false;
@@ -91,7 +84,6 @@ class ProductForm extends Component
             $this->name               = $this->product->name;
             $this->category_id        = $this->product->category_id;
             $this->subcategory_id     = $this->product->subcategory_id;
-            $this->unit_of_measure_id = $this->product->unit_of_measure_id;
             $this->supplier_id        = $this->product->supplier_id;
             $this->sku                = $this->product->sku ?? '';
             $this->sat_product_code   = $this->product->sat_product_code ?? '';
@@ -205,25 +197,6 @@ class ProductForm extends Component
         $this->reset('newSubcategoryName');
     }
 
-    public function saveUnit(): void
-    {
-        $this->validate([
-            'newUnitName' => 'required|string|max:255',
-            'newUnitAbbr' => 'required|string|max:10',
-        ]);
-
-        $unit = UnitOfMeasure::create([
-            'company_id'   => auth()->user()->company_id,
-            'name'         => $this->newUnitName,
-            'abbreviation' => $this->newUnitAbbr,
-            'is_active'    => true,
-        ]);
-
-        $this->unit_of_measure_id = $unit->id;
-        $this->showUnitModal      = false;
-        $this->reset(['newUnitName', 'newUnitAbbr']);
-    }
-
     public function saveSupplier(): void
     {
         $this->validate(['newSupplierName' => 'required|string|max:255']);
@@ -257,7 +230,6 @@ class ProductForm extends Component
             'name'               => 'required|string|max:255',
             'category_id'        => 'nullable|exists:categories,id',
             'subcategory_id'     => 'nullable|exists:categories,id',
-            'unit_of_measure_id' => 'nullable|exists:unit_of_measures,id',
             'supplier_id'        => 'nullable|exists:suppliers,id',
             'sku'                => 'nullable|string|max:100',
             'sat_product_code'   => 'nullable|string|max:20',
@@ -290,7 +262,6 @@ class ProductForm extends Component
             'name'               => $this->name,
             'category_id'        => $this->category_id,
             'subcategory_id'     => $this->subcategory_id,
-            'unit_of_measure_id' => $this->unit_of_measure_id,
             'supplier_id'        => $this->supplier_id,
             'sku'                => $this->sku ?: null,
             'sat_product_code'   => $this->sat_product_code ?: null,
@@ -353,7 +324,6 @@ class ProductForm extends Component
                     ->where('parent_id', $this->category_id)
                     ->orderBy('name')->get()
                 : collect(),
-            'units'      => UnitOfMeasure::where('is_active', true)->orderBy('name')->get(),
             'suppliers'  => Supplier::where('company_id', auth()->user()->company_id)
                 ->where('status', 'active')->orderBy('name')->get(),
         ]);

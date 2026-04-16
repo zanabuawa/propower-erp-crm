@@ -7,13 +7,29 @@
 @endphp
 
 <a href="{{ $url }}" @if($routeExists) wire:navigate @endif
-    class="flex items-center gap-2 py-1.5 pr-3 text-xs transition-colors duration-150
-        {{ $active ? 'text-indigo-300 bg-indigo-500/10' : 'text-white/40 hover:text-white/80 hover:bg-white/4' }}"
-    :class="$el.closest('[data-flyout]') ? 'pl-4' : (sidebarOpen ? 'pl-11' : 'pl-3 justify-center')"
+   class="relative flex items-center gap-2.5 py-1.5 pr-3 text-xs font-medium rounded-md
+          transition-colors duration-150 cursor-pointer
+          {{ $active
+              ? 'text-indigo-300 bg-indigo-500/10'
+              : 'text-white/75 hover:text-white hover:bg-white/[0.06]' }}"
+   :class="$el.closest('[data-flyout]') ? 'pl-3.5' : (sidebarOpen ? 'pl-10' : 'pl-2.5 justify-center')"
 >
-    <span class="w-1 h-1 rounded-full flex-shrink-0 {{ $active ? 'bg-indigo-400' : 'bg-white/25' }}"></span>
-    <span class="truncate transition-all duration-200"
-          :class="$el.closest('[data-flyout]') ? 'opacity-100' : (sidebarOpen ? 'opacity-100' : 'opacity-0 w-0')">
+    {{-- Dot indicator --}}
+    <span class="w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors duration-150
+                 {{ $active ? 'bg-indigo-400' : 'bg-white/35' }}
+                 group-hover:bg-white/40">
+    </span>
+
+    {{-- Label --}}
+    <span class="truncate leading-none transition-all duration-200"
+          :class="$el.closest('[data-flyout]') ? 'opacity-100' : (sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden')">
         {{ $label }}
     </span>
+
+    {{-- Active right glow (accent) --}}
+    @if($active)
+    <span class="ml-auto w-1 h-1 rounded-full bg-indigo-400 flex-shrink-0"
+          :class="$el.closest('[data-flyout]') ? 'opacity-100' : (sidebarOpen ? 'opacity-100' : 'hidden')">
+    </span>
+    @endif
 </a>
