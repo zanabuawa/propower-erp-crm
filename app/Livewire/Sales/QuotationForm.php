@@ -3,9 +3,11 @@
 namespace App\Livewire\Sales;
 
 use App\Models\Customer;
+use App\Models\DiscountApproval;
 use App\Models\PriceList;
 use App\Models\Product;
 use App\Models\SaleQuotation;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -27,7 +29,15 @@ class QuotationForm extends Component
 
     public function mount(): void
     {
-        $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 0, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100]];
+        $this->items = [self::blankItem()];
+    }
+
+    private static function blankItem(): array
+    {
+        return ['product_id' => null, 'description' => '', 'quantity' => 1,
+                'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16,
+                'ieps_rate' => 0, 'unit' => '', 'notes' => '',
+                'min_sale_price' => 0, 'max_discount_pct' => 100];
     }
 
     public function updatedCustomerId(): void
@@ -88,15 +98,16 @@ class QuotationForm extends Component
             : 0;
 
         $this->items[] = [
-            'product_id'      => $product->id,
-            'description'     => $product->name,
-            'quantity'        => 1,
-            'unit_price'      => $price,
-            'discount_pct'    => 0,
-            'tax_rate'        => 0,
-            'unit'            => '',
-            'notes'           => '',
-            'min_sale_price'  => $minSalePrice,
+            'product_id'       => $product->id,
+            'description'      => $product->name,
+            'quantity'         => 1,
+            'unit_price'       => $price,
+            'discount_pct'     => 0,
+            'tax_rate'         => 16,
+            'ieps_rate'        => (float) $product->ieps_rate,
+            'unit'             => $product->unitOfMeasure?->abbreviation ?? '',
+            'notes'            => '',
+            'min_sale_price'   => $minSalePrice,
             'max_discount_pct' => $maxDiscountPct,
         ];
 
@@ -106,7 +117,7 @@ class QuotationForm extends Component
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 0, 'unit' => '', 'notes' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100];
+        $this->items[] = self::blankItem();
     }
 
     public function setAllIva(bool $add): void
@@ -144,106 +155,170 @@ class QuotationForm extends Component
         return $itemDiscount + $globalDiscount;
     }
 
-    public function getTaxProperty(): float
+    public function getIepsProperty(): float
     {
         return collect($this->items)->sum(function ($i) {
             $base = ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (1 - ($i['discount_pct'] ?? 0) / 100);
-            return $base * (($i['tax_rate'] ?? 0) / 100);
+            return $base * (($i['ieps_rate'] ?? 0) / 100);
+        });
+    }
+
+    public function getTaxProperty(): float
+    {
+        // IVA se calcula sobre (base + IEPS)
+        return collect($this->items)->sum(function ($i) {
+            $base = ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (1 - ($i['discount_pct'] ?? 0) / 100);
+            $ieps = $base * (($i['ieps_rate'] ?? 0) / 100);
+            return ($base + $ieps) * (($i['tax_rate'] ?? 0) / 100);
         });
     }
 
     public function getTotalProperty(): float
     {
-        return $this->subtotal - $this->discount + $this->tax;
+        return $this->subtotal - $this->discount + $this->ieps + $this->tax;
     }
+
+    public function getMaxGlobalDiscountProperty(): float
+    {
+        // El descuento global máximo es el mínimo de los máximos por línea
+        if (empty($this->items)) return 100;
+        return (float) collect($this->items)->min('max_discount_pct') ?? 100;
+    }
+
+    public string $approvalNotes  = '';
+    public bool   $needsApproval  = false;
+    public float  $exceedingMaxPct = 0;
 
     public function rules(): array
     {
         return [
-            'customer_id'          => 'required|exists:customers,id',
-            'currency'             => 'required|in:MXN,USD',
-            'valid_days'           => 'required|integer|min:1',
-            'global_discount'      => 'required|numeric|min:0|max:100',
-            'items'                => 'required|array|min:1',
-            'items.*.description'  => 'required|string|max:255',
-            'items.*.quantity'     => 'required|numeric|min:0.01',
-            'items.*.unit_price'   => 'required|numeric|min:0',
-            'items.*.discount_pct' => 'required|numeric|min:0|max:100',
-            'items.*.tax_rate'     => 'required|numeric|min:0|max:100',
+            'customer_id'           => 'required|exists:customers,id',
+            'currency'              => 'required|in:MXN,USD',
+            'valid_days'            => 'required|integer|min:1',
+            'global_discount'       => 'required|numeric|min:0|max:100',
+            'items'                 => 'required|array|min:1',
+            'items.*.description'   => 'required|string|max:255',
+            'items.*.quantity'      => 'required|numeric|min:0.01',
+            'items.*.unit_price'    => 'required|numeric|min:0',
+            'items.*.discount_pct'  => 'required|numeric|min:0|max:100',
+            'items.*.tax_rate'      => 'required|numeric|min:0|max:100',
+            'items.*.ieps_rate'     => 'required|numeric|min:0|max:100',
         ];
     }
 
-    public function save(): void
+    /** Detecta si algún ítem supera su descuento máximo permitido. */
+    private function checkDiscountLimits(): bool
     {
-        $this->validate();
-
-        // Validar que el precio con descuento no sea menor al precio mínimo (costo + gastos op.)
         foreach ($this->items as $index => $item) {
             $minPrice   = (float) ($item['min_sale_price'] ?? 0);
             $unitPrice  = (float) ($item['unit_price'] ?? 0);
             $discPct    = (float) ($item['discount_pct'] ?? 0);
-            $finalPrice = round($unitPrice * (1 - $discPct / 100), 2);
+            $maxPct     = (float) ($item['max_discount_pct'] ?? 100);
 
-            if ($minPrice > 0 && $finalPrice < $minPrice) {
-                $maxPct = round(max(0, ($unitPrice - $minPrice) / $unitPrice * 100), 2);
-                $this->addError("items.{$index}.discount_pct",
-                    "Descuento excede el máximo permitido ({$maxPct}%). Precio mínimo: \${$minPrice}."
-                );
-                return;
+            if ($discPct > $maxPct) {
+                $this->exceedingMaxPct = $maxPct;
+                return true;
+            }
+            if ($minPrice > 0 && $unitPrice > 0) {
+                $finalPrice = $unitPrice * (1 - $discPct / 100);
+                if ($finalPrice < $minPrice) {
+                    $this->exceedingMaxPct = round(max(0, ($unitPrice - $minPrice) / $unitPrice * 100), 2);
+                    return true;
+                }
             }
         }
+        return false;
+    }
 
-        DB::transaction(function () {
+    public function save(bool $forceApproval = false): void
+    {
+        $this->validate();
+
+        $exceedsLimit = $this->checkDiscountLimits();
+
+        if ($exceedsLimit && !$forceApproval) {
+            // Mostrar modal de solicitud de autorización
+            $this->needsApproval = true;
+            return;
+        }
+
+        DB::transaction(function () use ($exceedsLimit) {
+            $companyId = auth()->user()->company_id;
             $folio = 'COT-' . str_pad(
-                SaleQuotation::where('company_id', auth()->user()->company_id)->count() + 1,
-                6,
-                '0',
-                STR_PAD_LEFT
+                SaleQuotation::where('company_id', $companyId)->count() + 1,
+                6, '0', STR_PAD_LEFT
             );
 
-            $subtotal = $this->subtotal;
-            $discount = $this->discount;
-            $tax = $this->tax;
-            $total = $this->total;
+            $approvalStatus = $exceedsLimit ? 'pending' : null;
 
             $quotation = SaleQuotation::create([
-                'company_id' => auth()->user()->company_id,
-                'branch_id' => auth()->user()->branch_id,
-                'customer_id' => $this->customer_id,
-                'price_list_id' => $this->price_list_id,
-                'created_by' => auth()->id(),
-                'folio' => $folio,
-                'currency' => $this->currency,
-                'status' => 'draft',
-                'subtotal' => $subtotal,
-                'discount_amount' => $discount,
-                'tax' => $tax,
-                'total' => $total,
-                'valid_days' => $this->valid_days,
-                'valid_until' => now()->addDays((int) $this->valid_days),
-                'notes' => $this->notes,
-                'terms' => $this->terms,
+                'company_id'      => $companyId,
+                'branch_id'       => auth()->user()->branch_id,
+                'customer_id'     => $this->customer_id,
+                'price_list_id'   => $this->price_list_id,
+                'created_by'      => auth()->id(),
+                'folio'           => $folio,
+                'currency'        => $this->currency,
+                'status'          => 'draft',
+                'approval_status' => $approvalStatus,
+                'subtotal'        => $this->subtotal,
+                'discount_amount' => $this->discount,
+                'ieps'            => $this->ieps,
+                'tax'             => $this->tax,
+                'total'           => $this->total,
+                'valid_days'      => $this->valid_days,
+                'valid_until'     => now()->addDays((int) $this->valid_days),
+                'notes'           => $this->notes,
+                'terms'           => $this->terms,
             ]);
 
             foreach ($this->items as $item) {
-                $itemSubtotal = $item['quantity'] * $item['unit_price'];
-                $itemDiscount = $itemSubtotal * ($item['discount_pct'] / 100);
+                $base        = $item['quantity'] * $item['unit_price'];
+                $discAmt     = $base * ($item['discount_pct'] / 100);
+                $baseNet     = $base - $discAmt;
+                $iepsAmt     = $baseNet * ($item['ieps_rate'] / 100);
+                $taxAmt      = ($baseNet + $iepsAmt) * ($item['tax_rate'] / 100);
+
                 $quotation->items()->create([
-                    'product_id' => $item['product_id'],
-                    'description' => $item['description'],
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'discount_pct' => $item['discount_pct'],
-                    'discount_amount' => $itemDiscount,
-                    'tax_rate' => $item['tax_rate'],
-                    'subtotal' => $itemSubtotal - $itemDiscount,
-                    'unit' => $item['unit'] ?: null,
-                    'notes' => $item['notes'] ?: null,
+                    'product_id'      => $item['product_id'],
+                    'description'     => $item['description'],
+                    'quantity'        => $item['quantity'],
+                    'unit_price'      => $item['unit_price'],
+                    'discount_pct'    => $item['discount_pct'],
+                    'discount_amount' => $discAmt,
+                    'ieps_rate'       => $item['ieps_rate'],
+                    'ieps_amount'     => $iepsAmt,
+                    'tax_rate'        => $item['tax_rate'],
+                    'subtotal'        => $baseNet + $iepsAmt + $taxAmt,
+                    'unit'            => $item['unit'] ?: null,
+                    'notes'           => $item['notes'] ?: null,
                 ]);
+            }
+
+            // Crear solicitud de aprobación si excede límites
+            if ($exceedsLimit) {
+                $maxAllowed = collect($this->items)->min('max_discount_pct') ?? 0;
+                $approval = DiscountApproval::create([
+                    'company_id'             => $companyId,
+                    'requester_id'           => auth()->id(),
+                    'model_type'             => SaleQuotation::class,
+                    'model_id'               => $quotation->id,
+                    'status'                 => 'pending',
+                    'requested_discount_pct' => (float) $this->global_discount,
+                    'max_allowed_pct'        => (float) $maxAllowed,
+                    'requester_notes'        => $this->approvalNotes ?: null,
+                ]);
+                $quotation->update(['approval_id' => $approval->id]);
             }
         });
 
-        session()->flash('success', 'Cotización creada correctamente.');
+        $this->needsApproval = false;
+        if ($this->checkDiscountLimits() || true) {
+            // always redirect after save
+        }
+        session()->flash('success', $exceedsLimit
+            ? 'Cotización guardada y enviada a autorización.'
+            : 'Cotización creada correctamente.');
         $this->redirect(route('sales.index'), navigate: true);
     }
 

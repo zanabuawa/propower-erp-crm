@@ -17,7 +17,7 @@
 
     <form wire:submit="save" class="space-y-5">
 
-        {{-- ── Datos generales ────────────────────────────────────────────────── --}}
+        {{-- ── Datos generales ─────────────────────────────────────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 lg:p-6 space-y-4 shadow-sm">
             <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">Datos generales</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-5">
@@ -118,13 +118,14 @@
             @error('items') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
 
             <div class="border border-gray-100 rounded-lg overflow-x-auto">
-                <table class="w-full text-sm min-w-[700px]">
+                <table class="w-full text-sm min-w-[860px]">
                     <thead>
                         <tr class="bg-gray-50 border-b border-gray-100">
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Descripción / Producto</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Cant.</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio Unit.</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Desc %</th>
+                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">IEPS %</th>
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">IVA %</th>
                             <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Subtotal</th>
                             <th class="w-10"></th>
@@ -134,13 +135,20 @@
                         @foreach($items as $index => $item)
                             @php
                                 $unitPrice    = (float)($item['unit_price'] ?? 0);
+                                $qty          = (float)($item['quantity'] ?? 0);
                                 $discPct      = (float)($item['discount_pct'] ?? 0);
+                                $iepsPct      = (float)($item['ieps_rate'] ?? 0);
+                                $taxPct       = (float)($item['tax_rate'] ?? 0);
                                 $minPrice     = (float)($item['min_sale_price'] ?? 0);
+                                $maxDiscPct   = (float)($item['max_discount_pct'] ?? 100);
                                 $finalPrice   = round($unitPrice * (1 - $discPct / 100), 2);
                                 $discExceeded = $minPrice > 0 && $finalPrice < $minPrice;
-                                $sub  = ($item['quantity'] ?? 0) * $unitPrice;
-                                $disc = $sub * ($discPct / 100);
-                                $tax  = ($sub - $disc) * (($item['tax_rate'] ?? 0) / 100);
+                                $base    = $qty * $unitPrice;
+                                $disc    = $base * ($discPct / 100);
+                                $baseNet = $base - $disc;
+                                $ieps    = $baseNet * ($iepsPct / 100);
+                                $tax     = ($baseNet + $ieps) * ($taxPct / 100);
+                                $lineTotal = $baseNet + $ieps + $tax;
                             @endphp
                             <tr class="{{ $discExceeded ? 'bg-red-50/50' : '' }}">
                                 <td class="px-4 py-2.5">
@@ -149,7 +157,9 @@
                                         placeholder="Nombre del producto...">
                                     @error("items.{$index}.description") <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                                     @if($discExceeded)
-                                        <p class="text-[10px] text-red-600 font-medium">⚠️ El precio final (${{ number_format($finalPrice, 2) }}) es menor al mínimo (${{ number_format($minPrice, 2) }})</p>
+                                        <p class="text-[10px] text-red-600 font-medium mt-0.5">
+                                            Precio final (${{ number_format($finalPrice, 2) }}) &lt; mínimo (${{ number_format($minPrice, 2) }})
+                                        </p>
                                     @endif
                                 </td>
                                 <td class="px-4 py-2.5">
@@ -165,14 +175,21 @@
                                 </td>
                                 <td class="px-4 py-2.5">
                                     <input wire:model.live="items.{{ $index }}.discount_pct" type="number" step="0.01" min="0" max="100"
-                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300 {{ $discExceeded ? 'border-red-300 focus:ring-red-300' : '' }}">
+                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm {{ $discExceeded ? 'border-red-300 focus:ring-red-300' : 'focus:ring-indigo-300' }}">
+                                    @if($maxDiscPct < 100)
+                                        <p class="text-[10px] {{ $discExceeded ? 'text-red-500 font-semibold' : 'text-gray-400' }} mt-0.5">Máx: {{ number_format($maxDiscPct, 1) }}%</p>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-2.5">
+                                    <input wire:model.live="items.{{ $index }}.ieps_rate" type="number" step="0.01" min="0" max="100"
+                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-orange-300 {{ $iepsPct > 0 ? 'border-orange-300 bg-orange-50' : '' }}">
                                 </td>
                                 <td class="px-4 py-2.5">
                                     <input wire:model.live="items.{{ $index }}.tax_rate" type="number" step="0.01" min="0"
                                         class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300">
                                 </td>
                                 <td class="px-4 py-2.5 text-right text-gray-900 font-medium">
-                                    ${{ number_format($sub - $disc + $tax, 2) }}
+                                    ${{ number_format($lineTotal, 2) }}
                                 </td>
                                 <td class="px-4 py-2.5 text-center">
                                     <button type="button" wire:click="removeItem({{ $index }})"
@@ -204,10 +221,18 @@
                     <span>Subtotal</span>
                     <span>${{ number_format($this->subtotal, 2) }}</span>
                 </div>
+                @if($this->discount > 0)
                 <div class="flex justify-between w-full sm:w-64 text-sm text-red-500">
                     <span>Descuento</span>
                     <span>- ${{ number_format($this->discount, 2) }}</span>
                 </div>
+                @endif
+                @if($this->ieps > 0)
+                <div class="flex justify-between w-full sm:w-64 text-sm text-orange-600">
+                    <span>IEPS</span>
+                    <span>+ ${{ number_format($this->ieps, 2) }}</span>
+                </div>
+                @endif
                 <div class="flex justify-between w-full sm:w-64 text-sm text-gray-500">
                     <span>IVA</span>
                     <span>${{ number_format($this->tax, 2) }}</span>
@@ -230,4 +255,46 @@
             </button>
         </div>
     </form>
+
+    {{-- ── Modal de autorización de descuento ─────────────────────────────── --}}
+    @if($needsApproval)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="p-6 border-b border-gray-100 flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-semibold text-gray-900">Descuento excede el límite</h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Uno o más ítems supera el descuento máximo permitido
+                        <span class="font-semibold text-amber-700">({{ number_format($exceedingMaxPct, 2) }}%)</span>.
+                        Agrega una justificación y envía a autorización del gerente.
+                    </p>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1.5">Justificación (opcional)</label>
+                    <textarea wire:model="approvalNotes" rows="3"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+                        placeholder="Motivo del descuento especial..."></textarea>
+                </div>
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" wire:click="$set('needsApproval', false)"
+                        class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                        Cancelar
+                    </button>
+                    <button type="button" wire:click="save(true)"
+                        class="px-5 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold transition">
+                        Enviar a autorización
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

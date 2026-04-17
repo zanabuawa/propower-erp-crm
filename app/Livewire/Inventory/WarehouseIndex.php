@@ -42,6 +42,7 @@ class WarehouseIndex extends Component
     {
         return view('livewire.inventory.warehouse-index', [
             'warehouses' => Warehouse::query()
+                ->where('is_transit', false)
                 ->when($this->search, fn($q) => $q
                     ->where('name', 'like', "%{$this->search}%")
                     ->orWhere('code', 'like', "%{$this->search}%"))

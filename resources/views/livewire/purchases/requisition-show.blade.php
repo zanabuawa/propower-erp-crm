@@ -21,6 +21,16 @@
             <span class="px-3 py-1 text-xs font-medium rounded-full {{ \App\Models\PurchaseRequisition::STATUS_COLORS[$requisition->status] ?? 'bg-gray-100 text-gray-600' }}">
                 {{ \App\Models\PurchaseRequisition::STATUS[$requisition->status] ?? $requisition->status }}
             </span>
+            @if($requisition->priority)
+                <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ \App\Models\PurchaseRequisition::PRIORITY_COLORS[$requisition->priority] ?? 'bg-gray-100 text-gray-500' }}">
+                    {{ \App\Models\PurchaseRequisition::PRIORITY[$requisition->priority] ?? $requisition->priority }}
+                </span>
+            @endif
+            @if($requisition->requisition_type)
+                <span class="px-2.5 py-1 text-xs font-medium rounded-full {{ \App\Models\PurchaseRequisition::REQUISITION_TYPE_COLORS[$requisition->requisition_type] ?? 'bg-gray-100 text-gray-500' }}">
+                    {{ \App\Models\PurchaseRequisition::REQUISITION_TYPES[$requisition->requisition_type] ?? $requisition->requisition_type }}
+                </span>
+            @endif
             <a href="{{ route('purchases.requisitions.print', $requisition) }}" target="_blank"
                 class="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition shadow-sm"
                 title="Imprimir / Guardar PDF">
@@ -95,14 +105,37 @@
     </div>
     @endif
 
-    {{-- Justificación --}}
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+    {{-- Justificación + clasificación --}}
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3">
         <p class="text-xs text-gray-400 mb-1">Justificación</p>
         <p class="text-sm text-gray-700">{{ $requisition->justification }}</p>
-        <div class="flex items-center gap-4 mt-2 text-xs text-gray-400">
-            <span>Moneda: {{ $requisition->currency }}</span>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-gray-100">
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wide">Moneda</p>
+                <p class="text-xs font-medium text-gray-700 mt-0.5">{{ $requisition->currency }}</p>
+            </div>
             @if($requisition->needed_by)
-                <span>Requerido para: {{ $requisition->needed_by->format('d/m/Y') }}</span>
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wide">Requerido para</p>
+                <p class="text-xs font-medium {{ $requisition->needed_by->isPast() && !in_array($requisition->status, ['ordered','cancelled']) ? 'text-red-600' : 'text-gray-700' }} mt-0.5">
+                    {{ $requisition->needed_by->format('d/m/Y') }}
+                </p>
+            </div>
+            @endif
+            @if($requisition->expense_type)
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wide">Tipo de gasto</p>
+                <p class="text-xs font-medium text-gray-700 mt-0.5">
+                    {{ \App\Models\PurchaseRequisition::EXPENSE_TYPES[$requisition->expense_type] ?? $requisition->expense_type }}
+                </p>
+            </div>
+            @endif
+            @if($requisition->project_name)
+            <div>
+                <p class="text-[10px] text-gray-400 uppercase tracking-wide">Proyecto</p>
+                <p class="text-xs font-medium text-indigo-600 mt-0.5">{{ $requisition->project_name }}</p>
+            </div>
             @endif
         </div>
     </div>
@@ -116,6 +149,7 @@
             <table class="w-full text-sm min-w-[480px]">
                 <thead class="bg-gray-50 text-xs text-gray-500">
                     <tr>
+                        <th class="px-4 py-2 text-left w-24 hidden sm:table-cell">Tipo</th>
                         <th class="px-4 py-2 text-left">Descripción</th>
                         <th class="px-4 py-2 text-center">Cant.</th>
                         <th class="px-4 py-2 text-left hidden sm:table-cell">Unidad</th>
@@ -126,6 +160,12 @@
                 <tbody class="divide-y divide-gray-50">
                     @foreach($requisition->items as $item)
                     <tr>
+                        <td class="px-4 py-2 hidden sm:table-cell">
+                            <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-medium
+                                {{ \App\Models\PurchaseRequisitionItem::ITEM_TYPE_COLORS[$item->item_type ?? 'product'] ?? 'bg-gray-100 text-gray-500' }}">
+                                {{ \App\Models\PurchaseRequisitionItem::ITEM_TYPES[$item->item_type ?? 'product'] ?? 'Producto' }}
+                            </span>
+                        </td>
                         <td class="px-4 py-2 text-gray-800">
                             {{ $item->description }}
                             <p class="text-xs text-gray-400 sm:hidden mt-0.5">{{ $item->unit }} · ${{ number_format($item->unit_price, 2) }}</p>

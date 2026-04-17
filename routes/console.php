@@ -16,3 +16,9 @@ Schedule::command('notify:customer-anniversaries')->dailyAt('08:00');
 
 // Productos/servicios con datos incompletos — cada lunes a las 9 AM
 Schedule::command('notify:incomplete-products')->weeklyOn(1, '09:00');
+
+// Recordatorios de entrevistas RRHH — cada 10 minutos
+Schedule::command('hr:send-interview-reminders')->everyTenMinutes();
+
+// Depreciación mensual de activos — el día 1 de cada mes a las 2 AM
+Schedule::command('assets:depreciate --fiscal')->monthlyOn(1, '02:00');

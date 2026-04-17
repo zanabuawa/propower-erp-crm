@@ -2,7 +2,6 @@
 
 namespace App\Notifications;
 
-use App\Models\StockMovement;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
@@ -11,11 +10,19 @@ class InventoryTransferNotification extends Notification
 {
     use Queueable;
 
+    /**
+     * @param string $title
+     * @param string $message
+     * @param string $type       created | dispatched_complete | dispatched_partial | rejected | in_transit | partial | completed | cancelled
+     * @param int    $transferId
+     * @param array  $extraData  Optional structured data (items summary, dispatch_notes, etc.)
+     */
     public function __construct(
         public string $title,
         public string $message,
-        public string $type,      // created | received | partial | cancelled
-        public int $transferId,
+        public string $type,
+        public int    $transferId,
+        public array  $extraData = [],
     ) {}
 
     public function via(object $notifiable): array
@@ -25,12 +32,12 @@ class InventoryTransferNotification extends Notification
 
     public function toArray(object $notifiable): array
     {
-        return [
+        return array_merge([
             'title'       => $this->title,
             'message'     => $this->message,
             'type'        => $this->type,
             'transfer_id' => $this->transferId,
-        ];
+        ], $this->extraData);
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage

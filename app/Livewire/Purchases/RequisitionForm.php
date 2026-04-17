@@ -4,6 +4,7 @@ namespace App\Livewire\Purchases;
 
 use App\Models\Product;
 use App\Models\PurchaseRequisition;
+use App\Models\Stock;
 use App\Notifications\PurchaseNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -14,17 +15,35 @@ use Livewire\Attributes\On;
 #[Layout('layouts.app')]
 class RequisitionForm extends Component
 {
-    public string $justification = '';
-    public string $currency = 'MXN';
-    public string $needed_by = '';
-    public array $items = [];
-    public string $productSearch = '';
-    public array $productResults = [];
+    public string $justification     = '';
+    public string $currency          = 'MXN';
+    public string $needed_by         = '';
+    public string $requisition_type  = 'material';
+    public string $priority          = 'normal';
+    public string $expense_type      = '';
+    public string $project_name      = '';
+    public array  $items             = [];
+    public string $productSearch     = '';
+    public array  $productResults    = [];
 
     public function mount(): void
     {
         $this->needed_by = now()->addDays(7)->format('Y-m-d');
-        $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'unit' => '', 'notes' => '']];
+        $this->items = [$this->blankItem()];
+    }
+
+    private function blankItem(string $itemType = 'product'): array
+    {
+        return [
+            'product_id'  => null,
+            'item_type'   => $itemType,
+            'description' => '',
+            'quantity'    => 1,
+            'unit_price'  => 0,
+            'unit'        => '',
+            'notes'       => '',
+            'stock_info'  => null,
+        ];
     }
 
     public function updatedProductSearch(): void
@@ -34,15 +53,41 @@ class RequisitionForm extends Component
             return;
         }
 
-        $this->productResults = Product::where('company_id', auth()->user()->company_id)
+        $companyId = auth()->user()->company_id;
+
+        $products = Product::where('company_id', $companyId)
             ->where('is_active', true)
             ->where(fn($q) => $q
                 ->where('name', 'like', "%{$this->productSearch}%")
                 ->orWhere('sku', 'like', "%{$this->productSearch}%")
                 ->orWhere('barcode', 'like', "%{$this->productSearch}%"))
             ->limit(8)
-            ->get(['id', 'name', 'sku', 'barcode', 'purchase_price'])
-            ->toArray();
+            ->get(['id', 'name', 'sku', 'barcode', 'purchase_price']);
+
+        // Fetch total available stock per product
+        $productIds = $products->pluck('id');
+        $stockTotals = Stock::whereIn('product_id', $productIds)
+            ->whereHas('warehouse', fn($q) => $q->where('company_id', $companyId)->where('is_defective', false))
+            ->groupBy('product_id')
+            ->selectRaw('product_id, SUM(quantity) as total_qty, SUM(committed_quantity) as total_committed')
+            ->get()
+            ->keyBy('product_id');
+
+        $this->productResults = $products->map(function (Product $p) use ($stockTotals) {
+            $stock    = $stockTotals->get($p->id);
+            $totalQty = $stock ? (float) $stock->total_qty : 0;
+            $committed = $stock ? (float) $stock->total_committed : 0;
+            $available = max(0, $totalQty - $committed);
+            return [
+                'id'             => $p->id,
+                'name'           => $p->name,
+                'sku'            => $p->sku,
+                'barcode'        => $p->barcode,
+                'purchase_price' => $p->purchase_price,
+                'stock_total'    => $totalQty,
+                'stock_available'=> $available,
+            ];
+        })->toArray();
     }
 
     #[On('product-picked')]
@@ -50,14 +95,15 @@ class RequisitionForm extends Component
     {
         $product = Product::find($productId);
         if (!$product) return;
-        $this->items[] = [
-            'product_id'  => $product->id,
-            'description' => $product->name,
-            'quantity'    => 1,
-            'unit_price'  => $product->purchase_price,
-            'unit'        => '',
-            'notes'       => '',
-        ];
+
+        $item = $this->blankItem('product');
+        $item['product_id']  = $product->id;
+        $item['description'] = $product->name;
+        $item['quantity']    = 1;
+        $item['unit_price']  = $product->purchase_price;
+        $item['unit']        = $product->unit_of_measure?->name ?? 'pz';
+        $item['stock_info']  = $this->getStockInfo($product->id);
+        $this->items[] = $item;
     }
 
     public function addProduct(int $productId): void
@@ -65,34 +111,22 @@ class RequisitionForm extends Component
         $product = Product::find($productId);
         if (!$product) return;
 
-        $this->items[] = [
-            'product_id'  => $product->id,
-            'description' => $product->name,
-            'quantity'    => 1,
-            'unit_price'  => $product->purchase_price,
-            'unit'        => $product->unit_of_measure?->name ?? 'pz',
-            'notes'       => '',
-        ];
+        $item = $this->blankItem('product');
+        $item['product_id']  = $product->id;
+        $item['description'] = $product->name;
+        $item['quantity']    = 1;
+        $item['unit_price']  = $product->purchase_price;
+        $item['unit']        = $product->unit_of_measure?->name ?? 'pz';
+        $item['stock_info']  = $this->getStockInfo($product->id);
+        $this->items[] = $item;
 
         $this->productSearch  = '';
         $this->productResults = [];
     }
 
-    public function selectProduct(int $index, int $productId): void
+    public function addItem(string $type = 'product'): void
     {
-        $product = Product::find($productId);
-        if (!$product) return;
-
-        $this->items[$index]['product_id']  = $product->id;
-        $this->items[$index]['description'] = $product->name;
-        $this->items[$index]['unit_price']  = $product->purchase_price;
-        $this->productSearch  = '';
-        $this->productResults = [];
-    }
-
-    public function addItem(): void
-    {
-        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'unit' => '', 'notes' => ''];
+        $this->items[] = $this->blankItem($type);
     }
 
     public function removeItem(int $index): void
@@ -101,13 +135,32 @@ class RequisitionForm extends Component
         $this->items = array_values($this->items);
     }
 
+    private function getStockInfo(int $productId): ?array
+    {
+        $companyId = auth()->user()->company_id;
+        $stock = Stock::where('product_id', $productId)
+            ->whereHas('warehouse', fn($q) => $q->where('company_id', $companyId)->where('is_defective', false))
+            ->selectRaw('SUM(quantity) as total_qty, SUM(committed_quantity) as total_committed')
+            ->first();
+
+        if (!$stock) return ['total' => 0, 'available' => 0];
+        $total     = (float) $stock->total_qty;
+        $committed = (float) $stock->total_committed;
+        return ['total' => $total, 'available' => max(0, $total - $committed)];
+    }
+
     public function rules(): array
     {
         return [
             'justification'       => 'required|string',
             'currency'            => 'required|in:MXN,USD',
             'needed_by'           => 'required|date',
+            'requisition_type'    => 'required|in:material,service,tool,asset,mixed',
+            'priority'            => 'required|in:low,normal,high,urgent',
+            'expense_type'        => 'nullable|in:operational,capital,maintenance,project,other',
+            'project_name'        => 'nullable|string|max:150',
             'items'               => 'required|array|min:1',
+            'items.*.item_type'   => 'required|in:product,service,tool,asset,other',
             'items.*.description' => 'required|string|max:255',
             'items.*.quantity'    => 'required|numeric|min:0.01',
             'items.*.unit_price'  => 'required|numeric|min:0',
@@ -125,30 +178,45 @@ class RequisitionForm extends Component
             );
 
             $requisition = PurchaseRequisition::create([
-                'company_id'    => auth()->user()->company_id,
-                'branch_id'     => auth()->user()->branch_id,
-                'requested_by'  => auth()->id(),
-                'folio'         => $folio,
-                'currency'      => $this->currency,
-                'status'        => 'submitted',
-                'justification' => $this->justification,
-                'needed_by'     => $this->needed_by,
-                'submitted_at'  => now(),
+                'company_id'       => auth()->user()->company_id,
+                'branch_id'        => auth()->user()->branch_id,
+                'requested_by'     => auth()->id(),
+                'folio'            => $folio,
+                'currency'         => $this->currency,
+                'requisition_type' => $this->requisition_type,
+                'priority'         => $this->priority,
+                'expense_type'     => $this->expense_type ?: null,
+                'project_name'     => $this->project_name ?: null,
+                'status'           => 'submitted',
+                'justification'    => $this->justification,
+                'needed_by'        => $this->needed_by,
+                'submitted_at'     => now(),
             ]);
 
             foreach ($this->items as $item) {
-                $requisition->items()->create($item);
+                $requisition->items()->create([
+                    'product_id'  => $item['product_id'] ?? null,
+                    'item_type'   => $item['item_type'] ?? 'product',
+                    'description' => $item['description'],
+                    'quantity'    => $item['quantity'],
+                    'unit_price'  => $item['unit_price'],
+                    'unit'        => $item['unit'] ?? '',
+                    'notes'       => $item['notes'] ?? '',
+                ]);
             }
 
-            // Notificar a usuarios con rol comprador
+            // Notificar a compradores
             $compradores = User::where('company_id', auth()->user()->company_id)
                 ->whereHas('roles', fn($q) => $q->where('name', 'comprador'))
                 ->get();
 
+            $priorityLabel = PurchaseRequisition::PRIORITY[$this->priority] ?? $this->priority;
+            $typeLabel     = PurchaseRequisition::REQUISITION_TYPES[$this->requisition_type] ?? $this->requisition_type;
+
             foreach ($compradores as $user) {
                 $user->notify(new PurchaseNotification(
-                    title: 'Nueva requisición de compra',
-                    message: "Se creó la requisición {$folio} por " . auth()->user()->name . '. Requiere cotización preliminar.',
+                    title: "Nueva requisición [{$priorityLabel}]",
+                    message: "Se creó la requisición {$folio} ({$typeLabel}) por " . auth()->user()->name . '. Requiere cotización preliminar.',
                     type: 'requisition_submitted',
                     requisitionId: $requisition->id,
                 ));

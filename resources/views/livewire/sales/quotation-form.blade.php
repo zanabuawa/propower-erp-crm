@@ -92,7 +92,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
                     <p class="text-[11px] text-amber-700 leading-tight">
-                        <strong>IVA:</strong> Por defecto el precio incluye IVA. Marca "Exento/Desglosar" si el precio <em>no</em> incluye IVA para sumar el 16%.
+                        <strong>IVA:</strong> Por defecto el precio incluye IVA. Marca "Exento/Desglosar" si el precio <em>no</em> incluye IVA.
+                        <strong>IEPS:</strong> Se calcula sobre la base; el IVA se aplica sobre base + IEPS.
                     </p>
                 </div>
                 <div class="flex gap-2 shrink-0">
@@ -139,33 +140,45 @@
             @error('items') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
 
             <div class="border border-gray-100 rounded-lg overflow-x-auto">
-                <table class="w-full text-sm min-w-[700px]">
+                <table class="w-full text-sm min-w-[900px]">
                     <thead>
                         <tr class="bg-gray-50 border-b border-gray-100">
-                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Descripción / Producto</th>
-                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Cant.</th>
-                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio Unit.</th>
-                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-20">Desc %</th>
-                            <th class="text-center px-4 py-2.5 text-xs font-medium text-gray-500 w-32">IVA (16%)</th>
-                            <th class="text-right px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Subtotal</th>
+                            <th class="text-left px-3 py-2.5 text-xs font-medium text-gray-500">Descripción / Producto</th>
+                            <th class="text-left px-3 py-2.5 text-xs font-medium text-gray-500 w-20">Cant.</th>
+                            <th class="text-left px-3 py-2.5 text-xs font-medium text-gray-500 w-28">Precio Unit.</th>
+                            <th class="text-left px-3 py-2.5 text-xs font-medium text-gray-500 w-20">Desc %</th>
+                            <th class="text-center px-3 py-2.5 text-xs font-medium text-gray-500 w-20">IEPS %</th>
+                            <th class="text-center px-3 py-2.5 text-xs font-medium text-gray-500 w-28">IVA (16%)</th>
+                            <th class="text-right px-3 py-2.5 text-xs font-medium text-gray-500 w-28">Subtotal</th>
                             <th class="w-10"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @forelse($items as $index => $item)
-                            <tr>
-                                <td class="px-4 py-2.5">
+                            @php
+                                $discPct    = (float) ($item['discount_pct'] ?? 0);
+                                $maxDiscPct = (float) ($item['max_discount_pct'] ?? 100);
+                                $overLimit  = $discPct > 0 && $discPct > $maxDiscPct;
+                                $base       = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
+                                $discAmt    = $base * ($discPct / 100);
+                                $baseNet    = $base - $discAmt;
+                                $iepsAmt    = $baseNet * (($item['ieps_rate'] ?? 0) / 100);
+                                $taxAmt     = ($baseNet + $iepsAmt) * (($item['tax_rate'] ?? 0) / 100);
+                                $lineTotal  = $baseNet + $iepsAmt + $taxAmt;
+                            @endphp
+                            <tr class="{{ $overLimit ? 'bg-red-50' : '' }}">
+                                <td class="px-3 py-2.5">
                                     <input wire:model="items.{{ $index }}.description" type="text"
-                                        class="w-full border-none focus:ring-0 p-0 text-sm placeholder-gray-300"
+                                        class="w-full border-none focus:ring-0 p-0 text-sm placeholder-gray-300 bg-transparent"
                                         placeholder="Nombre del producto...">
                                     @error("items.{$index}.description") <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                                 </td>
-                                <td class="px-4 py-2.5">
+                                <td class="px-3 py-2.5">
                                     <input wire:model.live="items.{{ $index }}.quantity" type="number" step="0.01" min="0.01"
                                         class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300">
                                     @error("items.{$index}.quantity") <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                                 </td>
-                                <td class="px-4 py-2.5">
+                                <td class="px-3 py-2.5">
                                     <div class="relative">
                                         <span class="absolute left-2 top-1.5 text-xs text-gray-400">$</span>
                                         <input wire:model.live="items.{{ $index }}.unit_price" type="number" step="0.01" min="0"
@@ -173,15 +186,31 @@
                                     </div>
                                     @error("items.{$index}.unit_price") <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                                 </td>
-                                <td class="px-4 py-2.5">
-                                    <input wire:model.live="items.{{ $index }}.discount_pct" type="number" step="0.01" min="0" max="100"
-                                        class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300">
+                                <td class="px-3 py-2.5">
+                                    <div class="space-y-0.5">
+                                        <input wire:model.live="items.{{ $index }}.discount_pct" type="number" step="0.01" min="0" max="100"
+                                            class="w-full border-gray-200 rounded px-2 py-1 text-sm focus:ring-indigo-300 {{ $overLimit ? 'border-red-400 text-red-600' : '' }}">
+                                        @if($overLimit)
+                                            <p class="text-[9px] text-red-500 leading-tight">Máx: {{ number_format($maxDiscPct, 1) }}%</p>
+                                        @endif
+                                    </div>
                                     @error("items.{$index}.discount_pct") <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                                 </td>
-                                <td class="px-4 py-2.5 text-center">
+                                <td class="px-3 py-2.5 text-center">
+                                    <div class="relative">
+                                        <input wire:model.live="items.{{ $index }}.ieps_rate" type="number" step="0.01" min="0" max="100"
+                                            class="w-full border-gray-200 rounded px-2 py-1 text-sm text-center focus:ring-indigo-300 {{ ($item['ieps_rate'] ?? 0) > 0 ? 'text-orange-600 font-medium' : '' }}"
+                                            placeholder="0">
+                                        @if(($item['ieps_rate'] ?? 0) > 0)
+                                            <p class="text-[9px] text-orange-500 text-center leading-tight mt-0.5">IEPS</p>
+                                        @endif
+                                    </div>
+                                    @error("items.{$index}.ieps_rate") <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
+                                </td>
+                                <td class="px-3 py-2.5 text-center">
                                     <div class="flex items-center justify-center gap-2">
                                         <span class="text-[10px] font-medium {{ ($item['tax_rate'] ?? 0) > 0 ? 'text-indigo-600' : 'text-gray-400' }}">
-                                            {{ ($item['tax_rate'] ?? 0) > 0 ? '+IVA (16%)' : 'Exento' }}
+                                            {{ ($item['tax_rate'] ?? 0) > 0 ? '+IVA' : 'Exento' }}
                                         </span>
                                         <button type="button" wire:click="toggleItemIva({{ $index }})"
                                             class="w-8 h-4 rounded-full relative transition-colors focus:outline-none {{ ($item['tax_rate'] ?? 0) > 0 ? 'bg-indigo-600' : 'bg-gray-200' }}">
@@ -189,15 +218,10 @@
                                         </button>
                                     </div>
                                 </td>
-                                <td class="px-4 py-2.5 text-right text-gray-900 font-medium">
-                                    @php
-                                        $sub = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
-                                        $disc = $sub * (($item['discount_pct'] ?? 0) / 100);
-                                        $tax = ($sub - $disc) * (($item['tax_rate'] ?? 0) / 100);
-                                    @endphp
-                                    ${{ number_format($sub - $disc + $tax, 2) }}
+                                <td class="px-3 py-2.5 text-right text-gray-900 font-medium">
+                                    ${{ number_format($lineTotal, 2) }}
                                 </td>
-                                <td class="px-4 py-2.5 text-center">
+                                <td class="px-3 py-2.5 text-center">
                                     <button type="button" wire:click="removeItem({{ $index }})"
                                         class="text-gray-300 hover:text-red-500 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +232,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-gray-400 italic">
+                                <td colspan="8" class="px-4 py-8 text-center text-gray-400 italic">
                                     No hay productos agregados. Usa el buscador o agrega una línea manual.
                                 </td>
                             </tr>
@@ -229,19 +253,27 @@
         {{-- ── Totales ──────────────────────────────────────────────────────── --}}
         <div class="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <div class="flex flex-col items-end space-y-2">
-                <div class="flex justify-between w-full sm:w-64 text-sm text-gray-500">
+                <div class="flex justify-between w-full sm:w-72 text-sm text-gray-500">
                     <span>Subtotal</span>
                     <span>${{ number_format($this->subtotal, 2) }}</span>
                 </div>
-                <div class="flex justify-between w-full sm:w-64 text-sm text-red-500">
+                @if($this->discount > 0)
+                <div class="flex justify-between w-full sm:w-72 text-sm text-red-500">
                     <span>Descuento</span>
                     <span>- ${{ number_format($this->discount, 2) }}</span>
                 </div>
-                <div class="flex justify-between w-full sm:w-64 text-sm text-gray-500">
-                    <span>IVA</span>
+                @endif
+                @if($this->ieps > 0)
+                <div class="flex justify-between w-full sm:w-72 text-sm text-orange-600">
+                    <span>IEPS</span>
+                    <span>+ ${{ number_format($this->ieps, 2) }}</span>
+                </div>
+                @endif
+                <div class="flex justify-between w-full sm:w-72 text-sm text-gray-500">
+                    <span>IVA (16%)</span>
                     <span>${{ number_format($this->tax, 2) }}</span>
                 </div>
-                <div class="flex justify-between w-full sm:w-64 pt-2 border-t border-gray-100">
+                <div class="flex justify-between w-full sm:w-72 pt-2 border-t border-gray-100">
                     <span class="text-base font-medium text-gray-900">Total</span>
                     <span class="text-xl font-bold text-indigo-600">{{ $currency }} ${{ number_format($this->total, 2) }}</span>
                 </div>
@@ -259,4 +291,48 @@
             </button>
         </div>
     </form>
+
+    {{-- ── Modal: Solicitud de autorización de descuento ─────────────────── --}}
+    @if($needsApproval)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="p-6 border-b border-gray-100">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-900">Autorización requerida</h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            El descuento solicitado supera el límite permitido
+                            (máx. <strong>{{ number_format($exceedingMaxPct, 1) }}%</strong>).
+                            Se enviará una solicitud al gerente para su aprobación.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Motivo / justificación <span class="text-gray-400">(opcional)</span></label>
+                    <textarea wire:model="approvalNotes" rows="3"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 resize-none"
+                        placeholder="Ej: Cliente estratégico, volumen de compra, proyecto especial..."></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button type="button" wire:click="$set('needsApproval', false)"
+                        class="flex-1 px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition font-medium">
+                        Cancelar
+                    </button>
+                    <button type="button" wire:click="save(true)"
+                        class="flex-1 px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold transition shadow-sm">
+                        Enviar a autorización
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

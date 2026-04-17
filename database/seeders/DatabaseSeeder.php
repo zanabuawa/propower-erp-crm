@@ -34,6 +34,7 @@ class DatabaseSeeder extends Seeder
             // ── Otros módulos ────────────────────────────────────────────────
             ProjectSeeder::class,
             AssetSeeder::class,
+            HrSeeder::class,
         ]);
     }
 }

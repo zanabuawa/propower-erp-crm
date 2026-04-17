@@ -75,8 +75,69 @@
                     <input wire:model="notes" type="text" value="{{ $notes }}"
                         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                 </div>
+
+                @if($type === 'adjustment')
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Motivo del ajuste *</label>
+                        <select wire:model.live="adjustment_reason"
+                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                            <option value="">— Selecciona motivo —</option>
+                            @foreach(\App\Models\StockMovement::ADJUSTMENT_REASONS as $k => $v)
+                                <option value="{{ $k }}">{{ $v }}</option>
+                            @endforeach
+                        </select>
+                        @error('adjustment_reason') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                        @if($requiresApproval)
+                            <p class="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Este motivo requiere aprobación por OTP.
+                            </p>
+                        @endif
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Cuenta contable afectada</label>
+                        <select wire:model="finance_account_id"
+                            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                            <option value="">— Sin afectación contable —</option>
+                            @foreach($financeAccounts as $acc)
+                                <option value="{{ $acc->id }}">{{ $acc->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
             </div>
         </div>
+
+        {{-- Modal OTP de aprobación --}}
+        @if($showOtpModal)
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+                    <h2 class="text-base font-semibold text-gray-900 mb-2">Aprobación requerida</h2>
+                    <p class="text-sm text-gray-500 mb-4">
+                        Se ha enviado un código OTP a tu correo para aprobar este ajuste de inventario.
+                    </p>
+                    @if(session('otp_sent'))
+                        <p class="text-xs text-green-600 mb-3">{{ session('otp_sent') }}</p>
+                    @endif
+                    @if($otpError)
+                        <p class="text-xs text-red-500 mb-3">{{ $otpError }}</p>
+                    @endif
+                    <input wire:model="otpCode" type="text" maxlength="6"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-4"
+                        placeholder="000000">
+                    <div class="flex gap-3">
+                        <button wire:click="sendOtp" type="button"
+                            class="flex-1 px-3 py-2 text-xs border border-gray-200 rounded-lg hover:bg-gray-50">
+                            Reenviar código
+                        </button>
+                        <button wire:click="verifyOtp" type="button"
+                            class="flex-1 px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium">
+                            Aprobar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         {{-- Productos --}}
         <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">

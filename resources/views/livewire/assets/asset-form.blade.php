@@ -125,6 +125,60 @@
             </div>
         </div>
 
+        {{-- Depreciación --}}
+        <div class="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+            <h2 class="text-sm font-medium text-gray-700 border-b border-gray-100 pb-3">
+                Depreciación
+                <span class="text-xs text-gray-400 font-normal ml-1">— opcional, para cálculo automático mensual</span>
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Método contable</label>
+                    <select wire:model="depreciation_method"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        <option value="">— Sin depreciación —</option>
+                        <option value="linea_recta">Línea recta</option>
+                        <option value="doble_saldo">Doble saldo decreciente</option>
+                        <option value="suma_digitos">Suma de dígitos</option>
+                    </select>
+                    @error('depreciation_method') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Vida útil (años)</label>
+                    <input wire:model="useful_life_years" type="number" min="1" max="50"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        placeholder="Ej: 5">
+                    @error('useful_life_years') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Valor de rescate</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-2 text-xs text-gray-400">$</span>
+                        <input wire:model="salvage_value" type="number" step="0.01" min="0"
+                            class="w-full border border-gray-200 rounded-lg pl-6 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                            placeholder="0">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">
+                        Tasa fiscal SAT (%)
+                        @if($category)
+                            <span class="text-indigo-500">
+                                — sugerida: {{ number_format((\App\Models\FixedAsset::FISCAL_RATES[$category] ?? 0.10) * 100, 0) }}%
+                            </span>
+                        @endif
+                    </label>
+                    <div class="relative">
+                        <input wire:model="fiscal_rate" type="number" step="0.01" min="0" max="100"
+                            class="w-full border border-gray-200 rounded-lg px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                            placeholder="Ej: 25">
+                        <span class="absolute right-3 top-2 text-xs text-gray-400">%</span>
+                    </div>
+                    @error('fiscal_rate') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+        </div>
+
         <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6">
             <a wire:navigate href="{{ route('assets.index') }}"
                 class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition text-center">

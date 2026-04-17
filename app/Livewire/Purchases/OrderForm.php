@@ -179,6 +179,18 @@ class OrderForm extends Component
     {
         $this->validate();
 
+        // Evitar duplicar OC para la misma requisición
+        if ($this->requisition_id) {
+            $existing = PurchaseOrder::where('purchase_requisition_id', $this->requisition_id)
+                ->whereNotIn('status', ['cancelled'])
+                ->first();
+            if ($existing) {
+                $this->addError('requisition_id',
+                    "Ya existe una orden de compra activa ({$existing->folio}) para esta requisición.");
+                return;
+            }
+        }
+
         DB::transaction(function () {
             $folio = 'OC-' . str_pad(
                 PurchaseOrder::where('company_id', auth()->user()->company_id)->count() + 1,

@@ -19,12 +19,13 @@ class HrEmployee extends Model
     protected $table = 'hr_employees';
 
     protected $fillable = [
-        'company_id', 'user_id', 'branch_id', 'department_id', 'position_id',
+        'company_id', 'user_id', 'branch_id', 'department_id', 'position_id', 'supervisor_id',
         'employee_number', 'first_name', 'last_name', 'second_last_name',
         'curp', 'rfc', 'nss', 'email', 'phone', 'birth_date', 'gender',
         'address', 'city', 'state', 'postal_code',
-        'hire_date', 'termination_date', 'contract_type', 'salary', 'salary_period',
-        'work_shift', 'status', 'payment_method', 'bank', 'bank_account', 'clabe',
+        'hire_date', 'termination_date', 'termination_reason', 'termination_type',
+        'contract_type', 'salary', 'salary_period',
+        'work_shift', 'status', 'is_external', 'payment_method', 'bank', 'bank_account', 'clabe',
         'imss_regime', 'daily_salary_imss', 'infonavit_credit',
         'emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relationship',
         'photo', 'notes',
@@ -36,6 +37,7 @@ class HrEmployee extends Model
         'termination_date' => 'date',
         'salary'           => 'decimal:2',
         'daily_salary_imss'=> 'decimal:2',
+        'is_external'      => 'boolean',
     ];
 
     const CONTRACT_TYPES = [
@@ -111,6 +113,31 @@ class HrEmployee extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(HrPosition::class, 'position_id');
+    }
+
+    public function supervisor(): BelongsTo
+    {
+        return $this->belongsTo(HrEmployee::class, 'supervisor_id');
+    }
+
+    public function subordinates(): HasMany
+    {
+        return $this->hasMany(HrEmployee::class, 'supervisor_id');
+    }
+
+    public function education(): HasMany
+    {
+        return $this->hasMany(HrEmployeeEducation::class, 'employee_id');
+    }
+
+    public function trainings(): HasMany
+    {
+        return $this->hasMany(HrEmployeeTraining::class, 'employee_id');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(HrEmployeeDocument::class, 'employee_id');
     }
 
     public function contracts(): HasMany

@@ -16,12 +16,14 @@ class SaleOrder extends Model
     protected $fillable = [
         'company_id', 'branch_id', 'customer_id', 'sale_quotation_id', 'price_list_id',
         'created_by', 'folio', 'currency', 'status', 'payment_method', 'payment_terms',
-        'subtotal', 'discount_amount', 'tax', 'total', 'notes', 'required_at',
+        'subtotal', 'discount_amount', 'ieps', 'tax', 'total', 'notes', 'required_at',
+        'approval_status', 'approval_id',
     ];
 
     protected $casts = [
         'subtotal'        => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'ieps'            => 'decimal:2',
         'tax'             => 'decimal:2',
         'total'           => 'decimal:2',
         'required_at'     => 'datetime',

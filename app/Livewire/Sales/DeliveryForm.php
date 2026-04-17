@@ -280,13 +280,13 @@ class DeliveryForm extends Component
                         'quantity'           => $lotQty,
                     ]);
 
-                    // Descontar stock agregado
+                    // Descontar stock y liberar comprometido
                     $stock = Stock::firstOrCreate(
                         ['product_id' => $item['product_id'], 'warehouse_id' => $warehouseId],
-                        ['quantity'   => 0]
+                        ['quantity'   => 0, 'committed_quantity' => 0]
                     );
                     $qtyBefore = (float) $stock->quantity;
-                    $stock->decrement('quantity', $lotQty);
+                    $stock->deliver($lotQty);
 
                     // Movimiento de inventario con lote
                     $movement->items()->create([

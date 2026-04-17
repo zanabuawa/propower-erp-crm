@@ -226,6 +226,30 @@ x-init="init()">
                         Dashboard
                     </span>
                 </a>
+
+                {{-- Mi Portal --}}
+                <a href="{{ route('hr.portal') }}" wire:navigate
+                   class="relative flex items-center gap-3 px-2.5 py-2 text-sm rounded-lg transition-colors duration-150 group cursor-pointer
+                          {{ request()->routeIs('hr.portal')
+                             ? 'bg-indigo-500/10 text-indigo-300 sb-item-active'
+                             : 'text-white/65 hover:bg-white/[0.04] hover:text-white/90' }}"
+                >
+                    <span class="w-5 h-5 min-w-[1.25rem] flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </span>
+                    <span class="flex-1 truncate font-medium transition-all duration-200"
+                          :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0 overflow-hidden'">
+                        Mi Portal
+                    </span>
+                    {{-- Tooltip (collapsed) --}}
+                    <span x-show="!sidebarOpen"
+                          class="pointer-events-none absolute left-[3.8rem] z-50 whitespace-nowrap
+                                 rounded-lg bg-slate-800 border border-white/10 shadow-xl
+                                 px-2.5 py-1.5 text-xs font-medium text-white/90
+                                 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                        Mi Portal
+                    </span>
+                </a>
             </div>
 
             {{-- ·· OPERACIONES ────────────────────────────────── --}}
@@ -260,6 +284,8 @@ x-init="init()">
                     <x-sidebar-subitem route="purchases.index" label="Requisiciones" />
                     <x-sidebar-subitem route="purchases.orders.index" label="Órdenes de compra" />
                     <x-sidebar-subitem route="purchases.goods-receipts.index" label="Recepción de mercancías" />
+                    <x-sidebar-subitem route="purchases.invoices.index" label="Facturas de proveedor" />
+                    <x-sidebar-subitem route="purchases.credit-notes.index" label="Notas de crédito" />
                     <x-sidebar-subitem route="purchases.report" label="Reporte de compras" />
                     @endcan
                 </x-sidebar-menu>
@@ -268,10 +294,14 @@ x-init="init()">
                 @canany(['view sales', 'create sales', 'edit sales', 'delete sales'])
                 <x-sidebar-menu id="sales" label="Ventas" icon="sales" :routes="['sales.*']">
                     @can('view sales')
+                    <x-sidebar-subitem route="sales.dashboard" label="Dashboard ventas" />
+                    <x-sidebar-subitem route="sales.report" label="Reporte de ventas" />
                     <x-sidebar-subitem route="sales.index" label="Cotizaciones" />
                     <x-sidebar-subitem route="sales.orders.index" label="Órdenes de venta" />
                     <x-sidebar-subitem route="sales.invoices.index" label="Facturas" />
+                    <x-sidebar-subitem route="sales.credit-notes.index" label="Notas de crédito" />
                     <x-sidebar-subitem route="sales.price-lists.index" label="Listas de precios" />
+                    <x-sidebar-subitem route="sales.discount-approvals.index" label="Autorizaciones desc." />
                     @endcan
                 </x-sidebar-menu>
                 @endcanany
@@ -339,8 +369,10 @@ x-init="init()">
 
                 @canany(['view hr', 'create hr', 'edit hr', 'delete hr'])
                 <x-sidebar-menu id="hr" label="Recursos humanos" icon="hr"
-                    :routes="['hr.employees.*','hr.departments.*','hr.positions.*','hr.contracts.*','hr.attendances.*','hr.payrolls.*','hr.leaves.*','hr.incidents.*','hr.evaluations.*']">
+                    :routes="['hr.employees.*','hr.prospects.*','hr.departments.*','hr.positions.*','hr.contracts.*','hr.attendances.*','hr.payrolls.*','hr.leaves.*','hr.incidents.*','hr.evaluations.*']">
                     @can('view hr')
+                    <x-sidebar-subitem route="hr.prospects.index" label="Reclutamiento" />
+                    <x-sidebar-subitem route="hr.prospects.agenda" label="Agenda entrevistas" />
                     <x-sidebar-subitem route="hr.employees.index" label="Empleados" />
                     <x-sidebar-subitem route="hr.departments.index" label="Departamentos" />
                     <x-sidebar-subitem route="hr.positions.index" label="Puestos laborales" />
@@ -363,6 +395,18 @@ x-init="init()">
                 @canany(['view finance', 'create finance', 'edit finance', 'delete finance'])
                 <x-sidebar-menu id="fin" label="Finanzas" icon="finance" :routes="['finance.*']">
                     @can('view finance')
+                    <x-sidebar-subitem route="finance.dashboard" label="Gestión financiera" />
+                    <x-sidebar-subitem route="finance.reports.index" label="Reportes y análisis" />
+                    <x-sidebar-subitem route="finance.collections.dashboard" label="Dashboard cobranza" />
+                    <x-sidebar-subitem route="finance.aging.index" label="Antigüedad CxC" />
+                    <x-sidebar-subitem route="finance.ap-aging.index" label="Antigüedad CxP" />
+                    <x-sidebar-subitem route="finance.reminders.index" label="Recordatorios de pago" />
+                    <x-sidebar-subitem route="finance.scheduled-payments.index" label="Pagos programados" />
+                    <x-sidebar-subitem route="finance.period-close.index" label="Cierre mensual" />
+                    <x-sidebar-subitem route="finance.bank-statement.index" label="Extracto bancario" />
+                    <x-sidebar-subitem route="finance.bank-reconciliation.index" label="Conciliación bancaria" />
+                    <x-sidebar-subitem route="finance.reconciliation.index" label="Conciliación CxC" />
+                    <x-sidebar-subitem route="finance.ap-reconciliation.index" label="Conciliación CxP" />
                     <x-sidebar-subitem route="finance.accounts.index" label="Cuentas" />
                     <x-sidebar-subitem route="finance.transactions.index" label="Transacciones" />
                     <x-sidebar-subitem route="finance.budgets.index" label="Presupuestos" />

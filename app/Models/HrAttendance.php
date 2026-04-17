@@ -13,14 +13,17 @@ class HrAttendance extends Model
     protected $table = 'hr_attendances';
 
     protected $fillable = [
-        'company_id', 'employee_id', 'date', 'check_in', 'check_out',
-        'worked_hours', 'overtime_hours', 'status', 'notes', 'recorded_by',
+        'company_id', 'employee_id', 'project_id', 'session_id', 'device_id',
+        'raw_log_in_id', 'raw_log_out_id',
+        'date', 'check_in', 'check_out',
+        'worked_hours', 'overtime_hours', 'status', 'notes', 'metadata', 'recorded_by',
     ];
 
     protected $casts = [
         'date'           => 'date',
         'worked_hours'   => 'decimal:2',
         'overtime_hours' => 'decimal:2',
+        'metadata'       => 'array',
     ];
 
     const STATUSES = [
@@ -53,6 +56,26 @@ class HrAttendance extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(HrEmployee::class, 'employee_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
+
+    public function session(): BelongsTo
+    {
+        return $this->belongsTo(HrAttendanceSession::class, 'session_id');
+    }
+
+    public function rawLogIn(): BelongsTo
+    {
+        return $this->belongsTo(HrAttendanceLog::class, 'raw_log_in_id');
+    }
+
+    public function rawLogOut(): BelongsTo
+    {
+        return $this->belongsTo(HrAttendanceLog::class, 'raw_log_out_id');
     }
 
     public function recordedBy(): BelongsTo

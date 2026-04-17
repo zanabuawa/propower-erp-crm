@@ -61,6 +61,15 @@
                     Registrar pago
                 </button>
             @endif
+            @if(in_array($invoice->status, ['stamped', 'draft']) && auth()->user()->can('create sales'))
+                <a wire:navigate href="{{ route('sales.credit-notes.create') }}?invoice={{ $invoice->id }}"
+                    class="px-4 py-2 text-sm border border-gray-200 hover:bg-gray-50 rounded-lg transition text-gray-700 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/>
+                    </svg>
+                    Nota de crédito
+                </a>
+            @endif
             @if(in_array($invoice->status, ['stamped', 'paid']) && $invoice->cfdi_uuid && auth()->user()->can('cancel invoices'))
                 <button wire:click="$set('showCancelModal', true)"
                     class="px-4 py-2 text-sm border border-red-300 text-red-600 hover:bg-red-50 rounded-lg transition">

@@ -17,8 +17,9 @@ class HrPayroll extends Model
     protected $fillable = [
         'company_id', 'folio', 'period_type', 'period_start', 'period_end',
         'status', 'total_employees', 'total_gross', 'total_deductions',
-        'total_net', 'total_employer_imss', 'notes', 'created_by', 'approved_by',
-        'approved_at', 'paid_at', 'facturapi_batch_id',
+        'total_net', 'total_employer_imss', 'notes', 'description', 
+        'labels', 'checklist', 'members',
+        'created_by', 'approved_by', 'approved_at', 'paid_at', 'facturapi_batch_id',
     ];
 
     protected $casts = [
@@ -30,6 +31,9 @@ class HrPayroll extends Model
         'total_employer_imss'=> 'decimal:2',
         'approved_at'        => 'datetime',
         'paid_at'            => 'datetime',
+        'labels'             => 'array',
+        'checklist'          => 'array',
+        'members'            => 'array',
     ];
 
     const PERIOD_TYPES = [

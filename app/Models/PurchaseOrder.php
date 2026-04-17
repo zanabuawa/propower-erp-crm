@@ -16,7 +16,7 @@ class PurchaseOrder extends Model
     protected $fillable = [
         'company_id', 'branch_id', 'supplier_id', 'purchase_requisition_id',
         'created_by', 'folio', 'currency', 'status', 'subtotal', 'tax',
-        'total', 'payment_terms', 'supplier_bank_account_id', 'notes',
+        'total', 'paid_amount', 'payment_terms', 'supplier_bank_account_id', 'notes',
         'expected_at', 'required_at',
         'shipping_address', 'billing_address', 'print_language',
     ];
@@ -25,8 +25,15 @@ class PurchaseOrder extends Model
         'subtotal'    => 'decimal:2',
         'tax'         => 'decimal:2',
         'total'       => 'decimal:2',
+        'paid_amount' => 'decimal:2',
         'expected_at' => 'datetime',
         'required_at' => 'date',
+    ];
+
+    // Orden lógico del flujo (para el timeline)
+    const STATUS_FLOW = [
+        'draft', 'sent', 'waiting_delivery',
+        'partial_received', 'received', 'invoiced', 'paid',
     ];
 
     const STATUS = [
@@ -36,6 +43,7 @@ class PurchaseOrder extends Model
         'partial_received' => 'Recepción parcial',
         'received'         => 'Mercancía recibida',
         'invoiced'         => 'Facturada',
+        'paid'             => 'Pagada',
         'cancelled'        => 'Cancelada',
     ];
 
@@ -45,9 +53,15 @@ class PurchaseOrder extends Model
         'waiting_delivery' => 'bg-violet-50 text-violet-700',
         'partial_received' => 'bg-amber-50 text-amber-700',
         'received'         => 'bg-teal-50 text-teal-700',
-        'invoiced'         => 'bg-green-50 text-green-700',
+        'invoiced'         => 'bg-indigo-50 text-indigo-700',
+        'paid'             => 'bg-emerald-50 text-emerald-700',
         'cancelled'        => 'bg-red-50 text-red-700',
     ];
+
+    public function getBalanceAttribute(): float
+    {
+        return max(0, (float) $this->total - (float) $this->paid_amount);
+    }
 
     public function company(): BelongsTo
     {
@@ -92,6 +106,11 @@ class PurchaseOrder extends Model
     public function invoice(): HasOne
     {
         return $this->hasOne(PurchaseInvoice::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class);
     }
 
     public function returns(): HasMany

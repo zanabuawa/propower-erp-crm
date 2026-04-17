@@ -270,6 +270,10 @@
                                     @endcan
                                 @endif
                                 <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Notas / Observaciones</th>
+                                @if($reception_type === 'purchase')
+                                <th class="text-left px-4 py-2.5 text-xs font-medium text-red-500 w-24">Rechazada</th>
+                                <th class="text-left px-4 py-2.5 text-xs font-medium text-red-500 w-36">Motivo rechazo</th>
+                                @endif
                                 <th class="w-8"></th>
                             </tr>
                         </thead>
@@ -280,6 +284,7 @@
                                     $cost      = (float)($item['purchase_price'] ?? 0);
                                     $margin    = (float)($item['profit_margin'] ?? 0);
                                     $salePrice = round($cost * (1 + $margin / 100), 2);
+                                    $qtyRejected = (float)($item['quantity_rejected'] ?? 0);
                                 @endphp
                                 <tr class="{{ $received ? '' : 'opacity-50 bg-gray-50' }}">
                                     <td class="px-3 py-3 text-center">
@@ -292,6 +297,9 @@
                                         <p class="font-medium text-gray-900 text-sm">{{ $item['product_name'] }}</p>
                                         @if($item['sku'])
                                             <p class="text-xs text-gray-400 font-mono">{{ $item['sku'] }}</p>
+                                        @endif
+                                        @if(isset($item['quantity_ordered']) && $item['quantity_ordered'] > 0)
+                                            <p class="text-xs text-gray-400 mt-0.5">Ordenado: {{ $item['quantity_ordered'] }}</p>
                                         @endif
                                     </td>
                                     <td class="px-4 py-2">
@@ -338,6 +346,31 @@
                                             class="w-full border border-gray-200 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300 disabled:bg-gray-100"
                                             style="min-width:160px">
                                     </td>
+                                    @if($reception_type === 'purchase')
+                                    <td class="px-4 py-2">
+                                        <input wire:model.live="items.{{ $index }}.quantity_rejected"
+                                            type="number" step="0.01" min="0"
+                                            {{ !$received ? 'disabled' : '' }}
+                                            placeholder="0"
+                                            class="w-full border {{ $qtyRejected > 0 ? 'border-red-300 bg-red-50' : 'border-gray-200' }} rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-red-300 disabled:bg-gray-100">
+                                        @error("items.{$index}.quantity_rejected")
+                                            <p class="text-xs text-red-500">{{ $message }}</p>
+                                        @enderror
+                                    </td>
+                                    <td class="px-4 py-2">
+                                        <select wire:model="items.{{ $index }}.rejection_reason"
+                                            {{ (!$received || $qtyRejected <= 0) ? 'disabled' : '' }}
+                                            class="w-full border {{ $qtyRejected > 0 ? 'border-red-300 bg-red-50' : 'border-gray-200' }} rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-red-300 disabled:bg-gray-100">
+                                            <option value="">— Motivo —</option>
+                                            @foreach(\App\Models\PurchaseReceiptItem::REJECTION_REASONS as $val => $label)
+                                                <option value="{{ $val }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error("items.{$index}.rejection_reason")
+                                            <p class="text-xs text-red-500">{{ $message }}</p>
+                                        @enderror
+                                    </td>
+                                    @endif
                                     <td class="px-4 py-2 text-center">
                                         <button type="button" wire:click="removeItem({{ $index }})"
                                             class="text-red-400 hover:text-red-600">
@@ -423,7 +456,10 @@
                             <thead>
                                 <tr class="bg-gray-50 border-b border-gray-100 text-xs text-gray-500">
                                     <th class="text-left px-4 py-2">Producto</th>
-                                    <th class="text-right px-4 py-2">Cantidad</th>
+                                    <th class="text-right px-4 py-2">Aceptada</th>
+                                    @if($reception_type === 'purchase')
+                                    <th class="text-right px-4 py-2 text-red-500">Rechazada</th>
+                                    @endif
                                     @if(!in_array($reception_type, ['defective', 'transfer']))
                                         @can('view prices')
                                         <th class="text-right px-4 py-2">Precio venta</th>
@@ -437,10 +473,16 @@
                                     @if($item['received'] ?? true)
                                         @php
                                             $sp = round((float)($item['purchase_price'] ?? 0) * (1 + (float)($item['profit_margin'] ?? 0) / 100), 2);
+                                            $qr = (float)($item['quantity_rejected'] ?? 0);
                                         @endphp
-                                        <tr>
+                                        <tr class="{{ $qr > 0 ? 'bg-red-50' : '' }}">
                                             <td class="px-4 py-2.5 font-medium text-gray-900">{{ $item['product_name'] }}</td>
                                             <td class="px-4 py-2.5 text-right text-gray-700">{{ $item['quantity'] }}</td>
+                                            @if($reception_type === 'purchase')
+                                            <td class="px-4 py-2.5 text-right {{ $qr > 0 ? 'text-red-600 font-semibold' : 'text-gray-400' }}">
+                                                {{ $qr > 0 ? $qr : '—' }}
+                                            </td>
+                                            @endif
                                             @if(!in_array($reception_type, ['defective', 'transfer']))
                                                 @can('view prices')
                                                 <td class="px-4 py-2.5 text-right text-indigo-600 font-semibold">${{ number_format($sp, 2) }}</td>
@@ -453,6 +495,55 @@
                             </tbody>
                         </table>
                     </div>
+                    {{-- Price change warnings --}}
+                    @if(!empty($priceWarnings))
+                        <div class="rounded-lg border border-amber-300 bg-amber-50 p-3 space-y-1.5">
+                            <p class="text-xs font-semibold text-amber-800 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                </svg>
+                                Cambio de precio detectado
+                            </p>
+                            @foreach($priceWarnings as $w)
+                                <div class="text-xs text-amber-700 flex items-center justify-between gap-2">
+                                    <span class="font-medium truncate">{{ $w['name'] }}</span>
+                                    <span class="flex-shrink-0 whitespace-nowrap">
+                                        ${{ number_format($w['prev'], 2) }}
+                                        →
+                                        <strong class="{{ $w['increase'] ? 'text-red-600' : 'text-green-600' }}">
+                                            ${{ number_format($w['new'], 2) }}
+                                        </strong>
+                                        <span class="{{ $w['increase'] ? 'text-red-600' : 'text-green-600' }}">
+                                            ({{ $w['increase'] ? '+' : '-' }}{{ $w['pct'] }}%)
+                                        </span>
+                                    </span>
+                                </div>
+                            @endforeach
+                            <p class="text-xs text-amber-600 pt-1 border-t border-amber-200">El costo del producto se actualizará con el nuevo precio al confirmar.</p>
+                        </div>
+                    @endif
+
+                    {{-- Rejection summary --}}
+                    @php
+                        $rejectedItems = collect($items)->filter(fn($i) => ($i['received'] ?? true) && (float)($i['quantity_rejected'] ?? 0) > 0);
+                    @endphp
+                    @if($rejectedItems->count() > 0)
+                        <div class="rounded-lg border border-red-300 bg-red-50 p-3 space-y-1.5">
+                            <p class="text-xs font-semibold text-red-800">Productos con rechazo parcial</p>
+                            @foreach($rejectedItems as $ri)
+                                <div class="text-xs text-red-700 flex items-center justify-between gap-2">
+                                    <span class="font-medium truncate">{{ $ri['product_name'] }}</span>
+                                    <span class="flex-shrink-0">
+                                        Rechazado: <strong>{{ $ri['quantity_rejected'] }}</strong>
+                                        @if($ri['rejection_reason'])
+                                            · {{ \App\Models\PurchaseReceiptItem::REJECTION_REASONS[$ri['rejection_reason']] ?? $ri['rejection_reason'] }}
+                                        @endif
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
                     @if($operating_expenses > 0)
                         <p class="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
                             Gastos de operación: <strong>${{ number_format($operating_expenses, 2) }}</strong>

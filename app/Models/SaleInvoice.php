@@ -15,35 +15,39 @@ class SaleInvoice extends Model
     protected $fillable = [
         'company_id', 'sale_order_id', 'customer_id', 'created_by',
         'folio', 'cfdi_uuid', 'facturapi_id', 'cfdi_xml', 'cfdi_pdf', 'type', 'currency',
-        'status', 'payment_method', 'subtotal', 'discount_amount', 'tax',
+        'status', 'payment_method', 'subtotal', 'discount_amount', 'ieps', 'tax',
         'total', 'paid_amount', 'notes', 'issued_at', 'due_at',
+        'reminder_sent_at', 'reminder_count',
     ];
 
     protected $casts = [
         'subtotal'        => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'ieps'            => 'decimal:2',
         'tax'             => 'decimal:2',
         'total'           => 'decimal:2',
         'paid_amount'     => 'decimal:2',
-        'issued_at'       => 'datetime',
-        'due_at'          => 'datetime',
+        'issued_at'        => 'datetime',
+        'due_at'           => 'datetime',
+        'reminder_sent_at' => 'datetime',
+        'reminder_count'   => 'integer',
     ];
 
-    const STATUS = [
+    public const STATUS = [
         'draft'     => 'Borrador',
         'stamped'   => 'Timbrada',
         'paid'      => 'Pagada',
         'cancelled' => 'Cancelada',
     ];
 
-    const STATUS_COLORS = [
+    public const STATUS_COLORS = [
         'draft'     => 'bg-gray-100 text-gray-600',
         'stamped'   => 'bg-blue-50 text-blue-700',
         'paid'      => 'bg-green-50 text-green-700',
         'cancelled' => 'bg-red-50 text-red-700',
     ];
 
-    const PAYMENT_METHODS = [
+    public const PAYMENT_METHODS = [
         'cash'     => 'Efectivo',
         'transfer' => 'Transferencia',
         'card'     => 'Tarjeta',

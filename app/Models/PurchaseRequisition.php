@@ -15,7 +15,8 @@ class PurchaseRequisition extends Model
 
     protected $fillable = [
         'company_id', 'branch_id', 'requested_by', 'reviewed_by', 'rejected_by',
-        'folio', 'currency', 'status', 'justification',
+        'folio', 'currency', 'requisition_type', 'priority', 'expense_type', 'project_name',
+        'status', 'justification',
         'quote_response', 'quoted_amount', 'needed_by', 'quoted_at',
         'requester_notes', 'reject_reason',
         'submitted_at', 'confirmed_at', 'rejected_at',
@@ -28,6 +29,55 @@ class PurchaseRequisition extends Model
         'submitted_at'   => 'datetime',
         'confirmed_at'   => 'datetime',
         'rejected_at'    => 'datetime',
+    ];
+
+    // ── Tipos de requisición ────────────────────────────────────────────────
+    public const REQUISITION_TYPES = [
+        'material' => 'Material / Consumible',
+        'service'  => 'Servicio',
+        'tool'     => 'Herramienta / Equipo',
+        'asset'    => 'Activo fijo',
+        'mixed'    => 'Mixta',
+    ];
+
+    public const REQUISITION_TYPE_ICONS = [
+        'material' => '📦',
+        'service'  => '🛠️',
+        'tool'     => '🔧',
+        'asset'    => '🏢',
+        'mixed'    => '📋',
+    ];
+
+    public const REQUISITION_TYPE_COLORS = [
+        'material' => 'bg-blue-50 text-blue-700',
+        'service'  => 'bg-purple-50 text-purple-700',
+        'tool'     => 'bg-amber-50 text-amber-700',
+        'asset'    => 'bg-emerald-50 text-emerald-700',
+        'mixed'    => 'bg-gray-100 text-gray-600',
+    ];
+
+    // ── Prioridades ─────────────────────────────────────────────────────────
+    public const PRIORITY = [
+        'low'    => 'Baja',
+        'normal' => 'Normal',
+        'high'   => 'Alta',
+        'urgent' => 'Urgente',
+    ];
+
+    public const PRIORITY_COLORS = [
+        'low'    => 'bg-gray-100 text-gray-500',
+        'normal' => 'bg-blue-50 text-blue-600',
+        'high'   => 'bg-amber-50 text-amber-700',
+        'urgent' => 'bg-red-100 text-red-700',
+    ];
+
+    // ── Tipos de gasto ──────────────────────────────────────────────────────
+    public const EXPENSE_TYPES = [
+        'operational'  => 'Operación',
+        'capital'      => 'Capital / Inversión',
+        'maintenance'  => 'Mantenimiento',
+        'project'      => 'Proyecto específico',
+        'other'        => 'Otro',
     ];
 
     // ── Estados del flujo nuevo ─────────────────────────────────────────────

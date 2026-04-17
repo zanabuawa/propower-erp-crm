@@ -29,6 +29,12 @@ class AssetForm extends Component
     public ?int $warehouse_id = null;
     public ?int $assigned_to = null;
 
+    // Depreciación
+    public string $depreciation_method = '';
+    public string $useful_life_years = '';
+    public string $salvage_value = '0';
+    public string $fiscal_rate = '';
+
     public function mount(?FixedAsset $asset = null): void
     {
         if ($asset && $asset->exists) {
@@ -41,11 +47,15 @@ class AssetForm extends Component
             $this->description      = $asset->description ?? '';
             $this->acquisition_date = $asset->acquisition_date?->format('Y-m-d') ?? '';
             $this->acquisition_cost = $asset->acquisition_cost ?? '';
-            $this->status           = $asset->status;
-            $this->notes            = $asset->notes ?? '';
-            $this->branch_id        = $asset->branch_id;
-            $this->warehouse_id     = $asset->warehouse_id;
-            $this->assigned_to      = $asset->assigned_to;
+            $this->status               = $asset->status;
+            $this->notes                = $asset->notes ?? '';
+            $this->branch_id            = $asset->branch_id;
+            $this->warehouse_id         = $asset->warehouse_id;
+            $this->assigned_to          = $asset->assigned_to;
+            $this->depreciation_method  = $asset->depreciation_method ?? '';
+            $this->useful_life_years    = $asset->useful_life_years ?? '';
+            $this->salvage_value        = $asset->salvage_value ?? '0';
+            $this->fiscal_rate          = $asset->fiscal_rate ? (string)($asset->fiscal_rate * 100) : '';
         }
     }
 
@@ -67,9 +77,13 @@ class AssetForm extends Component
             'acquisition_cost' => 'nullable|numeric|min:0',
             'status'           => 'required|in:active,in_maintenance,transferred,retired',
             'notes'            => 'nullable|string|max:500',
-            'branch_id'        => 'nullable|exists:branches,id',
-            'warehouse_id'     => 'nullable|exists:warehouses,id',
-            'assigned_to'      => 'nullable|exists:users,id',
+            'branch_id'           => 'nullable|exists:branches,id',
+            'warehouse_id'        => 'nullable|exists:warehouses,id',
+            'assigned_to'         => 'nullable|exists:users,id',
+            'depreciation_method' => 'nullable|in:linea_recta,doble_saldo,suma_digitos',
+            'useful_life_years'   => 'nullable|integer|min:1|max:50',
+            'salvage_value'       => 'nullable|numeric|min:0',
+            'fiscal_rate'         => 'nullable|numeric|min:0|max:100',
         ];
     }
 
@@ -87,11 +101,15 @@ class AssetForm extends Component
             'description'      => $this->description ?: null,
             'acquisition_date' => $this->acquisition_date ?: null,
             'acquisition_cost' => $this->acquisition_cost ?: null,
-            'status'           => $this->status,
-            'notes'            => $this->notes ?: null,
-            'branch_id'        => $this->branch_id,
-            'warehouse_id'     => $this->warehouse_id,
-            'assigned_to'      => $this->assigned_to,
+            'status'               => $this->status,
+            'notes'                => $this->notes ?: null,
+            'branch_id'            => $this->branch_id,
+            'warehouse_id'         => $this->warehouse_id,
+            'assigned_to'          => $this->assigned_to,
+            'depreciation_method'  => $this->depreciation_method ?: null,
+            'useful_life_years'    => $this->useful_life_years ?: null,
+            'salvage_value'        => $this->salvage_value ?: 0,
+            'fiscal_rate'          => $this->fiscal_rate !== '' ? (float)$this->fiscal_rate / 100 : null,
         ];
 
         if ($this->asset && $this->asset->exists) {

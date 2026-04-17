@@ -15,19 +15,21 @@ class SaleQuotation extends Model
 
     protected $fillable = [
         'company_id', 'branch_id', 'customer_id', 'price_list_id', 'created_by',
-        'folio', 'currency', 'status', 'subtotal', 'discount_amount', 'tax', 'total',
+        'folio', 'currency', 'status', 'approval_status', 'approval_id',
+        'subtotal', 'discount_amount', 'ieps', 'tax', 'total',
         'valid_days', 'valid_until', 'notes', 'terms',
     ];
 
     protected $casts = [
         'subtotal'        => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'ieps'            => 'decimal:2',
         'tax'             => 'decimal:2',
         'total'           => 'decimal:2',
         'valid_until'     => 'date',
     ];
 
-    const STATUS = [
+    public const STATUS = [
         'draft'    => 'Borrador',
         'sent'     => 'Enviada',
         'accepted' => 'Aceptada',
@@ -35,7 +37,7 @@ class SaleQuotation extends Model
         'expired'  => 'Vencida',
     ];
 
-    const STATUS_COLORS = [
+    public const STATUS_COLORS = [
         'draft'    => 'bg-gray-100 text-gray-600',
         'sent'     => 'bg-blue-50 text-blue-700',
         'accepted' => 'bg-green-50 text-green-700',

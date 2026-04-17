@@ -3,11 +3,6 @@
 namespace App\Livewire\Purchases;
 
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseReceipt;
-use App\Models\Stock;
-use App\Models\StockMovement;
-use App\Notifications\PurchaseNotification;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -23,12 +18,14 @@ class OrderShow extends Component
             ? $order
             : PurchaseOrder::with([
                 'items.product',
+                'items.supplier',
                 'supplier',
                 'branch',
                 'createdBy',
                 'receipts.items.product',
                 'receipts.items.warehouse',
                 'receipts.receivedBy',
+                'invoices',
                 'invoice',
                 'requisition',
                 'supplierBankAccount',

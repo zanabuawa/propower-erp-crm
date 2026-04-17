@@ -36,6 +36,22 @@ class Customer extends Model
         '626' => '626 - Régimen Simplificado de Confianza (RESICO)',
     ];
 
+    public const SEGMENTS = [
+        'A' => 'A — Clave',
+        'B' => 'B — Alto valor',
+        'C' => 'C — Medio',
+        'D' => 'D — Bajo',
+    ];
+
+    public const CATEGORIES = [
+        'distribuidor'  => 'Distribuidor',
+        'mayorista'     => 'Mayorista',
+        'minorista'     => 'Minorista',
+        'usuario_final' => 'Usuario final',
+        'gobierno'      => 'Gobierno',
+        'otro'          => 'Otro',
+    ];
+
     protected $fillable = [
         'company_id',
         'assigned_to',
@@ -55,6 +71,10 @@ class Customer extends Model
         'payment_terms',
         'status',
         'description',
+        'segment',
+        'zone',
+        'customer_category',
+        'annual_revenue',
     ];
 
     protected $casts = [

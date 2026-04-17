@@ -118,15 +118,23 @@ class InvoiceShow extends Component
                 $product['sku'] = $item->product->sku;
             }
 
+            $taxes = [];
+            $iepsRate = (float) $item->ieps_rate;
+            if ($iepsRate > 0) {
+                $taxes[] = [
+                    'type'      => 'IEPS',
+                    'rate'      => round($iepsRate / 100, 6),
+                    'factor'    => 'Tasa',
+                ];
+            }
             if ($item->tax_rate > 0) {
-                $product['taxes'] = [[
+                $taxes[] = [
                     'type'   => 'IVA',
                     'rate'   => round($taxRate, 6),
                     'factor' => 'Tasa',
-                ]];
-            } else {
-                $product['taxes'] = [];
+                ];
             }
+            $product['taxes'] = $taxes;
 
             $entry = [
                 'quantity' => (float) $item->quantity,

@@ -13,6 +13,9 @@
                         {{ \App\Models\PurchaseOrder::STATUS_COLORS[$order->status] ?? '' }}">
                         {{ \App\Models\PurchaseOrder::STATUS[$order->status] ?? $order->status }}
                     </span>
+                    @if($order->status === 'cancelled')
+                        <span class="text-xs text-red-500">Cancelada</span>
+                    @endif
                 </div>
                 <p class="text-sm text-gray-500">
                     Creada por {{ $order->createdBy->name }} el {{ $order->created_at->format('d/m/Y') }}
@@ -32,7 +35,7 @@
                     class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
                     Marcar como enviada
                 </button>
-                <button wire:click="cancel"
+                <button wire:click="cancel" wire:confirm="¿Cancelar esta orden de compra?"
                     class="px-4 py-2 text-sm border border-red-200 text-red-600 hover:bg-red-50 rounded-lg transition">
                     Cancelar
                 </button>
@@ -49,10 +52,104 @@
                     Registrar recepción
                 </a>
             @endif
+            @if(in_array($order->status, ['received', 'partial_received', 'waiting_delivery']) && !$order->invoices->count())
+                @can('create purchases')
+                <a wire:navigate href="{{ route('purchases.invoices.create') }}?order={{ $order->id }}"
+                    class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition">
+                    Registrar factura
+                </a>
+                @endcan
+            @endif
         </div>
     </div>
 
     <x-alert />
+
+    {{-- ── Timeline de progreso ─────────────────────────────────────────── --}}
+    @if($order->status !== 'cancelled')
+    @php
+        $flow         = \App\Models\PurchaseOrder::STATUS_FLOW;
+        $currentIndex = array_search($order->status, $flow);
+        $labels = [
+            'draft'            => ['Borrador',         'Creada en el sistema'],
+            'sent'             => ['Enviada',           'Comunicada al proveedor'],
+            'waiting_delivery' => ['En tránsito',       'Esperando mercancía'],
+            'partial_received' => ['Recep. parcial',    'Parte de la mercancía recibida'],
+            'received'         => ['Recibida',          'Toda la mercancía recibida'],
+            'invoiced'         => ['Facturada',         'Factura del proveedor registrada'],
+            'paid'             => ['Pagada',            'Pago al proveedor completado'],
+        ];
+    @endphp
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5 shadow-sm overflow-x-auto">
+        <div class="flex items-start min-w-[560px]">
+            @foreach($flow as $i => $step)
+                @php
+                    $isDone    = $currentIndex !== false && $i < $currentIndex;
+                    $isCurrent = $currentIndex !== false && $i === $currentIndex;
+                    $isLast    = $i === array_key_last($flow);
+                @endphp
+                <div class="flex-1 flex flex-col items-center relative">
+                    {{-- Línea conectora --}}
+                    @if(!$isLast)
+                        <div class="absolute top-4 left-1/2 w-full h-0.5
+                            {{ $isDone || $isCurrent ? 'bg-indigo-400' : 'bg-gray-200' }}">
+                        </div>
+                    @endif
+
+                    {{-- Círculo de paso --}}
+                    <div class="relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
+                        {{ $isCurrent ? 'bg-indigo-600 text-white ring-4 ring-indigo-100'
+                            : ($isDone   ? 'bg-indigo-500 text-white'
+                                         : 'bg-gray-100 text-gray-400') }}">
+                        @if($isDone)
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        @else
+                            {{ $i + 1 }}
+                        @endif
+                    </div>
+
+                    {{-- Etiqueta --}}
+                    <div class="mt-2 text-center px-1">
+                        <p class="text-xs font-medium
+                            {{ $isCurrent ? 'text-indigo-700' : ($isDone ? 'text-gray-700' : 'text-gray-400') }}">
+                            {{ $labels[$step][0] ?? $step }}
+                        </p>
+                        @if($isCurrent)
+                            <p class="text-[10px] text-indigo-400 mt-0.5 leading-tight">
+                                {{ $labels[$step][1] ?? '' }}
+                            </p>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        {{-- Barra de progreso de pago si tiene invoices --}}
+        @if($order->status === 'invoiced' || $order->status === 'paid')
+            @php
+                $pct = $order->total > 0
+                    ? min(100, round((float)$order->paid_amount / (float)$order->total * 100))
+                    : 0;
+            @endphp
+            <div class="mt-4 pt-4 border-t border-gray-100">
+                <div class="flex justify-between text-xs text-gray-500 mb-1.5">
+                    <span>Pagado al proveedor</span>
+                    <span class="font-semibold {{ $pct >= 100 ? 'text-emerald-600' : 'text-gray-700' }}">
+                        ${{ number_format($order->paid_amount, 2) }} / ${{ number_format($order->total, 2) }}
+                        ({{ $pct }}%)
+                    </span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all
+                        {{ $pct >= 100 ? 'bg-emerald-500' : 'bg-indigo-500' }}"
+                        style="width: {{ $pct }}%"></div>
+                </div>
+            </div>
+        @endif
+    </div>
+    @endif
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 

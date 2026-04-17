@@ -12,20 +12,22 @@ class SalePayment extends Model
         'finance_account_id',
         'folio', 'currency', 'payment_method', 'status',
         'amount', 'reference', 'notes', 'paid_at',
+        'reconciled_at', 'reconciled_by', 'reconciliation_note',
     ];
 
     protected $casts = [
-        'amount'  => 'decimal:2',
-        'paid_at' => 'datetime',
+        'amount'        => 'decimal:2',
+        'paid_at'       => 'datetime',
+        'reconciled_at' => 'datetime',
     ];
 
-    const STATUS = [
+    public const STATUS = [
         'pending'   => 'Pendiente',
         'applied'   => 'Aplicado',
         'cancelled' => 'Cancelado',
     ];
 
-    const PAYMENT_METHODS = [
+    public const PAYMENT_METHODS = [
         'cash'     => 'Efectivo',
         'transfer' => 'Transferencia',
         'card'     => 'Tarjeta',

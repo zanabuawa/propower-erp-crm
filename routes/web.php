@@ -15,7 +15,9 @@ Route::get('/', function () {
 Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/mi-portal', \App\Livewire\HR\EmployeePortal::class)->name('hr.portal');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -46,6 +48,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/lotes', \App\Livewire\Inventory\LotIndex::class)->name('inventory.lots.index');
         Route::get('/inventario/lotes/{lot}', \App\Livewire\Inventory\LotDetail::class)->name('inventory.lots.show');
         Route::get('/inventario/kardex', \App\Livewire\Inventory\PepsKardexView::class)->name('inventory.kardex');
+        Route::get('/inventario/reabastecimiento', \App\Livewire\Inventory\ReorderRecommendations::class)->name('inventory.reorder');
+        Route::get('/inventario/rotacion', \App\Livewire\Inventory\InventoryTurnover::class)->name('inventory.turnover');
+        Route::get('/inventario/demanda', \App\Livewire\Inventory\DemandAnalysis::class)->name('inventory.demand');
     });
     Route::middleware('can:create inventory')->group(function () {
         Route::get('/inventario/productos/crear', \App\Livewire\Inventory\ProductForm::class)->name('inventory.products.create');
@@ -64,7 +69,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:adjust inventory')->get('/inventario/transferencias/crear', \App\Livewire\Inventory\InventoryTransferForm::class)->name('inventory.transfers.create');
     Route::middleware('can:view inventory')->group(function () {
         Route::get('/inventario/transferencias', \App\Livewire\Inventory\InventoryTransferIndex::class)->name('inventory.transfers.index');
-        Route::get('/inventario/transferencias/{stockMovement}', \App\Livewire\Inventory\InventoryTransferForm::class)->name('inventory.transfers.show');
+        Route::get('/inventario/transferencias/{stockMovement}', \App\Livewire\Inventory\InventoryTransferShow::class)->name('inventory.transfers.show');
+        Route::get('/inventario/transferencias/{stockMovement}/accion', \App\Livewire\Inventory\InventoryTransferForm::class)->name('inventory.transfers.action');
     });
 
     // ── Activos Fijos ─────────────────────────────────────────────────────────
@@ -72,10 +78,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/activos', \App\Livewire\Assets\AssetIndex::class)->name('assets.index');
         Route::get('/activos/inventario', \App\Livewire\Assets\AssetInventoryView::class)->name('assets.inventory');
         Route::get('/activos/transferencias', \App\Livewire\Assets\AssetTransferIndex::class)->name('assets.transfers.index');
+        Route::get('/activos/depreciacion', \App\Livewire\Assets\AssetDepreciationIndex::class)->name('assets.depreciation.index');
+        Route::get('/activos/prestamos', \App\Livewire\Assets\AssetLoanIndex::class)->name('assets.loans.index');
+        Route::get('/activos/mantenimientos', \App\Livewire\Assets\AssetMaintenanceIndex::class)->name('assets.maintenance.index');
     });
     Route::middleware('can:create assets')->get('/activos/crear', \App\Livewire\Assets\AssetForm::class)->name('assets.create');
     Route::middleware('can:edit assets')->get('/activos/{asset}/editar', \App\Livewire\Assets\AssetForm::class)->name('assets.edit');
     Route::middleware('can:transfer assets')->get('/activos/transferencias/nueva', \App\Livewire\Assets\AssetTransferForm::class)->name('assets.transfers.create');
+    Route::middleware('can:create assets')->get('/activos/prestamos/nuevo', \App\Livewire\Assets\AssetLoanForm::class)->name('assets.loans.create');
+    Route::middleware('can:create assets')->get('/activos/mantenimientos/nuevo', \App\Livewire\Assets\AssetMaintenanceForm::class)->name('assets.maintenance.create');
+    Route::middleware('can:edit assets')->get('/activos/mantenimientos/{maintenance}/editar', \App\Livewire\Assets\AssetMaintenanceForm::class)->name('assets.maintenance.edit');
 
     // ── Clientes ──────────────────────────────────────────────────────────────
     Route::middleware('can:create contacts')->get('/clientes/crear', \App\Livewire\Customers\CustomerForm::class)->name('contacts.create');
@@ -116,6 +128,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/compras/requisiciones/{requisition}/imprimir', \App\Http\Controllers\Purchases\RequisitionPrintController::class)->name('purchases.requisitions.print');
     });
 
+    // ── Facturas de proveedor (AP / 3-Way Match) ──────────────────────────────
+    Route::middleware('can:create purchases')->get('/compras/facturas/crear', \App\Livewire\Purchases\PurchaseInvoiceForm::class)->name('purchases.invoices.create');
+    Route::middleware('can:view purchases')->group(function () {
+        Route::get('/compras/facturas', \App\Livewire\Purchases\PurchaseInvoiceIndex::class)->name('purchases.invoices.index');
+        Route::get('/compras/facturas/{invoice}', \App\Livewire\Purchases\PurchaseInvoiceShow::class)->name('purchases.invoices.show');
+    });
+
+    // ── Notas de crédito de proveedor ─────────────────────────────────────────
+    Route::middleware('can:create purchases')->get('/compras/notas-credito/crear', \App\Livewire\Purchases\SupplierCreditNoteForm::class)->name('purchases.credit-notes.create');
+    Route::middleware('can:view purchases')->group(function () {
+        Route::get('/compras/notas-credito', \App\Livewire\Purchases\SupplierCreditNoteIndex::class)->name('purchases.credit-notes.index');
+        Route::get('/compras/notas-credito/{creditNote}', \App\Livewire\Purchases\SupplierCreditNoteShow::class)->name('purchases.credit-notes.show');
+    });
+
     // ── Ventas ────────────────────────────────────────────────────────────────
     // Rutas estáticas primero
     Route::middleware('can:create sales')->group(function () {
@@ -128,12 +154,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/ventas/listas-precios/crear', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.create');
     });
     Route::middleware('can:manage price lists')->get('/ventas/listas-precios/{priceList}/editar', \App\Livewire\Sales\PriceListForm::class)->name('sales.price-lists.edit');
+    Route::middleware('can:create sales')->group(function () {
+        Route::get('/ventas/notas-credito/crear', \App\Livewire\Sales\CreditNoteForm::class)->name('sales.credit-notes.create');
+    });
     Route::middleware('can:view sales')->group(function () {
+        Route::get('/ventas/dashboard', \App\Livewire\Sales\SalesDashboard::class)->name('sales.dashboard');
+        Route::get('/ventas/reporte', \App\Livewire\Sales\SalesReport::class)->name('sales.report');
         Route::get('/ventas/cotizaciones', \App\Livewire\Sales\QuotationIndex::class)->name('sales.index');
         Route::get('/ventas/ordenes', \App\Livewire\Sales\OrderIndex::class)->name('sales.orders.index');
         Route::get('/ventas/facturas', \App\Livewire\Sales\InvoiceIndex::class)->name('sales.invoices.index');
+        Route::get('/ventas/notas-credito', \App\Livewire\Sales\CreditNoteIndex::class)->name('sales.credit-notes.index');
+        Route::get('/ventas/notas-credito/{creditNote}', \App\Livewire\Sales\CreditNoteShow::class)->name('sales.credit-notes.show');
         Route::get('/ventas/listas-precios', \App\Livewire\Sales\PriceListIndex::class)->name('sales.price-lists.index');
         Route::get('/ventas/listas-precios/comparador', \App\Livewire\Sales\ProductPriceComparison::class)->name('sales.price-lists.comparison');
+        Route::get('/ventas/autorizaciones', \App\Livewire\Sales\DiscountApprovalIndex::class)->name('sales.discount-approvals.index');
         Route::get('/ventas/cotizaciones/{quotation}', \App\Livewire\Sales\QuotationShow::class)->name('sales.quotations.show');
         Route::get('/ventas/cotizaciones/{quotation}/imprimir', \App\Http\Controllers\Sales\QuotationPrintController::class)->name('sales.quotations.print');
         Route::get('/ventas/ordenes/{order}', \App\Livewire\Sales\OrderShow::class)->name('sales.orders.show');
@@ -142,6 +176,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/ventas/facturas/{invoice}/descargar/{type}', \App\Http\Controllers\Sales\InvoiceDownloadController::class)->name('sales.invoices.download');
     });
 
+
+    // ── CRM (Prospectos, Pipeline, Agenda) ───────────────────────────────────
+    Route::middleware('can:view sales')->group(function () {
+        Route::get('/ventas/crm/prospectos', \App\Livewire\Sales\CrmProspectIndex::class)->name('sales.crm.prospects.index');
+        Route::get('/ventas/crm/prospectos/{prospect}', \App\Livewire\Sales\CrmProspectShow::class)->name('sales.crm.prospects.show');
+        Route::get('/ventas/crm/pipeline', \App\Livewire\Sales\CrmPipelineIndex::class)->name('sales.crm.pipeline');
+        Route::get('/ventas/crm/agenda', \App\Livewire\Sales\CrmAgendaIndex::class)->name('sales.crm.agenda');
+    });
+    Route::middleware('can:create sales')->group(function () {
+        Route::get('/ventas/crm/prospectos/crear', \App\Livewire\Sales\CrmProspectForm::class)->name('sales.crm.prospects.create');
+        Route::get('/ventas/crm/prospectos/{prospect}/editar', \App\Livewire\Sales\CrmProspectForm::class)->name('sales.crm.prospects.edit');
+        Route::get('/ventas/crm/oportunidades/crear', \App\Livewire\Sales\CrmOpportunityForm::class)->name('sales.crm.opportunities.create');
+        Route::get('/ventas/crm/oportunidades/{opportunity}/editar', \App\Livewire\Sales\CrmOpportunityForm::class)->name('sales.crm.opportunities.edit');
+    });
 
     // ── Proyectos ─────────────────────────────────────────────────────────────
     Route::middleware('can:create projects')->get('/proyectos/crear', \App\Livewire\Projects\ProjectForm::class)->name('projects.create');
@@ -158,11 +206,16 @@ Route::middleware('auth')->group(function () {
     // Rutas estáticas primero (antes de los parámetros dinámicos)
     Route::middleware('can:create hr')->group(function () {
         Route::get('/rrhh/empleados/crear', \App\Livewire\HR\EmployeeForm::class)->name('hr.employees.create');
+        Route::get('/rrhh/prospectos/crear', \App\Livewire\HR\ProspectForm::class)->name('hr.prospects.create');
         Route::get('/rrhh/nominas/crear', \App\Livewire\HR\PayrollForm::class)->name('hr.payrolls.create');
     });
     Route::middleware('can:view hr')->group(function () {
+        Route::get('/rrhh/indicadores', \App\Livewire\HR\HrAnalytics::class)->name('hr.analytics');
         Route::get('/rrhh/empleados', \App\Livewire\HR\EmployeeIndex::class)->name('hr.employees.index');
         Route::get('/rrhh/empleados/{employee}', \App\Livewire\HR\EmployeeShow::class)->name('hr.employees.show');
+        Route::get('/rrhh/prospectos', \App\Livewire\HR\ProspectIndex::class)->name('hr.prospects.index');
+        Route::get('/rrhh/prospectos/agenda', \App\Livewire\HR\ProspectAgenda::class)->name('hr.prospects.agenda');
+        Route::get('/rrhh/prospectos/{prospect}', \App\Livewire\HR\ProspectShow::class)->name('hr.prospects.show');
         Route::get('/rrhh/departamentos', \App\Livewire\HR\DepartmentIndex::class)->name('hr.departments.index');
         Route::get('/rrhh/puestos', \App\Livewire\HR\PositionIndex::class)->name('hr.positions.index');
         Route::get('/rrhh/contratos', \App\Livewire\HR\ContractIndex::class)->name('hr.contracts.index');
@@ -175,6 +228,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('can:edit hr')->group(function () {
         Route::get('/rrhh/empleados/{employee}/editar', \App\Livewire\HR\EmployeeForm::class)->name('hr.employees.edit');
+        Route::get('/rrhh/prospectos/{prospect}/editar', \App\Livewire\HR\ProspectForm::class)->name('hr.prospects.edit');
     });
 
     // ── Finanzas ──────────────────────────────────────────────────────────────
@@ -183,6 +237,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/finanzas/transacciones', \App\Livewire\Finance\FinanceTransactionIndex::class)->name('finance.transactions.index');
         Route::get('/finanzas/presupuestos', \App\Livewire\Finance\FinanceBudgetIndex::class)->name('finance.budgets.index');
         Route::get('/finanzas/flujo-caja', \App\Livewire\Finance\FinanceCashflowIndex::class)->name('finance.cashflow.index');
+        Route::get('/finanzas/antigüedad-saldos', \App\Livewire\Finance\AccountsReceivableAging::class)->name('finance.aging.index');
+        Route::get('/finanzas/antigüedad-cxp', \App\Livewire\Finance\AccountsPayableAging::class)->name('finance.ap-aging.index');
+        Route::get('/finanzas/conciliacion-proveedores', \App\Livewire\Finance\SupplierPaymentReconciliation::class)->name('finance.ap-reconciliation.index');
+        Route::get('/finanzas/pagos-programados', \App\Livewire\Finance\ScheduledPaymentIndex::class)->name('finance.scheduled-payments.index');
+        Route::get('/finanzas/cierre-mensual', \App\Livewire\Finance\PeriodCloseIndex::class)->name('finance.period-close.index');
+        Route::get('/finanzas/gestion', \App\Livewire\Finance\FinanceDashboard::class)->name('finance.dashboard');
+        Route::get('/finanzas/reportes', \App\Livewire\Finance\FinanceReports::class)->name('finance.reports.index');
+        Route::get('/finanzas/extracto-bancario', \App\Livewire\Finance\BankStatement::class)->name('finance.bank-statement.index');
+        Route::get('/finanzas/conciliacion-bancaria', \App\Livewire\Finance\BankReconciliationIndex::class)->name('finance.bank-reconciliation.index');
+        Route::get('/finanzas/recordatorios-pago', \App\Livewire\Finance\PaymentReminders::class)->name('finance.reminders.index');
+        Route::get('/finanzas/dashboard-cobranza', \App\Livewire\Finance\CollectionsDashboard::class)->name('finance.collections.dashboard');
+        Route::get('/finanzas/conciliacion', \App\Livewire\Finance\PaymentReconciliation::class)->name('finance.reconciliation.index');
     });
     Route::middleware('can:create finance')->group(function () {
         Route::get('/finanzas/cuentas/crear', \App\Livewire\Finance\FinanceAccountForm::class)->name('finance.accounts.create');

@@ -72,10 +72,12 @@
                         @php
                             $statusColors = [
                                 'requested'          => 'bg-blue-50 text-blue-700 border-blue-100',
+                                'accepted'           => 'bg-indigo-50 text-indigo-700 border-indigo-100',
                                 'in_transit'         => 'bg-amber-50 text-amber-700 border-amber-100',
                                 'partially_received' => 'bg-orange-50 text-orange-700 border-orange-100',
                                 'completed'          => 'bg-emerald-50 text-emerald-700 border-emerald-100',
                                 'confirmed'          => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                'rejected'           => 'bg-red-50 text-red-700 border-red-100',
                                 'cancelled'          => 'bg-red-50 text-red-700 border-red-100',
                             ];
                         @endphp
@@ -112,7 +114,7 @@
                                 </span>
                             </td>
                             <td class="px-5 py-4 text-right">
-                                <a wire:navigate href="{{ route('inventory.movements.show', $transfer) }}"
+                                <a wire:navigate href="{{ route('inventory.transfers.show', $transfer) }}"
                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-indigo-500 hover:text-white hover:bg-indigo-600 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer"
                                     aria-label="Ver detalle">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

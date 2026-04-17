@@ -114,20 +114,26 @@
         <div class="lg:col-span-2 xl:col-span-3 space-y-4 lg:space-y-6">
 
             {{-- Tabs --}}
-            <div class="flex gap-1 bg-gray-100/80 p-1 rounded-xl w-fit shadow-sm border border-gray-200/50">
+            <div class="flex flex-wrap gap-1 bg-gray-100/80 p-1 rounded-xl w-fit shadow-sm border border-gray-200/50">
                 <button wire:click="$set('activeTab', 'contacts')"
-                    class="px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ $activeTab === 'contacts' ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50' }}">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                        Contactos ({{ $customer->contacts->count() }})
-                    </div>
+                    class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ $activeTab === 'contacts' ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50' }}">
+                    Contactos ({{ $customer->contacts->count() }})
                 </button>
                 <button wire:click="$set('activeTab', 'notes')"
-                    class="px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ $activeTab === 'notes' ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50' }}">
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                        Historial ({{ $customer->notes->count() }})
-                    </div>
+                    class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ $activeTab === 'notes' ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50' }}">
+                    Interacciones ({{ $customer->notes->count() }})
+                </button>
+                <button wire:click="$set('activeTab', 'history')"
+                    class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ $activeTab === 'history' ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50' }}">
+                    Historial comercial
+                </button>
+                <button wire:click="$set('activeTab', 'activities')"
+                    class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ $activeTab === 'activities' ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50' }}">
+                    Agenda CRM
+                </button>
+                <button wire:click="$set('activeTab', 'segment')"
+                    class="px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 {{ $activeTab === 'segment' ? 'bg-white text-indigo-600 shadow-md ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50' }}">
+                    Segmentación
                 </button>
             </div>
 
@@ -314,6 +320,208 @@
                     @endforelse
                 </div>
             @endif
+
+            {{-- Tab Historial comercial --}}
+            @if($activeTab === 'history')
+                {{-- Stats rápidos --}}
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                    <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+                        <p class="text-lg font-bold text-indigo-600">${{ number_format($commercialStats['total_invoiced'], 0) }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Total facturado</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+                        <p class="text-lg font-bold text-gray-700">{{ $commercialStats['total_orders'] }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Órdenes de venta</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+                        <p class="text-lg font-bold text-gray-700">{{ $commercialStats['total_quotes'] }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Cotizaciones</p>
+                    </div>
+                    <div class="bg-white rounded-xl border border-gray-200 p-3 text-center">
+                        <p class="text-lg font-bold {{ $commercialStats['pending_invoices'] > 0 ? 'text-amber-600' : 'text-gray-400' }}">{{ $commercialStats['pending_invoices'] }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">Facturas pendientes</p>
+                    </div>
+                </div>
+
+                {{-- Cotizaciones --}}
+                <div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Cotizaciones recientes</h3>
+                    @forelse($quotations as $q)
+                        <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">{{ $q->folio ?? 'COT-' . $q->id }}</p>
+                                <p class="text-xs text-gray-400">{{ $q->created_at->format('d/m/Y') }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <p class="text-sm font-medium text-gray-700">${{ number_format($q->total ?? 0, 0) }}</p>
+                                <span class="inline-flex px-2 py-0.5 text-xs rounded-lg border bg-gray-100 text-gray-600 border-gray-200">
+                                    {{ $q->status ?? '—' }}
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-xs text-gray-400 text-center py-3">Sin cotizaciones.</p>
+                    @endforelse
+                </div>
+
+                {{-- Órdenes --}}
+                <div class="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Órdenes de venta recientes</h3>
+                    @forelse($orders as $o)
+                        <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">{{ $o->folio ?? 'OV-' . $o->id }}</p>
+                                <p class="text-xs text-gray-400">{{ $o->created_at->format('d/m/Y') }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <p class="text-sm font-medium text-gray-700">${{ number_format($o->total ?? 0, 0) }}</p>
+                                <span class="inline-flex px-2 py-0.5 text-xs rounded-lg border bg-gray-100 text-gray-600 border-gray-200">
+                                    {{ $o->status ?? '—' }}
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-xs text-gray-400 text-center py-3">Sin órdenes de venta.</p>
+                    @endforelse
+                </div>
+
+                {{-- Facturas --}}
+                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                    <h3 class="text-sm font-medium text-gray-700 mb-3">Facturas recientes</h3>
+                    @forelse($invoices as $inv)
+                        <div class="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
+                            <div>
+                                <p class="text-sm font-medium text-gray-800">{{ $inv->folio ?? 'FAC-' . $inv->id }}</p>
+                                <p class="text-xs text-gray-400">{{ $inv->created_at->format('d/m/Y') }}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <p class="text-sm font-medium text-gray-700">${{ number_format($inv->total ?? 0, 0) }}</p>
+                                <span class="inline-flex px-2 py-0.5 text-xs rounded-lg border bg-gray-100 text-gray-600 border-gray-200">
+                                    {{ $inv->status ?? '—' }}
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-xs text-gray-400 text-center py-3">Sin facturas.</p>
+                    @endforelse
+                </div>
+            @endif
+
+            {{-- Tab Agenda CRM --}}
+            @if($activeTab === 'activities')
+                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-gray-700">Actividades CRM</h3>
+                        <a wire:navigate href="{{ route('sales.crm.agenda') }}"
+                            class="text-xs text-indigo-600 hover:underline">Ver agenda completa →</a>
+                    </div>
+                    <div class="space-y-3">
+                        @forelse($activities as $act)
+                            <div class="flex gap-3 p-3 rounded-xl {{ $act->status === 'completed' ? 'bg-gray-50 opacity-70' : ($act->isOverdue() ? 'bg-amber-50 border border-amber-100' : 'border border-gray-100') }}">
+                                <div class="text-lg mt-0.5 shrink-0">{{ \App\Models\CrmActivity::TYPE_ICONS[$act->type] ?? '📋' }}</div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 {{ $act->status === 'completed' ? 'line-through' : '' }}">{{ $act->title }}</p>
+                                    <p class="text-xs text-gray-400 mt-0.5">
+                                        {{ \App\Models\CrmActivity::TYPES[$act->type] ?? $act->type }}
+                                        · {{ $act->scheduled_at?->format('d/m/Y H:i') ?? '—' }}
+                                        · <span class="inline-flex px-1.5 py-0.5 rounded text-xs {{ \App\Models\CrmActivity::STATUS_COLORS[$act->status] ?? '' }}">{{ \App\Models\CrmActivity::STATUSES[$act->status] ?? $act->status }}</span>
+                                    </p>
+                                    @if($act->outcome) <p class="text-xs text-gray-500 mt-0.5 italic">{{ $act->outcome }}</p> @endif
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-400 text-center py-4">Sin actividades CRM registradas.</p>
+                        @endforelse
+                    </div>
+                </div>
+            @endif
+
+            {{-- Tab Segmentación --}}
+            @if($activeTab === 'segment')
+                <div class="bg-white rounded-xl border border-gray-200 p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-medium text-gray-700">Segmentación del cliente</h3>
+                        @if(!$editingSegment)
+                            <button wire:click="$set('editingSegment', true)" class="text-xs text-indigo-600 hover:underline">Editar</button>
+                        @endif
+                    </div>
+
+                    @if($editingSegment)
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Segmento</label>
+                                    <select wire:model="segment" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                        <option value="">— Sin segmento —</option>
+                                        @foreach(\App\Models\Customer::SEGMENTS as $k => $v)
+                                            <option value="{{ $k }}">{{ $v }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Categoría</label>
+                                    <select wire:model="customer_category" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                        <option value="">— Sin categoría —</option>
+                                        @foreach(\App\Models\Customer::CATEGORIES as $k => $v)
+                                            <option value="{{ $k }}">{{ $v }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Zona / Región</label>
+                                    <input wire:model="zone" type="text" placeholder="Ej: Norte, CDMX, Zona Bajío"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-500 mb-1">Ingreso anual estimado ($)</label>
+                                    <input wire:model="annual_revenue" type="number" step="0.01" min="0"
+                                        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button wire:click="saveSegmentation" type="button"
+                                    class="px-4 py-2 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium">
+                                    Guardar
+                                </button>
+                                <button wire:click="$set('editingSegment', false)" type="button"
+                                    class="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50">Cancelar</button>
+                            </div>
+                        </div>
+                    @else
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-gray-400">Segmento</p>
+                                <p class="text-sm font-medium text-gray-800 mt-0.5">
+                                    @if($customer->segment)
+                                        <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                            {{ \App\Models\Customer::SEGMENTS[$customer->segment] ?? $customer->segment }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400">Sin asignar</span>
+                                    @endif
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400">Categoría</p>
+                                <p class="text-sm text-gray-700 mt-0.5">
+                                    {{ \App\Models\Customer::CATEGORIES[$customer->customer_category] ?? ($customer->customer_category ? $customer->customer_category : '—') }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400">Zona / Región</p>
+                                <p class="text-sm text-gray-700 mt-0.5">{{ $customer->zone ?? '—' }}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-400">Ingreso anual estimado</p>
+                                <p class="text-sm font-medium text-gray-800 mt-0.5">
+                                    {{ $customer->annual_revenue ? '$' . number_format($customer->annual_revenue, 0) : '—' }}
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
         </div>
     </div>
 </div>

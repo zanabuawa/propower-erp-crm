@@ -67,7 +67,18 @@
 
     {{-- Tabs --}}
     <div class="flex flex-wrap gap-1 mb-5 bg-white rounded-xl border border-slate-200 p-1.5">
-        @foreach(['info' => 'Información', 'contracts' => 'Contratos', 'projects' => 'Proyectos', 'leaves' => 'Permisos', 'incidents' => 'Incidencias', 'evaluations' => 'Evaluaciones', 'payroll' => 'Nóminas'] as $tab => $label)
+        @foreach([
+            'info' => 'Información',
+            'contracts' => 'Contratos',
+            'education' => 'Educación',
+            'training' => 'Capacitación',
+            'documents' => 'Documentos',
+            'projects' => 'Proyectos',
+            'leaves' => 'Permisos',
+            'incidents' => 'Incidencias',
+            'evaluations' => 'Evaluaciones',
+            'payroll' => 'Nóminas'
+        ] as $tab => $label)
         <button wire:click="setTab('{{ $tab }}')"
                 class="px-3 py-1.5 text-sm rounded-lg transition-colors
                        {{ $activeTab === $tab ? 'bg-indigo-600 text-white font-medium' : 'text-slate-600 hover:bg-slate-100' }}">
@@ -93,6 +104,20 @@
             <h3 class="text-sm font-semibold text-slate-700 mb-4">Datos laborales</h3>
             <dl class="space-y-3 text-sm">
                 <div class="flex justify-between"><dt class="text-slate-500">Tipo contrato</dt><dd class="text-slate-700">{{ \App\Models\HrEmployee::CONTRACT_TYPES[$employee->contract_type] ?? $employee->contract_type }}</dd></div>
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">Clasificación</dt>
+                    <dd class="text-slate-700">
+                        @if($employee->is_external)
+                            <span class="px-2 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px] font-bold">EXTERNO</span>
+                        @else
+                            <span class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-bold">INTERNO</span>
+                        @endif
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">Jefe directo</dt>
+                    <dd class="text-slate-700">{{ $employee->supervisor?->full_name ?? '—' }}</dd>
+                </div>
                 <div class="flex justify-between"><dt class="text-slate-500">Salario</dt><dd class="text-slate-700 font-medium">$ {{ number_format($employee->salary, 2) }} / {{ \App\Models\HrEmployee::SALARY_PERIODS[$employee->salary_period] ?? $employee->salary_period }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">Salario diario</dt><dd class="text-slate-700">$ {{ number_format($employee->daily_salary, 2) }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">Turno</dt><dd class="text-slate-700">{{ \App\Models\HrEmployee::WORK_SHIFTS[$employee->work_shift] ?? '—' }}</dd></div>
@@ -324,4 +349,112 @@
         </div>
     </div>
     @endif
+
+    {{-- Tab: Educación --}}
+    @if($activeTab === 'education')
+    <div class="bg-white rounded-xl border border-slate-200">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-sm font-semibold text-slate-700">Historial Académico</h3>
+            <button wire:click="$dispatchTo('h-r.employee-expedient', 'openExpedientModal', { type: 'education' })"
+                    class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded">
+                + AGREGAR
+            </button>
+        </div>
+        <div class="divide-y divide-slate-100">
+            @forelse($employee->education as $edu)
+            <div class="px-4 py-3 flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-sm font-medium text-slate-700">{{ $edu->degree }} - {{ $edu->field_of_study }}</p>
+                    <p class="text-xs text-slate-500">{{ $edu->institution }}</p>
+                    <p class="text-xs text-slate-400">
+                        {{ $edu->start_date?->format('Y') ?? '?' }} - {{ $edu->is_completed ? ($edu->end_date?->format('Y') ?? 'Finalizado') : 'En curso' }}
+                    </p>
+                </div>
+                @if($edu->certificate_path)
+                <a href="{{ Storage::url($edu->certificate_path) }}" target="_blank" class="text-xs text-indigo-600 hover:underline">Ver Certificado</a>
+                @endif
+            </div>
+            @empty
+            <div class="px-4 py-8 text-center text-sm text-slate-400">Sin registros académicos</div>
+            @endforelse
+        </div>
+    </div>
+    @endif
+
+    {{-- Tab: Capacitación --}}
+    @if($activeTab === 'training')
+    <div class="bg-white rounded-xl border border-slate-200">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-sm font-semibold text-slate-700">Historial de Capacitación</h3>
+            <button wire:click="$dispatchTo('h-r.employee-expedient', 'openExpedientModal', { type: 'training' })"
+                    class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded">
+                + REGISTRAR
+            </button>
+        </div>
+        <div class="divide-y divide-slate-100">
+            @forelse($employee->trainings as $training)
+            <div class="px-4 py-3 flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-sm font-medium text-slate-700">{{ $training->course->name }}</p>
+                    <p class="text-xs text-slate-500">{{ $training->course->provider }} · {{ $training->course->duration_hours }} hrs</p>
+                    <p class="text-xs text-slate-400">Completado: {{ $training->completion_date?->format('d/m/Y') ?? '—' }}</p>
+                    @if($training->expiry_date)
+                    <p class="text-xs {{ $training->expiry_date->isPast() ? 'text-red-500 font-bold' : 'text-orange-500' }}">
+                        Vence: {{ $training->expiry_date->format('d/m/Y') }}
+                    </p>
+                    @endif
+                </div>
+                <div class="text-right">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700 uppercase">{{ $training->status }}</span>
+                    @if($training->certificate_path)
+                    <div class="mt-2 text-xs text-indigo-600 hover:underline">
+                        <a href="{{ Storage::url($training->certificate_path) }}" target="_blank">Certificado / DC3</a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="px-4 py-8 text-center text-sm text-slate-400">Sin capacitaciones registradas</div>
+            @endforelse
+        </div>
+    </div>
+    @endif
+
+    {{-- Tab: Documentos --}}
+    @if($activeTab === 'documents')
+    <div class="bg-white rounded-xl border border-slate-200">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-sm font-semibold text-slate-700">Expediente Digital (Adjuntos)</h3>
+            <button wire:click="$dispatchTo('h-r.employee-expedient', 'openExpedientModal', { type: 'document' })"
+                    class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded">
+                + SUBIR DOCUMENTO
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+            @forelse($employee->documents as $doc)
+            <div class="p-3 border border-slate-100 rounded-lg bg-slate-50 flex items-start gap-3">
+                <div class="w-10 h-10 rounded bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-medium text-slate-700 truncate">{{ $doc->document_type }}</p>
+                    @if($doc->expiry_date)
+                    <p class="text-[10px] {{ $doc->expiry_date->isPast() ? 'text-red-500 font-bold' : 'text-slate-400' }}">
+                        Vence: {{ $doc->expiry_date->format('d/m/Y') }}
+                    </p>
+                    @endif
+                    <div class="mt-2 flex gap-2">
+                        <a href="{{ Storage::url($doc->file_path) }}" target="_blank" class="text-xs text-indigo-600 hover:underline font-medium">Ver</a>
+                        <a href="{{ Storage::url($doc->file_path) }}" download class="text-xs text-slate-500 hover:underline">Descargar</a>
+                    </div>
+                </div>
+            </div>
+            @empty
+            <div class="col-span-full py-8 text-center text-sm text-slate-400">Sin documentos digitales cargados</div>
+            @endforelse
+        </div>
+    </div>
+    @endif
+
+    <livewire:h-r.employee-expedient :employee="$employee" />
 </div>

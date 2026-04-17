@@ -149,6 +149,24 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Jefe Directo</label>
+                    <select wire:model="supervisor_id"
+                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        <option value="">Ninguno (Es jefe)</option>
+                        @foreach($supervisors as $sup)
+                            <option value="{{ $sup->id }}">{{ $sup->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Clasificación</label>
+                    <select wire:model="is_external"
+                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        <option value="0">Personal Interno</option>
+                        <option value="1">Personal Externo (Outsourcing/Contratista)</option>
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Fecha de ingreso <span class="text-red-500">*</span></label>
                     <input wire:model="hire_date" type="date" required
                            class="w-full px-3 py-2 text-sm border @error('hire_date') border-red-300 @else border-slate-200 @enderror rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">

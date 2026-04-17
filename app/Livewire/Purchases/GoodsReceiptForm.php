@@ -13,6 +13,7 @@ use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\StockMovementItem;
 use App\Models\Warehouse;
+use App\Notifications\PurchaseNotification;
 use App\Services\FifoStockService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -49,6 +50,9 @@ class GoodsReceiptForm extends Component
 
     // Modal de confirmación
     public bool    $showConfirmModal  = false;
+
+    // Alertas de varianza de precio (producto => [prev, new, pct])
+    public array   $priceWarnings     = [];
 
     public function mount(): void
     {
@@ -130,17 +134,21 @@ class GoodsReceiptForm extends Component
             $product = $orderItem->product;
 
             $this->items[] = [
-                'order_item_id'    => $orderItem->id,
-                'movement_item_id' => null,
-                'product_id'       => $orderItem->product_id,
-                'product_name'     => $orderItem->description,
-                'sku'              => $product?->sku ?? '',
-                'quantity'         => $pending,
-                'purchase_price'   => (float) $orderItem->unit_price,
-                'profit_margin'    => (float) ($product?->profit_margin ?? 0),
-                'operational_cost' => (float) ($product?->operational_costs ?? 0),
-                'received'         => true,
-                'notes'            => '',
+                'order_item_id'      => $orderItem->id,
+                'movement_item_id'   => null,
+                'product_id'         => $orderItem->product_id,
+                'product_name'       => $orderItem->description,
+                'sku'                => $product?->sku ?? '',
+                'quantity'           => $pending,
+                'quantity_ordered'   => (float) $orderItem->quantity,
+                'purchase_price'     => (float) $orderItem->unit_price,
+                'prev_purchase_price'=> (float) ($product?->purchase_price ?? $orderItem->unit_price),
+                'profit_margin'      => (float) ($product?->profit_margin ?? 0),
+                'operational_cost'   => (float) ($product?->operational_costs ?? 0),
+                'received'           => true,
+                'notes'              => '',
+                'quantity_rejected'  => 0,
+                'rejection_reason'   => '',
             ];
             $existingIds[] = $orderItem->product_id;
             $loaded++;
@@ -291,17 +299,21 @@ class GoodsReceiptForm extends Component
         if (!$product) return;
 
         $this->items[] = [
-            'order_item_id'    => null,
-            'movement_item_id' => null,
-            'product_id'       => $product->id,
-            'product_name'     => $product->name,
-            'sku'              => $product->sku ?? '',
-            'quantity'         => 1,
-            'purchase_price'   => (float) $product->purchase_price,
-            'profit_margin'    => (float) $product->profit_margin,
-            'operational_cost' => (float) $product->operational_costs,
-            'received'         => true,
-            'notes'            => '',
+            'order_item_id'       => null,
+            'movement_item_id'    => null,
+            'product_id'          => $product->id,
+            'product_name'        => $product->name,
+            'sku'                 => $product->sku ?? '',
+            'quantity'            => 1,
+            'quantity_ordered'    => 0,
+            'purchase_price'      => (float) $product->purchase_price,
+            'prev_purchase_price' => (float) $product->purchase_price,
+            'profit_margin'       => (float) $product->profit_margin,
+            'operational_cost'    => (float) $product->operational_costs,
+            'received'            => true,
+            'notes'               => '',
+            'quantity_rejected'   => 0,
+            'rejection_reason'    => '',
         ];
 
         $this->productSearch  = '';
@@ -319,12 +331,35 @@ class GoodsReceiptForm extends Component
     public function confirm(): void
     {
         $this->validate($this->validationRules());
+        $this->priceWarnings = $this->detectPriceWarnings();
         $this->showConfirmModal = true;
     }
 
     public function cancelConfirm(): void
     {
         $this->showConfirmModal = false;
+    }
+
+    private function detectPriceWarnings(): array
+    {
+        $warnings = [];
+        foreach ($this->items as $item) {
+            if (!($item['received'] ?? true)) continue;
+            $prev = (float) ($item['prev_purchase_price'] ?? 0);
+            $new  = (float) ($item['purchase_price'] ?? 0);
+            if ($prev <= 0 || $new <= 0) continue;
+            $pct = round(abs($new - $prev) / $prev * 100, 1);
+            if ($pct >= 3) { // advertir si cambia ≥3%
+                $warnings[] = [
+                    'name'     => $item['product_name'],
+                    'prev'     => $prev,
+                    'new'      => $new,
+                    'pct'      => $pct,
+                    'increase' => $new > $prev,
+                ];
+            }
+        }
+        return $warnings;
     }
 
     private function validationRules(): array
@@ -351,11 +386,13 @@ class GoodsReceiptForm extends Component
         foreach ($this->items as $index => $item) {
             if (!($item['received'] ?? true)) continue;
 
-            $rules["items.{$index}.product_id"] = 'required|exists:products,id';
-            $rules["items.{$index}.quantity"]    = 'required|numeric|min:0.01';
-            $rules["items.{$index}.purchase_price"]   = 'required|numeric|min:0';
-            $rules["items.{$index}.profit_margin"]    = 'required|numeric|min:0|max:999';
-            $rules["items.{$index}.operational_cost"] = 'required|numeric|min:0|max:999';
+            $rules["items.{$index}.product_id"]        = 'required|exists:products,id';
+            $rules["items.{$index}.quantity"]           = 'required|numeric|min:0.01';
+            $rules["items.{$index}.purchase_price"]     = 'required|numeric|min:0';
+            $rules["items.{$index}.profit_margin"]      = 'required|numeric|min:0|max:999';
+            $rules["items.{$index}.operational_cost"]   = 'required|numeric|min:0|max:999';
+            $rules["items.{$index}.quantity_rejected"]  = 'nullable|numeric|min:0';
+            $rules["items.{$index}.rejection_reason"]   = 'nullable|string';
         }
 
         return $rules;
@@ -493,12 +530,19 @@ class GoodsReceiptForm extends Component
                     'quantity_after'  => $qtyBefore + $qty,
                 ]);
 
+                $qtyRejected      = (float) ($item['quantity_rejected'] ?? 0);
+                $rejectionReason  = $item['rejection_reason'] ?? null;
+
                 $receipt->items()->create([
                     'purchase_order_item_id' => $item['order_item_id'] ?? null,
                     'product_id'             => $productId,
                     'warehouse_id'           => $this->warehouse_id,
                     'quantity_received'      => $qty,
                     'notes'                  => $item['notes'] ?? null,
+                    'quantity_rejected'      => $qtyRejected,
+                    'rejection_reason'       => $qtyRejected > 0 ? ($rejectionReason ?: 'other') : null,
+                    'rejected_by'            => $qtyRejected > 0 ? auth()->id() : null,
+                    'rejected_at'            => $qtyRejected > 0 ? now() : null,
                 ]);
 
                 // Actualizar cantidad recibida en ítem de OC
@@ -557,6 +601,33 @@ class GoodsReceiptForm extends Component
                 }
             }
         });
+
+        // Notificar al creador de la OC si hay faltantes o rechazos
+        if ($this->purchase_order_id) {
+            $order = PurchaseOrder::with('createdBy')->find($this->purchase_order_id);
+            if ($order && $order->createdBy) {
+                $shortfalls = collect($receivedItems)->filter(function ($item) {
+                    $ordered   = (float) ($item['quantity_ordered'] ?? 0);
+                    $received  = (float) ($item['quantity'] ?? 0);
+                    $rejected  = (float) ($item['quantity_rejected'] ?? 0);
+                    return $ordered > 0 && ($received < $ordered || $rejected > 0);
+                });
+
+                if ($shortfalls->count() > 0) {
+                    $lines = $shortfalls->map(fn($i) =>
+                        "- {$i['product_name']}: pedido {$i['quantity_ordered']}, recibido {$i['quantity']}"
+                        . ((float)$i['quantity_rejected'] > 0 ? ", rechazado {$i['quantity_rejected']}" : '')
+                    )->implode("\n");
+
+                    $order->createdBy->notify(new PurchaseNotification(
+                        title: 'Faltantes o rechazos en recepción',
+                        message: "La recepción contiene faltantes o rechazos:\n{$lines}",
+                        type: 'receipt_shortfall',
+                        orderId: $order->id,
+                    ));
+                }
+            }
+        }
 
         $this->showConfirmModal = false;
         session()->flash('success', 'Recepción de mercancías registrada correctamente.');

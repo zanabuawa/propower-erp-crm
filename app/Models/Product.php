@@ -612,7 +612,7 @@ class Product extends Model
         'company_id', 'type', 'category_id', 'subcategory_id', 'unit_of_measure_id', 'supplier_id',
         'name', 'sku', 'sat_product_code', 'sat_unit_code', 'barcode', 'description',
         'brand', 'model', 'color',
-        'purchase_price', 'purchase_price_includes_iva', 'profit_margin', 'operational_costs', 'sale_price',
+        'purchase_price', 'purchase_price_includes_iva', 'profit_margin', 'operational_costs', 'sale_price', 'ieps_rate',
         'min_stock', 'max_stock', 'is_active',
     ];
 

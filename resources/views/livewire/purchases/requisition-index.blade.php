@@ -15,8 +15,8 @@
     <x-alert />
 
     {{-- Filters Toolbar --}}
-    <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-6 shadow-sm">
-        <div class="flex flex-col md:flex-row gap-4">
+    <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-6 shadow-sm space-y-3">
+        <div class="flex flex-col md:flex-row gap-3">
             <div class="relative flex-grow group">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <svg class="w-4 h-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,18 +24,30 @@
                     </svg>
                 </div>
                 <input wire:model.live.debounce.300ms="search" type="text"
-                    placeholder="Buscar por folio, solicitante o justificación..."
+                    placeholder="Buscar por folio, justificación o proyecto..."
                     class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all duration-200 placeholder-gray-400">
             </div>
-            <div class="flex gap-3">
-                <select wire:model.live="filterStatus"
-                    class="min-w-[180px] bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all duration-200 appearance-none cursor-pointer">
-                    <option value="">Todos los estados</option>
-                    @foreach(\App\Models\PurchaseRequisition::STATUS as $key => $label)
-                        <option value="{{ $key }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <select wire:model.live="filterStatus"
+                class="min-w-[170px] bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all duration-200 cursor-pointer">
+                <option value="">Todos los estados</option>
+                @foreach(\App\Models\PurchaseRequisition::STATUS as $key => $label)
+                    <option value="{{ $key }}">{{ $label }}</option>
+                @endforeach
+            </select>
+            <select wire:model.live="filterPriority"
+                class="min-w-[140px] bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all duration-200 cursor-pointer">
+                <option value="">Toda prioridad</option>
+                @foreach(\App\Models\PurchaseRequisition::PRIORITY as $key => $label)
+                    <option value="{{ $key }}">{{ $label }}</option>
+                @endforeach
+            </select>
+            <select wire:model.live="filterType"
+                class="min-w-[160px] bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all duration-200 cursor-pointer">
+                <option value="">Todo tipo</option>
+                @foreach(\App\Models\PurchaseRequisition::REQUISITION_TYPES as $key => $label)
+                    <option value="{{ $key }}">{{ $label }}</option>
+                @endforeach
+            </select>
         </div>
     </div>
 
@@ -76,17 +88,35 @@
                                 if ($hasPending) { $needsAction = true; $actionLabel = 'Autorizar'; }
                             }
                         @endphp
-                        <tr class="group hover:bg-gray-50/80 transition-all duration-200">
+                        <tr class="group hover:bg-gray-50/80 transition-all duration-200
+                            {{ $req->priority === 'urgent' ? 'border-l-2 border-l-red-400' : ($req->priority === 'high' ? 'border-l-2 border-l-amber-400' : '') }}">
                             <td class="px-6 py-5">
                                 <div class="flex flex-col">
-                                    <span class="font-mono text-xs font-bold text-indigo-600 mb-0.5 tracking-tight group-hover:underline">
-                                        {{ $req->folio }}
-                                    </span>
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <span class="font-mono text-xs font-bold text-indigo-600 tracking-tight group-hover:underline">
+                                            {{ $req->folio }}
+                                        </span>
+                                        {{-- Priority badge --}}
+                                        @if($req->priority && $req->priority !== 'normal')
+                                            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold
+                                                {{ \App\Models\PurchaseRequisition::PRIORITY_COLORS[$req->priority] ?? 'bg-gray-100 text-gray-500' }}">
+                                                {{ \App\Models\PurchaseRequisition::PRIORITY[$req->priority] ?? $req->priority }}
+                                            </span>
+                                        @endif
+                                        {{-- Type badge --}}
+                                        @if($req->requisition_type)
+                                            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium
+                                                {{ \App\Models\PurchaseRequisition::REQUISITION_TYPE_COLORS[$req->requisition_type] ?? 'bg-gray-100 text-gray-500' }}">
+                                                {{ \App\Models\PurchaseRequisition::REQUISITION_TYPES[$req->requisition_type] ?? $req->requisition_type }}
+                                            </span>
+                                        @endif
+                                    </div>
                                     <span class="font-semibold text-gray-900">{{ $req->requestedBy->name }}</span>
                                     <span class="text-[10px] text-gray-400 flex items-center gap-1 mt-1">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                         {{ $req->created_at->format('d/m/Y') }}
                                         @if($req->branch) · {{ $req->branch->name }} @endif
+                                        @if($req->project_name) · <span class="text-indigo-400 font-medium">{{ $req->project_name }}</span> @endif
                                     </span>
                                 </div>
                             </td>
@@ -94,7 +124,14 @@
                                 <div class="flex flex-col items-center gap-1 text-center">
                                     <span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-bold rounded-lg">{{ $req->items_count }} partidas</span>
                                     @if($req->needed_by)
-                                        <span class="text-[10px] text-gray-500 font-medium">Requerido: {{ $req->needed_by->format('d/m/Y') }}</span>
+                                        <span class="text-[10px] {{ $req->needed_by->isPast() && !in_array($req->status, ['ordered','cancelled']) ? 'text-red-500 font-semibold' : 'text-gray-500 font-medium' }}">
+                                            Req: {{ $req->needed_by->format('d/m/Y') }}
+                                        </span>
+                                    @endif
+                                    @if($req->expense_type)
+                                        <span class="text-[10px] text-gray-400">
+                                            {{ \App\Models\PurchaseRequisition::EXPENSE_TYPES[$req->expense_type] ?? '' }}
+                                        </span>
                                     @endif
                                 </div>
                             </td>

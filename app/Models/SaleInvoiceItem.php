@@ -9,7 +9,8 @@ class SaleInvoiceItem extends Model
 {
     protected $fillable = [
         'sale_invoice_id', 'product_id', 'description', 'quantity',
-        'unit_price', 'discount_pct', 'discount_amount', 'tax_rate', 'subtotal', 'unit',
+        'unit_price', 'discount_pct', 'discount_amount', 'ieps_rate', 'ieps_amount',
+        'tax_rate', 'subtotal', 'unit',
     ];
 
     protected $casts = [
@@ -17,6 +18,8 @@ class SaleInvoiceItem extends Model
         'unit_price'      => 'decimal:2',
         'discount_pct'    => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'ieps_rate'       => 'decimal:4',
+        'ieps_amount'     => 'decimal:2',
         'tax_rate'        => 'decimal:2',
         'subtotal'        => 'decimal:2',
     ];

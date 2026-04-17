@@ -16,16 +16,21 @@ class EmployeeShow extends Component
 
     public string $activeTab = 'info';
 
+    protected $listeners = ['refreshEmployeeShow' => '$refresh'];
+
     public function mount(HrEmployee $employee): void
     {
         $this->employee = $employee->load([
-            'department', 'position', 'branch',
+            'department', 'position', 'branch', 'supervisor',
             'activeContract', 'contracts',
             'leaves' => fn($q) => $q->latest()->limit(10),
             'incidents' => fn($q) => $q->latest()->limit(10),
             'evaluations' => fn($q) => $q->latest()->limit(5),
             'vacationBalances' => fn($q) => $q->where('year', now()->year),
             'projects',
+            'education' => fn($q) => $q->latest(),
+            'trainings.course',
+            'documents' => fn($q) => $q->latest(),
         ]);
     }
 

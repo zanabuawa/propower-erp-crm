@@ -89,7 +89,28 @@ class Supplier extends Model
     }
 
     public function bankAccounts(): HasMany
-{
-    return $this->hasMany(SupplierBankAccount::class);
-}
+    {
+        return $this->hasMany(SupplierBankAccount::class);
+    }
+
+    public function purchaseOrders(): HasMany
+    {
+        return $this->hasMany(PurchaseOrder::class)->latest();
+    }
+
+    public function purchaseInvoices(): HasMany
+    {
+        return $this->hasMany(PurchaseInvoice::class)->latest();
+    }
+
+    public function evaluations(): HasMany
+    {
+        return $this->hasMany(SupplierEvaluation::class)->latest('evaluated_at');
+    }
+
+    public function getAverageScoreAttribute(): ?float
+    {
+        $avg = $this->evaluations()->avg('score_overall');
+        return $avg ? round((float) $avg, 2) : null;
+    }
 }

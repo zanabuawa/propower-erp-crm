@@ -23,6 +23,7 @@ class EmployeeForm extends Component
     use WithFileUploads;
 
     public ?HrEmployee $employee = null;
+    public ?int $prospect_id = null;
 
     // Identificación
     public string $employee_number = '';
@@ -49,6 +50,8 @@ class EmployeeForm extends Component
     public ?int $department_id = null;
     public ?int $position_id = null;
     public ?int $branch_id = null;
+    public ?int $supervisor_id = null;
+    public bool $is_external = false;
     public string $hire_date = '';
     public string $contract_type = 'indefinido';
     public string $salary = '';
@@ -79,13 +82,16 @@ class EmployeeForm extends Component
 
     public function mount(?HrEmployee $employee = null): void
     {
+        $this->prospect_id = request()->query('prospect_id');
+
         if ($employee && $employee->exists) {
             $this->employee = $employee;
             $this->fill($employee->only([
                 'employee_number','first_name','last_name','second_last_name',
                 'curp','rfc','nss','gender','email','phone',
                 'address','city','state','postal_code',
-                'department_id','position_id','branch_id','contract_type',
+                'department_id','position_id','branch_id','supervisor_id',
+                'is_external','contract_type',
                 'salary','salary_period','work_shift','status',
                 'payment_method','bank','bank_account','clabe',
                 'imss_regime','daily_salary_imss','infonavit_credit',
@@ -97,6 +103,22 @@ class EmployeeForm extends Component
             $this->salary = (string) $employee->salary;
             $this->daily_salary_imss = (string) ($employee->daily_salary_imss ?? '');
             $this->loadPositions();
+        } elseif ($this->prospect_id) {
+            $prospect = \App\Models\HrProspect::findOrFail($this->prospect_id);
+            $this->first_name = $prospect->first_name;
+            $this->last_name = $prospect->last_name;
+            $this->second_last_name = $prospect->second_last_name ?? '';
+            $this->email = $prospect->email ?? '';
+            $this->phone = $prospect->phone ?? '';
+            $this->position_id = $prospect->position_id;
+            
+            if ($this->position_id) {
+                $pos = HrPosition::find($this->position_id);
+                $this->department_id = $pos?->department_id;
+                $this->loadPositions();
+            }
+
+            $this->hire_date = now()->format('Y-m-d');
         } else {
             $this->hire_date = now()->format('Y-m-d');
         }
@@ -157,6 +179,8 @@ class EmployeeForm extends Component
             'department_id'                 => $this->department_id,
             'position_id'                   => $this->position_id,
             'branch_id'                     => $this->branch_id,
+            'supervisor_id'                 => $this->supervisor_id,
+            'is_external'                   => $this->is_external,
             'hire_date'                     => $this->hire_date,
             'contract_type'                 => $this->contract_type,
             'salary'                        => $this->salary,
@@ -185,6 +209,15 @@ class EmployeeForm extends Component
             session()->flash('success', 'Empleado actualizado correctamente.');
         } else {
             $employee = HrEmployee::create($data);
+
+            if ($this->prospect_id) {
+                $prospect = \App\Models\HrProspect::find($this->prospect_id);
+                if ($prospect) {
+                    $prospect->update(['employee_id' => $employee->id]);
+                    $prospect->changeStatus('contratado', 'Candidato contratado. Registro de empleado creado.');
+                }
+            }
+
             $this->createUserForEmployee($employee);
             session()->flash('success', 'Empleado registrado correctamente.');
             $this->redirect(route('hr.employees.show', $employee), navigate: true);
@@ -248,7 +281,12 @@ class EmployeeForm extends Component
     {
         $departments = HrDepartment::where('is_active', true)->orderBy('name')->get();
         $branches    = Branch::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
+        $supervisors = HrEmployee::where('company_id', auth()->user()->company_id)
+            ->where('status', 'active')
+            ->when($this->employee, fn($q) => $q->where('id', '!=', $this->employee->id))
+            ->orderBy('first_name')
+            ->get();
 
-        return view('livewire.hr.employee-form', compact('departments', 'branches'));
+        return view('livewire.hr.employee-form', compact('departments', 'branches', 'supervisors'));
     }
 }

@@ -9,7 +9,9 @@ class SaleQuotationItem extends Model
 {
     protected $fillable = [
         'sale_quotation_id', 'product_id', 'description', 'quantity',
-        'unit_price', 'discount_pct', 'discount_amount', 'tax_rate', 'subtotal', 'unit', 'notes',
+        'unit_price', 'discount_pct', 'discount_amount',
+        'tax_rate', 'ieps_rate', 'ieps_amount',
+        'subtotal', 'unit', 'notes',
     ];
 
     protected $casts = [
@@ -18,6 +20,8 @@ class SaleQuotationItem extends Model
         'discount_pct'    => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'tax_rate'        => 'decimal:2',
+        'ieps_rate'       => 'decimal:4',
+        'ieps_amount'     => 'decimal:2',
         'subtotal'        => 'decimal:2',
     ];
 

@@ -16,12 +16,14 @@ class HrPosition extends Model
 
     protected $fillable = [
         'company_id', 'department_id', 'name', 'code', 'description',
+        'responsibilities', 'requirements', 'authorized_headcount',
         'salary_type', 'min_salary', 'max_salary', 'is_active',
     ];
 
     protected $casts = [
         'min_salary' => 'decimal:2',
         'max_salary' => 'decimal:2',
+        'authorized_headcount' => 'integer',
         'is_active'  => 'boolean',
     ];
 
@@ -43,6 +45,11 @@ class HrPosition extends Model
     public function department(): BelongsTo
     {
         return $this->belongsTo(HrDepartment::class, 'department_id');
+    }
+
+    public function jobOpenings(): HasMany
+    {
+        return $this->hasMany(HrJobOpening::class, 'position_id');
     }
 
     public function employees(): HasMany

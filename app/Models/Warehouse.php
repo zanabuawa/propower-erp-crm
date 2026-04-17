@@ -12,22 +12,27 @@ class Warehouse extends Model
     use BelongsToCompany;
 
     protected $fillable = [
-        'company_id', 'branch_id', 'name', 'code', 'location', 'is_active', 'is_defective',
+        'company_id', 'branch_id', 'name', 'code', 'location', 'is_active', 'is_defective', 'is_transit',
     ];
 
     protected $casts = [
         'is_active'    => 'boolean',
         'is_defective' => 'boolean',
+        'is_transit'   => 'boolean',
     ];
 
     /**
      * Warehouses accessible to a user: own branch + cross-branch if has permission.
+     * Always excludes transit (system) warehouses from regular UI lists.
      *
      * @return \Illuminate\Database\Eloquent\Builder<\App\Models\Warehouse>
      */
     public static function forUser(\App\Models\User $user): \Illuminate\Database\Eloquent\Builder
     {
-        $query = static::query()->where('company_id', $user->company_id)->where('is_active', true);
+        $query = static::query()
+            ->where('company_id', $user->company_id)
+            ->where('is_active', true)
+            ->where('is_transit', false);
 
         try {
             $hasCrossBranch = $user->hasPermissionTo('access other branches warehouses');
@@ -40,6 +45,22 @@ class Warehouse extends Model
         }
 
         return $query;
+    }
+
+    /**
+     * Returns (or creates) the single transit warehouse for the given company.
+     * The transit warehouse holds inventory while it is physically in transit between branches.
+     */
+    public static function transitForCompany(int $companyId): static
+    {
+        return static::firstOrCreate(
+            ['company_id' => $companyId, 'is_transit' => true],
+            [
+                'name'      => 'Almacén de Transferencias',
+                'code'      => 'TRANSIT',
+                'is_active' => true,
+            ]
+        );
     }
 
     public function company(): BelongsTo

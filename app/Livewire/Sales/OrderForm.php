@@ -3,10 +3,13 @@
 namespace App\Livewire\Sales;
 
 use App\Models\Customer;
+use App\Models\DiscountApproval;
 use App\Models\PriceList;
 use App\Models\Product;
 use App\Models\SaleOrder;
 use App\Models\SaleQuotation;
+use App\Models\Stock;
+use App\Models\Warehouse;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -28,10 +31,30 @@ class OrderForm extends Component
     public string $productSearch = '';
     public array $productResults = [];
 
+    public string $approvalNotes   = '';
+    public bool   $needsApproval   = false;
+    public float  $exceedingMaxPct = 0;
+
     public function getSourceLabelProperty(): ?string
     {
         if (!$this->quotation_id) return null;
         return SaleQuotation::find($this->quotation_id)?->folio;
+    }
+
+    private static function blankItem(): array
+    {
+        return [
+            'product_id'       => null,
+            'description'      => '',
+            'quantity'         => 1,
+            'unit_price'       => 0,
+            'discount_pct'     => 0,
+            'tax_rate'         => 16,
+            'ieps_rate'        => 0,
+            'unit'             => '',
+            'min_sale_price'   => 0,
+            'max_discount_pct' => 100,
+        ];
     }
 
     public function mount(): void
@@ -60,6 +83,7 @@ class OrderForm extends Component
                         'unit_price'       => $price,
                         'discount_pct'     => $i->discount_pct,
                         'tax_rate'         => $i->tax_rate,
+                        'ieps_rate'        => (float) ($i->ieps_rate ?? 0),
                         'unit'             => $i->unit ?? '',
                         'min_sale_price'   => $minSalePrice,
                         'max_discount_pct' => $maxDiscPct,
@@ -69,7 +93,7 @@ class OrderForm extends Component
         }
 
         if (empty($this->items)) {
-            $this->items = [['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100]];
+            $this->items = [self::blankItem()];
         }
     }
 
@@ -134,7 +158,8 @@ class OrderForm extends Component
             'unit_price'       => $price,
             'discount_pct'     => 0,
             'tax_rate'         => 16,
-            'unit'             => '',
+            'ieps_rate'        => (float) $product->ieps_rate,
+            'unit'             => $product->unitOfMeasure?->abbreviation ?? '',
             'min_sale_price'   => $minSalePrice,
             'max_discount_pct' => $maxDiscountPct,
         ];
@@ -145,7 +170,7 @@ class OrderForm extends Component
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'description' => '', 'quantity' => 1, 'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16, 'unit' => '', 'min_sale_price' => 0, 'max_discount_pct' => 100];
+        $this->items[] = self::blankItem();
     }
 
     public function removeItem(int $index): void
@@ -161,24 +186,40 @@ class OrderForm extends Component
 
     public function getDiscountProperty(): float
     {
-        $itemDiscount  = collect($this->items)->sum(fn($i) =>
+        $itemDiscount   = collect($this->items)->sum(fn($i) =>
             ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (($i['discount_pct'] ?? 0) / 100)
         );
         $globalDiscount = $this->subtotal * ((float)$this->global_discount / 100);
         return $itemDiscount + $globalDiscount;
     }
 
-    public function getTaxProperty(): float
+    public function getIepsProperty(): float
     {
         return collect($this->items)->sum(function ($i) {
             $base = ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (1 - ($i['discount_pct'] ?? 0) / 100);
-            return $base * (($i['tax_rate'] ?? 0) / 100);
+            return $base * (($i['ieps_rate'] ?? 0) / 100);
+        });
+    }
+
+    public function getTaxProperty(): float
+    {
+        // IVA sobre (base neta + IEPS)
+        return collect($this->items)->sum(function ($i) {
+            $base = ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (1 - ($i['discount_pct'] ?? 0) / 100);
+            $ieps = $base * (($i['ieps_rate'] ?? 0) / 100);
+            return ($base + $ieps) * (($i['tax_rate'] ?? 0) / 100);
         });
     }
 
     public function getTotalProperty(): float
     {
-        return $this->subtotal - $this->discount + $this->tax;
+        return $this->subtotal - $this->discount + $this->ieps + $this->tax;
+    }
+
+    public function getMaxGlobalDiscountProperty(): float
+    {
+        if (empty($this->items)) return 100;
+        return (float) collect($this->items)->min('max_discount_pct') ?? 100;
     }
 
     public function rules(): array
@@ -196,36 +237,55 @@ class OrderForm extends Component
             'items.*.unit_price'   => 'required|numeric|min:0',
             'items.*.discount_pct' => 'required|numeric|min:0|max:100',
             'items.*.tax_rate'     => 'required|numeric|min:0|max:100',
+            'items.*.ieps_rate'    => 'required|numeric|min:0|max:100',
         ];
     }
 
-    public function save(): void
+    private function checkDiscountLimits(): bool
+    {
+        foreach ($this->items as $item) {
+            $minPrice  = (float) ($item['min_sale_price'] ?? 0);
+            $unitPrice = (float) ($item['unit_price'] ?? 0);
+            $discPct   = (float) ($item['discount_pct'] ?? 0);
+            $maxPct    = (float) ($item['max_discount_pct'] ?? 100);
+
+            if ($discPct > $maxPct) {
+                $this->exceedingMaxPct = $maxPct;
+                return true;
+            }
+            if ($minPrice > 0 && $unitPrice > 0) {
+                $finalPrice = $unitPrice * (1 - $discPct / 100);
+                if ($finalPrice < $minPrice) {
+                    $this->exceedingMaxPct = round(max(0, ($unitPrice - $minPrice) / $unitPrice * 100), 2);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public function save(bool $forceApproval = false): void
     {
         $this->validate();
 
-        foreach ($this->items as $index => $item) {
-            $minPrice   = (float) ($item['min_sale_price'] ?? 0);
-            $unitPrice  = (float) ($item['unit_price'] ?? 0);
-            $discPct    = (float) ($item['discount_pct'] ?? 0);
-            $finalPrice = round($unitPrice * (1 - $discPct / 100), 2);
+        $exceedsLimit = $this->checkDiscountLimits();
 
-            if ($minPrice > 0 && $finalPrice < $minPrice) {
-                $maxPct = round(max(0, ($unitPrice - $minPrice) / $unitPrice * 100), 2);
-                $this->addError("items.{$index}.discount_pct",
-                    "Descuento excede el máximo permitido ({$maxPct}%). Precio mínimo: \${$minPrice}."
-                );
-                return;
-            }
+        if ($exceedsLimit && !$forceApproval) {
+            $this->needsApproval = true;
+            return;
         }
 
-        DB::transaction(function () {
+        DB::transaction(function () use ($exceedsLimit) {
+            $companyId = auth()->user()->company_id;
             $folio = 'OV-' . str_pad(
-                SaleOrder::where('company_id', auth()->user()->company_id)->count() + 1,
+                SaleOrder::where('company_id', $companyId)->count() + 1,
                 6, '0', STR_PAD_LEFT
             );
 
+            $approvalStatus = $exceedsLimit ? 'pending' : null;
+
             $order = SaleOrder::create([
-                'company_id'        => auth()->user()->company_id,
+                'company_id'        => $companyId,
                 'branch_id'         => auth()->user()->branch_id,
                 'customer_id'       => $this->customer_id,
                 'sale_quotation_id' => $this->quotation_id,
@@ -234,10 +294,12 @@ class OrderForm extends Component
                 'folio'             => $folio,
                 'currency'          => $this->currency,
                 'status'            => 'confirmed',
+                'approval_status'   => $approvalStatus,
                 'payment_method'    => $this->payment_method,
                 'payment_terms'     => $this->payment_terms,
                 'subtotal'          => $this->subtotal,
                 'discount_amount'   => $this->discount,
+                'ieps'              => $this->ieps,
                 'tax'               => $this->tax,
                 'total'             => $this->total,
                 'notes'             => $this->notes,
@@ -245,28 +307,70 @@ class OrderForm extends Component
             ]);
 
             foreach ($this->items as $item) {
-                $itemSubtotal = $item['quantity'] * $item['unit_price'];
-                $itemDiscount = $itemSubtotal * ($item['discount_pct'] / 100);
+                $base     = $item['quantity'] * $item['unit_price'];
+                $discAmt  = $base * ($item['discount_pct'] / 100);
+                $baseNet  = $base - $discAmt;
+                $iepsAmt  = $baseNet * ($item['ieps_rate'] / 100);
+                $taxAmt   = ($baseNet + $iepsAmt) * ($item['tax_rate'] / 100);
+
                 $order->items()->create([
                     'product_id'      => $item['product_id'],
                     'description'     => $item['description'],
                     'quantity'        => $item['quantity'],
                     'unit_price'      => $item['unit_price'],
                     'discount_pct'    => $item['discount_pct'],
-                    'discount_amount' => $itemDiscount,
+                    'discount_amount' => $discAmt,
+                    'ieps_rate'       => $item['ieps_rate'],
+                    'ieps_amount'     => $iepsAmt,
                     'tax_rate'        => $item['tax_rate'],
-                    'subtotal'        => $itemSubtotal - $itemDiscount,
+                    'subtotal'        => $baseNet + $iepsAmt + $taxAmt,
                     'unit'            => $item['unit'] ?: null,
                 ]);
+            }
+
+            // Comprometer stock
+            $defaultWarehouseId = auth()->user()->branch_id
+                ? Warehouse::where('branch_id', auth()->user()->branch_id)
+                    ->where('is_active', true)->where('is_transit', false)
+                    ->where('is_defective', false)->first()?->id
+                : null;
+
+            if ($defaultWarehouseId) {
+                foreach ($this->items as $item) {
+                    $stock = Stock::firstOrCreate(
+                        ['product_id' => $item['product_id'], 'warehouse_id' => $defaultWarehouseId],
+                        ['quantity' => 0, 'committed_quantity' => 0]
+                    );
+                    $stock->commit((float) $item['quantity']);
+                }
             }
 
             // Marcar cotización como aceptada si viene de una
             if ($this->quotation_id) {
                 SaleQuotation::find($this->quotation_id)?->update(['status' => 'accepted']);
             }
+
+            // Crear solicitud de aprobación de descuento
+            if ($exceedsLimit) {
+                $maxAllowed = collect($this->items)->min('max_discount_pct') ?? 0;
+                $approval = DiscountApproval::create([
+                    'company_id'             => $companyId,
+                    'requester_id'           => auth()->id(),
+                    'model_type'             => SaleOrder::class,
+                    'model_id'               => $order->id,
+                    'status'                 => 'pending',
+                    'requested_discount_pct' => (float) $this->global_discount,
+                    'max_allowed_pct'        => (float) $maxAllowed,
+                    'requester_notes'        => $this->approvalNotes ?: null,
+                ]);
+                $order->update(['approval_id' => $approval->id]);
+            }
         });
 
-        session()->flash('success', 'Orden de venta creada correctamente.');
+        $this->needsApproval = false;
+        session()->flash('success', $exceedsLimit
+            ? 'Orden guardada y enviada a autorización de descuento.'
+            : 'Orden de venta creada correctamente.');
         $this->redirect(route('sales.orders.index'), navigate: true);
     }
 

@@ -2,9 +2,13 @@
 
 namespace App\Livewire\Customers;
 
+use App\Models\CrmActivity;
 use App\Models\Customer;
 use App\Models\CustomerNote;
 use App\Models\CustomerContact;
+use App\Models\SaleInvoice;
+use App\Models\SaleOrder;
+use App\Models\SaleQuotation;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
@@ -14,6 +18,13 @@ class CustomerShow extends Component
 {
     public Customer $customer;
     public string $activeTab = 'info';
+
+    // Segmentation
+    public string $segment          = '';
+    public string $zone             = '';
+    public string $customer_category= '';
+    public string $annual_revenue   = '';
+    public bool   $editingSegment   = false;
 
     // Nota
     public bool $showNoteForm = false;
@@ -38,6 +49,32 @@ class CustomerShow extends Component
         $this->customer = $customer instanceof Customer
             ? $customer
             : Customer::with(['phones', 'emails', 'contacts', 'notes.user', 'assignedTo'])->findOrFail($customer);
+
+        $this->segment           = $this->customer->segment ?? '';
+        $this->zone              = $this->customer->zone ?? '';
+        $this->customer_category = $this->customer->customer_category ?? '';
+        $this->annual_revenue    = $this->customer->annual_revenue ? (string) $this->customer->annual_revenue : '';
+    }
+
+    public function saveSegmentation(): void
+    {
+        $this->validate([
+            'segment'           => 'nullable|in:A,B,C,D',
+            'zone'              => 'nullable|string|max:100',
+            'customer_category' => 'nullable|string|max:50',
+            'annual_revenue'    => 'nullable|numeric|min:0',
+        ]);
+
+        $this->customer->update([
+            'segment'           => $this->segment ?: null,
+            'zone'              => $this->zone ?: null,
+            'customer_category' => $this->customer_category ?: null,
+            'annual_revenue'    => $this->annual_revenue ?: null,
+        ]);
+
+        $this->editingSegment = false;
+        $this->customer->refresh();
+        session()->flash('success', 'Segmentación actualizada.');
     }
 
     public function saveNote(): void
@@ -105,6 +142,27 @@ class CustomerShow extends Component
 
     public function render()
     {
-        return view('livewire.customers.customer-show');
+        $companyId = auth()->user()->company_id;
+
+        $quotations = SaleQuotation::where('customer_id', $this->customer->id)
+            ->orderByDesc('created_at')->limit(10)->get();
+        $orders = SaleOrder::where('customer_id', $this->customer->id)
+            ->orderByDesc('created_at')->limit(10)->get();
+        $invoices = SaleInvoice::where('customer_id', $this->customer->id)
+            ->orderByDesc('created_at')->limit(10)->get();
+        $activities = CrmActivity::where('customer_id', $this->customer->id)
+            ->with(['user', 'assignedTo'])->orderByDesc('scheduled_at')->limit(20)->get();
+
+        $commercialStats = [
+            'total_invoiced'  => SaleInvoice::where('customer_id', $this->customer->id)->sum('total'),
+            'total_orders'    => SaleOrder::where('customer_id', $this->customer->id)->count(),
+            'total_quotes'    => SaleQuotation::where('customer_id', $this->customer->id)->count(),
+            'pending_invoices' => SaleInvoice::where('customer_id', $this->customer->id)
+                ->whereIn('status', ['draft', 'sent'])->count(),
+        ];
+
+        return view('livewire.customers.customer-show', compact(
+            'quotations', 'orders', 'invoices', 'activities', 'commercialStats'
+        ));
     }
 }

@@ -15,7 +15,7 @@ class HrDepartment extends Model
     protected $table = 'hr_departments';
 
     protected $fillable = [
-        'company_id', 'name', 'code', 'description', 'manager_id', 'is_active',
+        'company_id', 'parent_id', 'name', 'code', 'description', 'manager_id', 'is_active',
     ];
 
     protected $casts = [
@@ -27,6 +27,16 @@ class HrDepartment extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(HrDepartment::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(HrDepartment::class, 'parent_id');
     }
 
     public function manager(): BelongsTo
