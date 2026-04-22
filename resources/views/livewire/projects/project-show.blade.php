@@ -14,6 +14,21 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
             Tablero
         </a>
+        <a wire:navigate href="{{ route('projects.gantt', $project) }}"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Gantt
+        </a>
+        <a wire:navigate href="{{ route('projects.budget', $project) }}"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            Presupuesto
+        </a>
+        <a wire:navigate href="{{ route('projects.materials', $project) }}"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            Recursos
+        </a>
         <a wire:navigate href="{{ route('projects.expenses.index', $project) }}"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
@@ -23,6 +38,16 @@
             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             Hitos
+        </a>
+        <a wire:navigate href="{{ route('projects.time-tracking', $project) }}"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Tiempos
+        </a>
+        <a wire:navigate href="{{ route('projects.financial', $project) }}"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm border border-emerald-200 rounded-lg text-emerald-700 hover:bg-emerald-50 transition font-medium">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            Financiero
         </a>
         @can('edit projects')
         <a wire:navigate href="{{ route('projects.edit', $project) }}"
@@ -34,6 +59,44 @@
     </div>
 
     <x-alert />
+
+    {{-- Alertas de presupuesto y plazo --}}
+    @php
+        $budgetPct    = $project->budget > 0 ? ($project->cost_actual / $project->budget) * 100 : 0;
+        $daysLeft     = $project->end_date ? now()->diffInDays($project->end_date, false) : null;
+        $showOverBudget = $budgetPct > 90 && !in_array($project->status, ['completado','cancelado']);
+        $showOverDue    = $daysLeft !== null && $daysLeft < 0 && !in_array($project->status, ['completado','cancelado']);
+        $showNearDue    = $daysLeft !== null && $daysLeft >= 0 && $daysLeft <= 7 && !in_array($project->status, ['completado','cancelado']);
+    @endphp
+    @if($showOverBudget || $showOverDue || $showNearDue)
+    <div class="mb-4 space-y-2">
+        @if($showOverBudget)
+        <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg {{ $budgetPct >= 100 ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-amber-50 border border-amber-200 text-amber-700' }} text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>
+                @if($budgetPct >= 100)
+                    <strong>Presupuesto excedido:</strong> {{ number_format($budgetPct, 1) }}% ejercido
+                    (${{ number_format($project->cost_actual - $project->budget, 2) }} sobre el presupuesto).
+                @else
+                    <strong>Alerta presupuestal:</strong> {{ number_format($budgetPct, 1) }}% del presupuesto ejercido.
+                @endif
+                <a wire:navigate href="{{ route('projects.budget', $project) }}" class="underline ml-1">Ver presupuesto</a>
+            </span>
+        </div>
+        @endif
+        @if($showOverDue)
+        <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><strong>Proyecto vencido:</strong> La fecha de entrega fue {{ $project->end_date->format('d/m/Y') }} ({{ abs($daysLeft) }} días de retraso).</span>
+        </div>
+        @elseif($showNearDue)
+        <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-sm">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><strong>Entrega próxima:</strong> Vence el {{ $project->end_date->format('d/m/Y') }} ({{ $daysLeft }} día{{ $daysLeft != 1 ? 's' : '' }}).</span>
+        </div>
+        @endif
+    </div>
+    @endif
 
     {{-- Resumen --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
@@ -197,11 +260,16 @@
             {{-- Personal asignado --}}
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-                    <h2 class="text-sm font-medium text-gray-700">
-                        Personal
-                        @php $activeCount = $project->employees->where('pivot.is_active', true)->count(); @endphp
-                        ({{ $activeCount }})
-                    </h2>
+                    <div>
+                        <h2 class="text-sm font-medium text-gray-700">
+                            Personal
+                            @php $activeCount = $project->employees->where('pivot.is_active', true)->count(); @endphp
+                            ({{ $activeCount }})
+                        </h2>
+                        @if($labourCost > 0)
+                        <p class="text-xs text-gray-400">MO: ${{ number_format($labourCost, 0) }}</p>
+                        @endif
+                    </div>
                     @can('edit projects')
                     <button wire:click="openEmployeeModal"
                             class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">+ Asignar</button>
@@ -219,9 +287,11 @@
                             <div class="min-w-0">
                                 <a href="{{ route('hr.employees.show', $emp) }}" wire:navigate
                                    class="text-sm text-gray-800 hover:text-indigo-600 truncate block">{{ $emp->full_name }}</a>
-                                @if($emp->pivot->role)
-                                <p class="text-xs text-gray-400 truncate">{{ $emp->pivot->role }}</p>
-                                @endif
+                                <p class="text-xs text-gray-400 truncate">
+                                    {{ $emp->pivot->role ?: '—' }}
+                                    @if($emp->pivot->hours_assigned) · {{ $emp->pivot->hours_assigned }}h @endif
+                                    @if($emp->pivot->cost_per_hour) · ${{ number_format($emp->pivot->cost_per_hour,2) }}/h @endif
+                                </p>
                             </div>
                         </div>
                         @can('edit projects')
@@ -237,6 +307,11 @@
                     <li class="px-5 py-6 text-center text-sm text-gray-400">Sin personal asignado.</li>
                     @endforelse
                 </ul>
+                @if($project->saleOrder)
+                <div class="px-5 py-2 bg-slate-50 border-t border-gray-100">
+                    <p class="text-xs text-slate-500">Pedido: <span class="font-medium text-slate-700">{{ $project->saleOrder->folio }}</span></p>
+                </div>
+                @endif
             </div>
 
         </div>
@@ -247,8 +322,22 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
          wire:click.self="$set('showEmployeeModal', false)">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
-            <h2 class="text-base font-semibold text-gray-800 mb-4">Asignar empleado al proyecto</h2>
+            <h2 class="text-base font-semibold text-gray-800 mb-4">Asignar recurso humano al proyecto</h2>
             <div class="space-y-3">
+
+                {{-- Toggle: interno / externo --}}
+                <div class="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+                    <button type="button" wire:click="$set('isExternal', false)"
+                            class="flex-1 py-2 font-medium transition {{ !$isExternal ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50' }}">
+                        Empleado interno
+                    </button>
+                    <button type="button" wire:click="$set('isExternal', true)"
+                            class="flex-1 py-2 font-medium transition {{ $isExternal ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50' }}">
+                        Contratista externo
+                    </button>
+                </div>
+
+                @if(!$isExternal)
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Empleado <span class="text-red-500">*</span></label>
                     <select wire:model="addEmployeeId"
@@ -260,6 +349,15 @@
                     </select>
                     @error('addEmployeeId') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>
+                @else
+                <div>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Nombre del contratista <span class="text-red-500">*</span></label>
+                    <input wire:model="addExternalName" type="text" placeholder="Nombre completo / empresa..."
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                    @error('addExternalName') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                </div>
+                @endif
+
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Rol en el proyecto</label>
                     <input wire:model="addEmployeeRole" type="text" placeholder="Ej: Supervisor, Operario, Técnico..."
@@ -278,11 +376,25 @@
                         @error('addEmployeeEnd') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Horas asignadas</label>
-                    <input wire:model="addEmployeeHours" type="number" min="0" step="0.5" placeholder="0"
-                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Horas asignadas</label>
+                        <input wire:model="addEmployeeHours" type="number" min="0" step="0.5" placeholder="0"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-600 mb-1">Costo por hora ({{ $project->currency }})</label>
+                        <input wire:model="addEmployeeCostPerHour" type="number" min="0" step="0.01" placeholder="0.00"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        @error('addEmployeeCostPerHour') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
+                @if($addEmployeeHours && $addEmployeeCostPerHour)
+                <div class="bg-indigo-50 rounded-lg px-3 py-2 text-xs text-indigo-700 flex justify-between">
+                    <span>Costo estimado de mano de obra:</span>
+                    <span class="font-bold">{{ $project->currency }} {{ number_format((float)$addEmployeeHours * (float)$addEmployeeCostPerHour, 2) }}</span>
+                </div>
+                @endif
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Notas</label>
                     <textarea wire:model="addEmployeeNotes" rows="2"

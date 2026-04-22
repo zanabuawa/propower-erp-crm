@@ -15,7 +15,7 @@ use Livewire\Attributes\Layout;
 class PurchaseInvoiceShow extends Component
 {
     public PurchaseInvoice $invoice;
-    public string $activeTab = 'match';
+    public string $activeTab = 'payments';
 
     // Pago
     public bool   $showPaymentForm    = false;
@@ -27,21 +27,13 @@ class PurchaseInvoiceShow extends Component
     public array  $financeAccounts    = [];
     public string $paymentError       = '';
 
-    // Aprobación manual
-    public bool   $showApproveModal   = false;
-    public string $approveNote        = '';
-
-    // Confirmación de pago con discrepancias
-    public bool   $bypassMatchBlock   = false;
-
     // Cancelar
     public bool   $showCancelModal    = false;
 
     public function mount(PurchaseInvoice $invoice): void
     {
         $this->invoice = $invoice->load([
-            'items.orderItem.product',
-            'order.receipts.items',
+            'order',
             'supplier',
             'createdBy',
             'payments.financeAccount',
@@ -56,50 +48,6 @@ class PurchaseInvoiceShow extends Component
             ->toArray();
     }
 
-    // ── 3-Way Match ───────────────────────────────────────────────────────
-    public function runMatch(): void
-    {
-        try {
-            $this->invoice->load(['items', 'order.receipts.items']);
-            $this->invoice->runThreeWayMatch();
-            $this->invoice->refresh()->load([
-                'items.orderItem.product',
-                'order.receipts.items',
-                'supplier',
-                'createdBy',
-                'payments.financeAccount',
-            ]);
-            session()->flash('success', 'Cotejo 3-way ejecutado: ' .
-                PurchaseInvoice::MATCH_STATUS[$this->invoice->match_status]);
-        } catch (\Throwable $e) {
-            Log::error('PurchaseInvoiceShow runMatch', ['error' => $e->getMessage()]);
-            session()->flash('error', 'Error en el cotejo: ' . $e->getMessage());
-        }
-    }
-
-    // ── Aprobación manual ─────────────────────────────────────────────────
-    public function approveManually(): void
-    {
-        $this->invoice->update([
-            'status' => $this->invoice->status === 'pending' ? 'approved' : $this->invoice->status,
-            'notes'  => trim(($this->invoice->notes ?? '') . "\n[Aprobada manualmente] " . $this->approveNote),
-        ]);
-
-        // Auto-run 3-way match and then override to 'approved' so payment is unblocked
-        try {
-            $this->invoice->load(['items', 'order.receipts.items']);
-            $this->invoice->runThreeWayMatch();
-            $this->invoice->update(['match_status' => 'approved']);
-        } catch (\Throwable $e) {
-            Log::error('PurchaseInvoiceShow approveManually match', ['error' => $e->getMessage()]);
-        }
-
-        $this->invoice->refresh()->load(['items.orderItem.product', 'supplier', 'createdBy', 'payments.financeAccount']);
-        $this->showApproveModal = false;
-        $this->approveNote      = '';
-        session()->flash('success', 'Factura aprobada manualmente. Cotejo 3-way actualizado.');
-    }
-
     // ── Pago ──────────────────────────────────────────────────────────────
     public function openPaymentForm(): void
     {
@@ -112,12 +60,6 @@ class PurchaseInvoiceShow extends Component
     public function savePayment(): void
     {
         $this->paymentError = '';
-
-        // Block payment when discrepancies exist unless user explicitly confirmed
-        if ($this->invoice->match_status === 'discrepancy' && ! $this->bypassMatchBlock) {
-            $this->paymentError = 'Esta factura tiene discrepancias en el cotejo 3-way. Revisa el cotejo o marca "Pagar de todas formas" para continuar.';
-            return;
-        }
 
         $this->validate([
             'paymentAmount'    => 'required|numeric|min:0.01',
@@ -211,7 +153,7 @@ class PurchaseInvoiceShow extends Component
             $this->showPaymentForm = false;
             $this->reset(['paymentMethod', 'paymentReference', 'paymentNotes', 'paymentAccountId']);
             $this->invoice->refresh()->load([
-                'items.orderItem.product',
+                'order',
                 'supplier',
                 'createdBy',
                 'payments.financeAccount',

@@ -14,7 +14,7 @@ class PurchaseOrder extends Model
     use BelongsToCompany, SoftDeletes;
 
     protected $fillable = [
-        'company_id', 'branch_id', 'supplier_id', 'purchase_requisition_id',
+        'company_id', 'branch_id', 'supplier_id', 'purchase_requisition_id', 'project_id',
         'created_by', 'folio', 'currency', 'status', 'subtotal', 'tax',
         'total', 'paid_amount', 'payment_terms', 'supplier_bank_account_id', 'notes',
         'expected_at', 'required_at',
@@ -81,6 +81,11 @@ class PurchaseOrder extends Model
     public function requisition(): BelongsTo
     {
         return $this->belongsTo(PurchaseRequisition::class, 'purchase_requisition_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function createdBy(): BelongsTo

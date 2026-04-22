@@ -30,6 +30,12 @@ class ContractIndex extends Component
     public string $salary_period = 'monthly';
     public string $work_shift = '';
     public int $work_hours_per_week = 48;
+    // Schedule
+    public string $entry_time = '08:00';
+    public string $exit_time = '17:00';
+    public array $work_days = [1, 2, 3, 4, 5];
+    public float $saturday_hours = 0;
+    public int $tolerance_minutes = 10;
     public string $status = 'draft';
     public string $notes = '';
     // benefits
@@ -42,16 +48,21 @@ class ContractIndex extends Component
     public function openCreate(?int $employeeId = null): void
     {
         $this->reset(['editingId','contract_number','type','end_date','salary','salary_period','work_shift','notes']);
-        $this->employee_id         = $employeeId;
-        $this->type                = 'indefinido';
-        $this->salary_period       = 'monthly';
-        $this->work_hours_per_week = 48;
-        $this->status              = 'draft';
-        $this->start_date          = now()->format('Y-m-d');
-        $this->aguinaldo_days      = 15;
-        $this->vacation_days       = 6;
-        $this->vacation_premium_pct= 25;
-        $this->showModal           = true;
+        $this->employee_id          = $employeeId;
+        $this->type                 = 'indefinido';
+        $this->salary_period        = 'monthly';
+        $this->work_hours_per_week  = 48;
+        $this->status               = 'draft';
+        $this->start_date           = now()->format('Y-m-d');
+        $this->aguinaldo_days       = 15;
+        $this->vacation_days        = 6;
+        $this->vacation_premium_pct = 25;
+        $this->entry_time           = '08:00';
+        $this->exit_time            = '17:00';
+        $this->work_days            = [1, 2, 3, 4, 5];
+        $this->saturday_hours       = 0;
+        $this->tolerance_minutes    = 10;
+        $this->showModal            = true;
     }
 
     public function openEdit(int $id): void
@@ -66,14 +77,19 @@ class ContractIndex extends Component
         $this->end_date         = $c->end_date?->format('Y-m-d') ?? '';
         $this->salary           = (string) $c->salary;
         $this->salary_period    = $c->salary_period;
-        $this->work_shift       = $c->work_shift ?? '';
+        $this->work_shift          = $c->work_shift ?? '';
         $this->work_hours_per_week = $c->work_hours_per_week;
-        $this->status           = $c->status;
-        $this->notes            = $c->notes ?? '';
-        $this->aguinaldo_days   = $benefits['aguinaldo_days'] ?? 15;
-        $this->vacation_days    = $benefits['vacation_days'] ?? 6;
-        $this->vacation_premium_pct = $benefits['vacation_premium_pct'] ?? 25;
-        $this->showModal        = true;
+        $this->entry_time          = $c->entry_time ? substr($c->entry_time, 0, 5) : '08:00';
+        $this->exit_time           = $c->exit_time  ? substr($c->exit_time,  0, 5) : '17:00';
+        $this->work_days           = $c->work_days ?? [1, 2, 3, 4, 5];
+        $this->saturday_hours      = (float) ($c->saturday_hours ?? 0);
+        $this->tolerance_minutes   = $c->tolerance_minutes ?? 10;
+        $this->status              = $c->status;
+        $this->notes               = $c->notes ?? '';
+        $this->aguinaldo_days      = $benefits['aguinaldo_days'] ?? 15;
+        $this->vacation_days       = $benefits['vacation_days'] ?? 6;
+        $this->vacation_premium_pct= $benefits['vacation_premium_pct'] ?? 25;
+        $this->showModal           = true;
     }
 
     public function save(): void
@@ -85,6 +101,10 @@ class ContractIndex extends Component
             'end_date'           => 'nullable|date|after:start_date',
             'salary'             => 'required|numeric|min:0',
             'work_hours_per_week'=> 'required|integer|min:1|max:96',
+            'entry_time'         => 'nullable|date_format:H:i',
+            'exit_time'          => 'nullable|date_format:H:i|after:entry_time',
+            'saturday_hours'     => 'numeric|min:0|max:12',
+            'tolerance_minutes'  => 'integer|min:0|max:60',
         ]);
 
         $data = [
@@ -98,6 +118,11 @@ class ContractIndex extends Component
             'salary_period'       => $this->salary_period,
             'work_shift'          => $this->work_shift ?: null,
             'work_hours_per_week' => $this->work_hours_per_week,
+            'entry_time'          => $this->entry_time ?: null,
+            'exit_time'           => $this->exit_time ?: null,
+            'work_days'           => array_values(array_map('intval', $this->work_days)),
+            'saturday_hours'      => $this->saturday_hours,
+            'tolerance_minutes'   => $this->tolerance_minutes,
             'benefits'            => [
                 'aguinaldo_days'       => $this->aguinaldo_days,
                 'vacation_days'        => $this->vacation_days,

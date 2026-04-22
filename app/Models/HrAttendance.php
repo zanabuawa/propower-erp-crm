@@ -14,16 +14,20 @@ class HrAttendance extends Model
 
     protected $fillable = [
         'company_id', 'employee_id', 'project_id', 'session_id', 'device_id',
-        'raw_log_in_id', 'raw_log_out_id',
+        'raw_log_in_id', 'raw_log_out_id', 'location_id',
         'date', 'check_in', 'check_out',
         'worked_hours', 'overtime_hours', 'status', 'notes', 'metadata', 'recorded_by',
+        'checkin_latitude', 'checkin_longitude', 'location_valid',
     ];
 
     protected $casts = [
-        'date'           => 'date',
-        'worked_hours'   => 'decimal:2',
-        'overtime_hours' => 'decimal:2',
-        'metadata'       => 'array',
+        'date'              => 'date',
+        'worked_hours'      => 'decimal:2',
+        'overtime_hours'    => 'decimal:2',
+        'metadata'          => 'array',
+        'checkin_latitude'  => 'decimal:7',
+        'checkin_longitude' => 'decimal:7',
+        'location_valid'    => 'boolean',
     ];
 
     const STATUSES = [
@@ -81,6 +85,11 @@ class HrAttendance extends Model
     public function recordedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'recorded_by');
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(HrAttendanceLocation::class, 'location_id');
     }
 
     // ── Accessors ──────────────────────────────────────────────────────────────

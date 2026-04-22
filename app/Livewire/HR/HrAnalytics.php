@@ -72,6 +72,14 @@ class HrAnalytics extends Component
             ->get()
             ->pluck('count', 'status');
 
+        $totalAttRecords = $attendanceStats->sum();
+        $punctualityRate = $totalAttRecords > 0
+            ? round(($attendanceStats->get('present', 0) / $totalAttRecords) * 100, 1)
+            : null;
+        $absenteeismRate = $totalAttRecords > 0
+            ? round(($attendanceStats->get('absent', 0) / $totalAttRecords) * 100, 1)
+            : null;
+
         // 6. Performance
         $avgPerformance = HrPerformanceEvaluation::where('company_id', $companyId)
             ->whereYear('evaluation_date', $this->year)
@@ -84,12 +92,43 @@ class HrAnalytics extends Component
             ->get()
             ->pluck('count', 'gender');
 
+        // 8. Top 10 employees by salary cost
+        $topByCost = (clone $empBase)->where('status', 'active')
+            ->with(['position', 'department'])
+            ->orderByDesc('salary')
+            ->limit(10)
+            ->get(['id', 'first_name', 'last_name', 'salary', 'salary_period', 'position_id', 'department_id']);
+
+        // 9. Monthly turnover trend (last 12 months)
+        $turnoverMonths = collect(range(11, 0))->map(fn($i) => now()->subMonths($i));
+        $termByMonth = HrEmployee::where('company_id', $companyId)
+            ->whereNotNull('termination_date')
+            ->whereDate('termination_date', '>=', now()->subMonths(11)->startOfMonth())
+            ->when($this->branchId, fn($q) => $q->where('branch_id', $this->branchId))
+            ->selectRaw("DATE_FORMAT(termination_date, '%Y-%m') as ym, count(*) as total")
+            ->groupBy('ym')
+            ->pluck('total', 'ym');
+        $hiresByMonth = HrEmployee::where('company_id', $companyId)
+            ->whereDate('hire_date', '>=', now()->subMonths(11)->startOfMonth())
+            ->when($this->branchId, fn($q) => $q->where('branch_id', $this->branchId))
+            ->selectRaw("DATE_FORMAT(hire_date, '%Y-%m') as ym, count(*) as total")
+            ->groupBy('ym')
+            ->pluck('total', 'ym');
+
+        $turnoverTrend = [
+            'labels' => $turnoverMonths->map(fn($m) => $m->translatedFormat('M y'))->values()->toArray(),
+            'terms'  => $turnoverMonths->map(fn($m) => (int)($termByMonth[$m->format('Y-m')] ?? 0))->values()->toArray(),
+            'hires'  => $turnoverMonths->map(fn($m) => (int)($hiresByMonth[$m->format('Y-m')] ?? 0))->values()->toArray(),
+        ];
+
         $branches = Branch::where('company_id', $companyId)->get();
 
         return view('livewire.hr.hr-analytics', compact(
             'activeCount', 'inactiveCount', 'terminatedThisYear', 'turnoverRate',
             'avgSeniority', 'monthlyCost', 'costsByDept', 'attendanceStats',
-            'avgPerformance', 'genderDist', 'branches'
+            'punctualityRate', 'absenteeismRate',
+            'avgPerformance', 'genderDist', 'branches',
+            'topByCost', 'turnoverTrend'
         ));
     }
 }

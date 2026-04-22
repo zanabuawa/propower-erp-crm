@@ -112,7 +112,7 @@ class OrderForm extends Component
         // Si el precio de obtención ya incluye IVA, no se agrega IVA adicional en compras
         $taxRate = $product->purchase_price_includes_iva ? 0 : 16;
 
-        $this->items[] = [
+        $newItem = [
             'product_id'  => $product->id,
             'supplier_id' => $product->supplier_id ?? null,
             'description' => $product->name,
@@ -121,6 +121,17 @@ class OrderForm extends Component
             'tax_rate'    => $taxRate,
             'unit'        => '',
         ];
+
+        // Buscar si hay una partida vacía para reemplazarla
+        $emptyIndex = collect($this->items)->search(function($item) {
+            return empty($item['product_id']) && (empty($item['description']) || $item['description'] === '');
+        });
+
+        if ($emptyIndex !== false) {
+            $this->items[$emptyIndex] = $newItem;
+        } else {
+            $this->items[] = $newItem;
+        }
 
         $this->productSearch  = '';
         $this->productResults = [];

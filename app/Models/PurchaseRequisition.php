@@ -14,7 +14,7 @@ class PurchaseRequisition extends Model
     use BelongsToCompany, SoftDeletes;
 
     protected $fillable = [
-        'company_id', 'branch_id', 'requested_by', 'reviewed_by', 'rejected_by',
+        'company_id', 'branch_id', 'project_id', 'requested_by', 'reviewed_by', 'rejected_by',
         'folio', 'currency', 'requisition_type', 'priority', 'expense_type', 'project_name',
         'status', 'justification',
         'quote_response', 'quoted_amount', 'needed_by', 'quoted_at',

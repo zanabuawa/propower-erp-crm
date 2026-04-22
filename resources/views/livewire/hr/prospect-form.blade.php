@@ -65,6 +65,16 @@
             <h3 class="text-sm font-semibold text-slate-700 mb-4 pb-3 border-b border-slate-100">Detalles de la aplicación</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Vacante</label>
+                    <select wire:model.live="job_opening_id"
+                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        <option value="">Sin vacante específica</option>
+                        @foreach($jobOpenings as $jo)
+                            <option value="{{ $jo->id }}">{{ $jo->title }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Puesto al que aplica</label>
                     <select wire:model="position_id"
                             class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">

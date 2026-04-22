@@ -17,6 +17,7 @@ class PurchaseInvoice extends Model
         'subtotal', 'discount_amount', 'tax', 'total', 'paid_amount',
         'status', 'match_status', 'notes',
         'issued_at', 'received_at', 'due_at', 'paid_at',
+        'xml_path', 'pdf_path',
     ];
 
     protected $casts = [

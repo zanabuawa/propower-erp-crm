@@ -1,663 +1,537 @@
-<div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center gap-3 mb-6 lg:mb-8">
-        <a wire:navigate href="{{ route('inventory.index') }}" 
-           class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
-            </svg>
-        </a>
-        <h1 class="text-xl sm:text-2xl font-semibold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-            {{ $product?->exists ? 'Editar ' . ($product->type === 'service' ? 'servicio' : 'producto') : 'Nuevo producto / servicio' }}
-        </h1>
-    </div>
-
-    <form wire:submit="save" class="space-y-5 lg:space-y-6">
-
-        {{-- ── Tipo ─────────────────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3 lg:mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-                </svg>
-                Tipo
-            </h2>
-            <div class="flex flex-col sm:flex-row gap-3 lg:gap-4">
-                <label class="flex-1 cursor-pointer group">
-                    <input wire:model.live="type" type="radio" value="product" class="sr-only peer">
-                    <div class="flex items-center gap-3 border-2 rounded-xl px-3 lg:px-4 py-2 lg:py-3 transition-all duration-200
-                        peer-checked:border-indigo-500 peer-checked:bg-indigo-50 peer-checked:shadow-sm
-                        border-gray-200 hover:border-indigo-300 group-hover:shadow-md">
-                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-indigo-100 flex items-center justify-center shrink-0 transition-all group-hover:scale-105">
-                            <svg class="w-4 h-4 lg:w-5 lg:h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-gray-800">Producto</p>
-                            <p class="text-xs text-gray-400 hidden sm:block">Artículo físico con inventario</p>
-                        </div>
-                    </div>
-                </label>
-                <label class="flex-1 cursor-pointer group">
-                    <input wire:model.live="type" type="radio" value="service" class="sr-only peer">
-                    <div class="flex items-center gap-3 border-2 rounded-xl px-3 lg:px-4 py-2 lg:py-3 transition-all duration-200
-                        peer-checked:border-violet-500 peer-checked:bg-violet-50 peer-checked:shadow-sm
-                        border-gray-200 hover:border-violet-300 group-hover:shadow-md">
-                        <div class="w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl bg-violet-100 flex items-center justify-center shrink-0 transition-all group-hover:scale-105">
-                            <svg class="w-4 h-4 lg:w-5 lg:h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-gray-800">Servicio</p>
-                            <p class="text-xs text-gray-400 hidden sm:block">Servicio ofrecido por la empresa</p>
-                        </div>
-                    </div>
-                </label>
-            </div>
-        </div>
-
-        {{-- ── Información general ──────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3 lg:mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Información general
-            </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
-
-                <div class="lg:col-span-2 xl:col-span-3 2xl:col-span-4">
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre *</label>
-                    <input wire:model.live="name" type="text"
-                        placeholder="{{ $type === 'service' ? 'Ej. Instalación eléctrica, Consultoría…' : 'Ej. Cable coaxial RG6…' }}"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                    @error('name') <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Categoría --}}
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-medium text-gray-600">Categoría</label>
-                        <button type="button" wire:click="$set('showCategoryModal', true)"
-                            class="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Nueva
-                        </button>
-                    </div>
-                    <select wire:model.live="category_id"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:border-indigo-300">
-                        <option value="">— Sin categoría —</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Subcategoría --}}
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-medium text-gray-600">Subcategoría</label>
-                        @if($category_id)
-                        <button type="button" wire:click="$set('showSubcategoryModal', true)"
-                            class="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Nueva
-                        </button>
-                        @endif
-                    </div>
-                    <select wire:model="subcategory_id"
-                        @if($subcategories->isEmpty()) disabled @endif
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed">
-                        <option value="">{{ $subcategories->isEmpty() ? '— Selecciona una categoría —' : '— Sin subcategoría —' }}</option>
-                        @foreach($subcategories as $sub)
-                            <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                {{-- Proveedor (solo productos) --}}
-                @if($type === 'product')
-                <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label class="text-xs font-medium text-gray-600">Proveedor</label>
-                        <button type="button" wire:click="$set('showSupplierModal', true)"
-                            class="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            Nuevo
-                        </button>
-                    </div>
-                    <select wire:model="supplier_id"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer hover:border-indigo-300">
-                        <option value="">— Sin proveedor —</option>
-                        @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                @endif
-
-                {{-- Marca / Modelo / Color (solo productos) --}}
-                @if($type === 'product')
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Marca</label>
-                    <input wire:model="brand" type="text" placeholder="Ej. Samsung, Bosch…"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Modelo</label>
-                    <input wire:model="model" type="text" placeholder="Ej. Galaxy S24…"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Color</label>
-                    <input wire:model="color" type="text" placeholder="Ej. Negro, RAL 5015…"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                </div>
-                @endif
-
-                <div class="lg:col-span-2 xl:col-span-3 2xl:col-span-4">
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Descripción</label>
-                    <textarea wire:model="description" rows="3"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"></textarea>
-                </div>
-            </div>
-        </div>
-
-        {{-- ── Identificadores ──────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3 lg:mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20h10M5 8h14M5 4h14M5 12h14M5 16h10"/>
-                </svg>
-                Identificadores
-            </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">SKU</label>
-                    <div class="flex gap-2">
-                        <input wire:model.live="sku" type="text"
-                            class="flex-1 border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                            placeholder="Auto-generado al escribir nombre">
-                        <button type="button" wire:click="regenerateSku"
-                            class="px-3 lg:px-4 py-2 lg:py-2.5 text-xs font-medium border border-gray-200 rounded-lg lg:rounded-xl hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all whitespace-nowrap">
-                            Regenerar
-                        </button>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1.5">Se genera automáticamente (mín. 3 caracteres)</p>
-                    @error('sku') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-                </div>
-                @if($type === 'product')
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Código de barras</label>
-                    <div class="flex gap-2">
-                        <input wire:model="barcode" type="text"
-                            class="flex-1 border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm font-mono text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                            placeholder="EAN-13">
-                        <button type="button" wire:click="regenerateBarcode"
-                            class="px-3 lg:px-4 py-2 lg:py-2.5 text-xs font-medium border border-gray-200 rounded-lg lg:rounded-xl hover:bg-gray-50 hover:border-gray-300 text-gray-600 transition-all whitespace-nowrap">
-                            Regenerar
-                        </button>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1.5">EAN-13 generado automáticamente</p>
-                </div>
-                @endif
-            </div>
-        </div>
-
-        {{-- ── Códigos SAT (CFDI) ───────────────────────────────────────────── --}}
-        @php
-            $satProductList = collect(\App\Models\Product::SAT_PRODUCT_CODES)
-                ->map(fn($label, $code) => ['code' => $code, 'label' => $label])
-                ->values();
-            $satUnitList = collect(\App\Models\Product::SAT_UNIT_CODES)
-                ->map(fn($label, $code) => ['code' => $code, 'label' => $label])
-                ->values();
-        @endphp
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3 lg:mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Códigos SAT (CFDI)
-            </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
-
-                {{-- Clave de producto / servicio --}}
-                <div x-data="{
-                        open: false,
-                        search: '',
-                        value: $wire.entangle('sat_product_code'),
-                        items: {{ $satProductList->toJson() }},
-                        get filtered() {
-                            const q = this.search.trim().toLowerCase();
-                            if (!q) return this.items;
-                            return this.items.filter(i => i.label.toLowerCase().includes(q) || i.code.includes(q));
-                        },
-                        get selectedLabel() {
-                            if (!this.value) return null;
-                            const f = this.items.find(i => i.code === this.value);
-                            return f ? f.label : this.value;
-                        },
-                        select(code) { this.value = code; this.open = false; this.search = ''; }
-                    }"
-                    @click.outside="open = false"
-                    x-effect="if (open) $nextTick(() => $refs.satProdSearch?.focus())"
-                    class="relative">
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Clave de producto/servicio</label>
-                    <button type="button" @click="open = !open"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-left flex items-center justify-between gap-2 hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white"
-                        :class="open ? 'ring-2 ring-indigo-500 border-transparent' : ''">
-                        <span class="truncate" :class="value ? 'text-gray-700' : 'text-gray-400'"
-                            x-text="selectedLabel ?? '— Seleccionar —'"></span>
-                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-150"
-                            :class="open ? 'rotate-180' : ''"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-
-                    <div x-show="open"
-                        x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
-                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                        x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
-                        class="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                        <div class="p-2 border-b border-gray-100">
-                            <div class="relative">
-                                <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                                <input x-ref="satProdSearch" x-model="search" type="text"
-                                    placeholder="Buscar código o descripción..."
-                                    class="w-full pl-7 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    @click.stop @keydown.escape="open = false">
-                            </div>
-                        </div>
-                        <div class="max-h-56 overflow-y-auto">
-                            <button type="button" @click="select('')"
-                                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
-                                :class="!value ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-400'">
-                                — Seleccionar —
-                            </button>
-                            <template x-for="item in filtered" :key="item.code">
-                                <button type="button" @click="select(item.code)"
-                                    class="w-full text-left px-3 py-2 text-xs hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
-                                    :class="value === item.code ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700'">
-                                    <span x-text="item.label"></span>
-                                </button>
-                            </template>
-                            <p x-show="filtered.length === 0"
-                                class="px-3 py-4 text-sm text-gray-400 text-center">
-                                Sin resultados para "<span x-text="search"></span>"
-                            </p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1.5">ClaveProdServ del SAT requerida para CFDI</p>
-                    @error('sat_product_code') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-                </div>
-
-                {{-- Clave de unidad --}}
-                <div x-data="{
-                        open: false,
-                        search: '',
-                        value: $wire.entangle('sat_unit_code'),
-                        items: {{ $satUnitList->toJson() }},
-                        get filtered() {
-                            const q = this.search.trim().toLowerCase();
-                            if (!q) return this.items;
-                            return this.items.filter(i => i.label.toLowerCase().includes(q) || i.code.toLowerCase().includes(q));
-                        },
-                        get selectedLabel() {
-                            if (!this.value) return null;
-                            const f = this.items.find(i => i.code === this.value);
-                            return f ? f.label : this.value;
-                        },
-                        select(code) { this.value = code; this.open = false; this.search = ''; }
-                    }"
-                    @click.outside="open = false"
-                    x-effect="if (open) $nextTick(() => $refs.satUnitSearch?.focus())"
-                    class="relative">
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Clave de unidad</label>
-                    <button type="button" @click="open = !open"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-left flex items-center justify-between gap-2 hover:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white"
-                        :class="open ? 'ring-2 ring-indigo-500 border-transparent' : ''">
-                        <span class="truncate" :class="value ? 'text-gray-700' : 'text-gray-400'"
-                            x-text="selectedLabel ?? '— Seleccionar —'"></span>
-                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-150"
-                            :class="open ? 'rotate-180' : ''"
-                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </button>
-
-                    <div x-show="open"
-                        x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="opacity-0 -translate-y-1 scale-95"
-                        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                        x-transition:leave-end="opacity-0 -translate-y-1 scale-95"
-                        class="absolute z-30 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                        <div class="p-2 border-b border-gray-100">
-                            <div class="relative">
-                                <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                </svg>
-                                <input x-ref="satUnitSearch" x-model="search" type="text"
-                                    placeholder="Buscar clave o nombre de unidad..."
-                                    class="w-full pl-7 pr-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                    @click.stop @keydown.escape="open = false">
-                            </div>
-                        </div>
-                        <div class="max-h-56 overflow-y-auto">
-                            <button type="button" @click="select('')"
-                                class="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
-                                :class="!value ? 'bg-indigo-50 text-indigo-600 font-medium' : 'text-gray-400'">
-                                — Seleccionar —
-                            </button>
-                            <template x-for="item in filtered" :key="item.code">
-                                <button type="button" @click="select(item.code)"
-                                    class="w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
-                                    :class="value === item.code ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700'">
-                                    <span x-text="item.label"></span>
-                                </button>
-                            </template>
-                            <p x-show="filtered.length === 0"
-                                class="px-3 py-4 text-sm text-gray-400 text-center">
-                                Sin resultados para "<span x-text="search"></span>"
-                            </p>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1.5">ClaveUnidad del SAT requerida para CFDI</p>
-                    @error('sat_unit_code') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-                </div>
-
-            </div>
-        </div>
-
-        {{-- ── Precios ───────────────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3 lg:mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Precios y margen
-            </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">
-                        {{ $type === 'service' ? 'Costo del servicio *' : 'Precio de obtención *' }}
-                    </label>
-                    <div class="relative">
-                        <span class="absolute left-3 lg:left-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
-                        <input wire:model.live="purchase_price" type="number" step="0.01" min="0"
-                            class="w-full border border-gray-200 rounded-lg lg:rounded-xl pl-7 lg:pl-8 pr-3 lg:pr-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                    </div>
-                    @error('purchase_price') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-                    <label class="flex items-center gap-2 mt-2 cursor-pointer select-none w-fit">
-                        <input wire:model="purchase_price_includes_iva" type="checkbox"
-                            class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
-                        <span class="text-xs text-gray-600">IVA incluido en el precio <span class="text-gray-400">(16%)</span></span>
-                    </label>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Margen de utilidad *</label>
-                    <div class="relative">
-                        <input wire:model.live="profit_margin" type="number" step="0.01" min="10" max="999"
-                            placeholder="10"
-                            class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 pr-7 lg:pr-8 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                            @blur="const v = parseFloat($el.value); if (isNaN(v) || v < 10) { $el.value = 10; $wire.set('profit_margin', '10'); }">
-                        <span class="absolute right-3 lg:right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>
-                    </div>
-                    @error('profit_margin') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-                </div>
-            </div>
-            <div class="mt-4 lg:mt-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg lg:rounded-xl border border-gray-200 p-4 lg:p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5">
-                <div class="text-center">
-                    <p class="text-xs font-medium text-gray-500 mb-1.5">Precio de venta</p>
-                    <p class="text-xl lg:text-2xl font-bold text-indigo-600">${{ number_format($this->normalSalePrice, 2) }}</p>
-                    <p class="text-xs text-gray-400 mt-1">costo × (1 + {{ number_format((float)$profit_margin, 2) }}%)</p>
-                </div>
-                <div class="text-center">
-                    <p class="text-xs font-medium text-gray-500 mb-1.5">{{ $type === 'service' ? 'Notas' : 'Gastos de operación' }}</p>
-                    <p class="text-xs lg:text-sm text-gray-600">
-                        {{ $type === 'service' ? 'El precio puede ajustarse por cotización' : 'Se asignan en recepción de mercancías' }}
+<div class="min-h-screen bg-slate-50/50 -m-4 lg:-m-6">
+    {{-- ── STICKY HEADER ────────────────────────────────────────────────── --}}
+    <div class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between gap-4 max-w-full mx-auto">
+            <div class="flex items-center gap-3 min-w-0">
+                <a wire:navigate href="{{ route('inventory.index') }}" 
+                   class="group flex items-center justify-center w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-sm transition-all duration-200">
+                    <svg class="w-5 h-5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 truncate">
+                        {{ $product?->exists ? 'Editar ' . ($product->type === 'service' ? 'servicio' : 'producto') : 'Nuevo producto / servicio' }}
+                    </h1>
+                    <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">
+                        {{ $product?->exists ? 'ID: ' . $product->id : 'Registro de nuevo catálogo' }}
                     </p>
                 </div>
             </div>
-        </div>
 
-        {{-- ── Control de stock (solo productos) ───────────────────────────── --}}
-        @if($type === 'product')
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3 lg:mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                </svg>
-                Control de stock
-            </h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 lg:gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Stock mínimo</label>
-                    <input wire:model="min_stock" type="number" step="0.01" min="0"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                    <p class="text-xs text-gray-400 mt-1.5">Alerta cuando el stock baje de este nivel</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Stock máximo</label>
-                    <input wire:model="max_stock" type="number" step="0.01" min="0"
-                        class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
-                    <p class="text-xs text-gray-400 mt-1.5">Nivel máximo recomendado de inventario</p>
-                </div>
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <a wire:navigate href="{{ route('inventory.index') }}"
+                    class="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition-colors">
+                    Cancelar
+                </a>
+                <button type="button" wire:click="save"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>{{ $product?->exists ? 'Guardar cambios' : 'Crear registro' }}</span>
+                </button>
             </div>
         </div>
-        @endif
+    </div>
 
-        {{-- ── Imágenes ──────────────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <h2 class="text-sm font-semibold text-gray-700 mb-3 lg:mb-4 flex items-center gap-2">
-                <svg class="w-4 h-4 {{ $type === 'service' ? 'text-violet-500' : 'text-indigo-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                {{ $type === 'service' ? 'Imagen del servicio' : 'Imágenes del producto' }}
-            </h2>
-            @if(count($existingImages) > 0)
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4 mb-4 lg:mb-5">
-                    @foreach($existingImages as $image)
-                        <div class="relative group">
-                            <img src="{{ Storage::url($image['path']) }}"
-                                class="w-full aspect-square object-cover rounded-lg lg:rounded-xl border-2 {{ $image['is_primary'] ? ($type === 'service' ? 'border-violet-500 shadow-lg shadow-violet-100' : 'border-indigo-500 shadow-lg shadow-indigo-100') : 'border-gray-200' }} transition-all group-hover:shadow-md">
-                            <div class="absolute inset-0 bg-black/50 rounded-lg lg:rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-2">
-                                @if(!$image['is_primary'])
-                                    <button type="button" wire:click="setPrimaryImage({{ $image['id'] }})"
-                                        class="text-xs bg-white text-gray-700 px-2 py-1 rounded-lg font-medium hover:bg-gray-100 transition">Principal</button>
-                                @endif
-                                <button type="button" wire:click="removeExistingImage({{ $image['id'] }})"
-                                    class="text-xs bg-red-500 text-white px-2 py-1 rounded-lg font-medium hover:bg-red-600 transition">Quitar</button>
+    <div class="max-w-full mx-auto p-4 sm:p-6 lg:p-8">
+        <form wire:submit="save" class="grid grid-cols-1 xl:grid-cols-12 gap-6 lg:gap-8">
+
+            {{-- ── COLUMNA IZQUIERDA: Principal (8 cols) ────────────────────── --}}
+            <div class="xl:col-span-8 space-y-6 lg:space-y-8">
+                
+                {{-- Card: Tipo y Nombre --}}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div class="p-6 lg:p-8 space-y-8">
+                        {{-- Selector de Tipo --}}
+                        <div class="space-y-4">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tipo de registro</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <label class="relative cursor-pointer group">
+                                    <input wire:model.live="type" type="radio" value="product" class="sr-only peer">
+                                    <div class="flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-100 transition-all duration-300 peer-checked:border-indigo-500 peer-checked:bg-indigo-50/30 group-hover:border-slate-200">
+                                        <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                                            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">Producto</p>
+                                            <p class="text-xs text-slate-400">Bien físico tangible</p>
+                                        </div>
+                                        <div class="absolute top-4 right-4 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                            <div class="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center shadow-sm">
+                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer group">
+                                    <input wire:model.live="type" type="radio" value="service" class="sr-only peer">
+                                    <div class="flex items-center gap-4 p-4 rounded-2xl border-2 border-slate-100 transition-all duration-300 peer-checked:border-violet-500 peer-checked:bg-violet-50/30 group-hover:border-slate-200">
+                                        <div class="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center shrink-0 transition-transform group-hover:scale-110">
+                                            <svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-slate-800">Servicio</p>
+                                            <p class="text-xs text-slate-400">Actividad o labor</p>
+                                        </div>
+                                        <div class="absolute top-4 right-4 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                            <div class="w-5 h-5 rounded-full bg-violet-600 flex items-center justify-center shadow-sm">
+                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
-                            @if($image['is_primary'])
-                                <span class="absolute top-2 left-2 text-xs {{ $type === 'service' ? 'bg-violet-500' : 'bg-indigo-500' }} text-white px-2 py-0.5 rounded-lg shadow-sm">Principal</span>
+                        </div>
+
+                        {{-- Nombre y Descripción --}}
+                        <div class="space-y-6">
+                            <div class="relative group">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-indigo-500 transition-colors">Nombre completo *</label>
+                                <input wire:model.live="name" type="text"
+                                    placeholder="{{ $type === 'service' ? 'Ej. Instalación de Redes, Consultoría Especializada...' : 'Ej. Cable Coaxial RG6 Premium, Kit de Herramientas...' }}"
+                                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-lg font-semibold text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 transition-all">
+                                @error('name') <p class="text-xs text-rose-500 mt-2 font-medium flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="relative group">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2 group-focus-within:text-indigo-500 transition-colors">Descripción detallada</label>
+                                <textarea wire:model="description" rows="4"
+                                    placeholder="Detalla las especificaciones, características técnicas o alcances..."
+                                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Card: Clasificación y Detalles Técnicos --}}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30">
+                        <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Clasificación y Atributos</h2>
+                    </div>
+                    <div class="p-6 lg:p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        
+                        <div class="space-y-6">
+                            {{-- Categoría --}}
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-slate-600">Categoría principal</label>
+                                    <button type="button" wire:click="$set('showCategoryModal', true)"
+                                        class="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">+ Nueva</button>
+                                </div>
+                                <div class="relative">
+                                    <select wire:model.live="category_id"
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20 cursor-pointer appearance-none pr-10" style="-webkit-appearance: none; -moz-appearance: none;">
+                                        <option value="">— Sin categoría —</option>
+                                        @foreach($categories as $cat)
+                                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Subcategoría --}}
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-slate-600">Subcategoría</label>
+                                    @if($category_id)
+                                    <button type="button" wire:click="$set('showSubcategoryModal', true)"
+                                        class="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">+ Nueva</button>
+                                    @endif
+                                </div>
+                                <div class="relative">
+                                    <select wire:model="subcategory_id"
+                                        @if($subcategories->isEmpty()) disabled @endif
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed appearance-none pr-10" style="-webkit-appearance: none; -moz-appearance: none;">
+                                        <option value="">{{ $subcategories->isEmpty() ? '— Selecciona una categoría —' : '— Sin subcategoría —' }}</option>
+                                        @foreach($subcategories as $sub)
+                                            <option value="{{ $sub->id }}">{{ $sub->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-6">
+                            @if($type === 'product')
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-600">Marca</label>
+                                        <input wire:model="brand" type="text" placeholder="Ej. Bosch"
+                                            class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs font-bold text-slate-600">Modelo</label>
+                                        <input wire:model="model" type="text" placeholder="Ej. Pro-2024"
+                                            class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-600">Color / Variante</label>
+                                    <input wire:model="color" type="text" placeholder="Ej. Azul Industrial, RAL 7035..."
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+                                </div>
+                            @endif
+
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-xs font-bold text-slate-600">Proveedor preferente</label>
+                                    <button type="button" wire:click="$set('showSupplierModal', true)"
+                                        class="text-[10px] font-bold text-indigo-600 hover:text-indigo-700 uppercase tracking-wider">+ Nuevo</button>
+                                </div>
+                                <div class="relative">
+                                    <select wire:model="supplier_id"
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-indigo-500/20 appearance-none pr-10" style="-webkit-appearance: none; -moz-appearance: none;">
+                                        <option value="">— Sin proveedor —</option>
+                                        @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Card: Precios y Fiscal --}}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
+                        <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Precios y Configuración Fiscal</h2>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-slate-400">IVA (16%)</span>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input wire:model="purchase_price_includes_iva" type="checkbox" class="sr-only peer">
+                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="p-6 lg:p-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-600">{{ $type === 'service' ? 'Costo base *' : 'Precio de compra *' }}</label>
+                                <div class="relative group">
+                                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+                                    <input wire:model.live="purchase_price" type="number" step="0.01"
+                                        class="w-full bg-slate-50 border-none rounded-xl pl-8 pr-4 py-3 text-lg font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20">
+                                </div>
+                                @error('purchase_price') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-600">Margen de utilidad *</label>
+                                <div class="relative">
+                                    <input wire:model.live="profit_margin" type="number" step="0.1"
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
+                                </div>
+                                @error('profit_margin') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="bg-indigo-600 rounded-2xl p-4 text-white shadow-lg shadow-indigo-200">
+                                <p class="text-[10px] font-bold uppercase tracking-widest opacity-80">Precio sugerido de venta</p>
+                                <div class="flex items-baseline gap-1 mt-1">
+                                    <span class="text-sm font-bold opacity-80">$</span>
+                                    <span class="text-2xl font-black">{{ number_format($this->normalSalePrice, 2) }}</span>
+                                </div>
+                                <p class="text-[9px] mt-2 font-medium opacity-70 italic">* Basado en costo + margen seleccionado</p>
+                            </div>
+                        </div>
+
+                        {{-- Códigos SAT --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10 pt-8 border-t border-slate-100">
+                            {{-- SAT Producto --}}
+                            @php
+                                $satProductList = collect(\App\Models\Product::SAT_PRODUCT_CODES)->map(fn($l,$c)=>['code'=>$c,'label'=>$l])->values();
+                                $satUnitList = collect(\App\Models\Product::SAT_UNIT_CODES)->map(fn($l,$c)=>['code'=>$c,'label'=>$l])->values();
+                            @endphp
+                            
+                            <div class="space-y-2" x-data="{ open: false, search: '', value: $wire.entangle('sat_product_code'), items: {{ $satProductList->toJson() }} }">
+                                <label class="text-xs font-bold text-slate-600">Clave SAT (Prod/Serv)</label>
+                                <div class="relative">
+                                    <button type="button" @click="open = !open" 
+                                        class="w-full bg-slate-50 text-left border-none rounded-xl px-4 py-3 text-sm text-slate-700 flex items-center justify-between">
+                                        <span class="truncate" x-text="items.find(i => i.code === value)?.label || 'Seleccionar clave...'"></span>
+                                        <svg class="w-4 h-4 text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                    <div x-show="open" @click.outside="open = false" class="absolute z-40 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+                                        <div class="p-3 border-b border-slate-50">
+                                            <input x-model="search" type="text" placeholder="Buscar clave..." class="w-full bg-slate-50 border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500/30">
+                                        </div>
+                                        <div class="max-h-60 overflow-y-auto">
+                                            <template x-for="item in items.filter(i => i.label.toLowerCase().includes(search.toLowerCase()) || i.code.includes(search))" :key="item.code">
+                                                <button type="button" @click="value = item.code; open = false" class="w-full text-left px-4 py-2.5 text-xs hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0" :class="value === item.code ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600'">
+                                                    <span x-text="item.label"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- SAT Unidad --}}
+                            <div class="space-y-2" x-data="{ open: false, search: '', value: $wire.entangle('sat_unit_code'), items: {{ $satUnitList->toJson() }} }">
+                                <label class="text-xs font-bold text-slate-600">Clave SAT (Unidad)</label>
+                                <div class="relative">
+                                    <button type="button" @click="open = !open" 
+                                        class="w-full bg-slate-50 text-left border-none rounded-xl px-4 py-3 text-sm text-slate-700 flex items-center justify-between">
+                                        <span class="truncate" x-text="items.find(i => i.code === value)?.label || 'Seleccionar unidad...'"></span>
+                                        <svg class="w-4 h-4 text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
+                                    <div x-show="open" @click.outside="open = false" class="absolute z-40 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+                                        <div class="p-3 border-b border-slate-50">
+                                            <input x-model="search" type="text" placeholder="Buscar unidad..." class="w-full bg-slate-50 border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500/30">
+                                        </div>
+                                        <div class="max-h-60 overflow-y-auto">
+                                            <template x-for="item in items.filter(i => i.label.toLowerCase().includes(search.toLowerCase()) || i.code.includes(search))" :key="item.code">
+                                                <button type="button" @click="value = item.code; open = false" class="w-full text-left px-4 py-2.5 text-xs hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0" :class="value === item.code ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600'">
+                                                    <span x-text="item.label"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- ── COLUMNA DERECHA: Identificadores y Control (4 cols) ────────── --}}
+            <div class="xl:col-span-4 space-y-6 lg:space-y-8">
+                
+                {{-- Card: Identificadores --}}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div class="p-6 lg:p-8 space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">SKU / Referencia Interna</label>
+                            <div class="flex gap-2">
+                                <input wire:model.live="sku" type="text"
+                                    class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-mono font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20"
+                                    placeholder="Auto-generado">
+                                <button type="button" wire:click="regenerateSku"
+                                    class="w-11 h-11 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500 hover:bg-indigo-100 hover:text-indigo-600 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                            </div>
+                            @error('sku') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
+                        </div>
+
+                        @if($type === 'product')
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Código de Barras (EAN-13)</label>
+                            <div class="flex gap-2">
+                                <input wire:model="barcode" type="text"
+                                    class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-mono font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20"
+                                    placeholder="0000000000000">
+                                <button type="button" wire:click="regenerateBarcode"
+                                    class="w-11 h-11 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500 hover:bg-indigo-100 hover:text-indigo-600 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Card: Multimedia --}}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30">
+                        <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Multimedia</h2>
+                    </div>
+                    <div class="p-6 lg:p-8 space-y-6">
+                        @if(count($existingImages) > 0)
+                            <div class="grid grid-cols-2 gap-3">
+                                @foreach($existingImages as $image)
+                                    <div class="relative aspect-square group rounded-2xl overflow-hidden border border-slate-100 shadow-sm">
+                                        <img src="{{ Storage::url($image['path']) }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                        <div class="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 px-2">
+                                            @if(!$image['is_primary'])
+                                                <button type="button" wire:click="setPrimaryImage({{ $image['id'] }})" class="p-2 bg-white/20 hover:bg-white/40 text-white rounded-xl backdrop-blur-sm transition-colors" title="Marcar como principal">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                </button>
+                                            @endif
+                                            <button type="button" wire:click="removeExistingImage({{ $image['id'] }})" class="p-2 bg-rose-500/80 hover:bg-rose-600 text-white rounded-xl backdrop-blur-sm transition-colors" title="Eliminar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        </div>
+                                        @if($image['is_primary'])
+                                            <div class="absolute top-2 left-2 bg-indigo-600 text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-widest">Principal</div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <div class="relative group">
+                            <label class="flex flex-col items-center justify-center w-full aspect-[4/3] rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-indigo-50/30 hover:border-indigo-200 transition-all cursor-pointer group">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <div class="w-12 h-12 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-600">Subir {{ $type === 'service' ? 'imagen' : 'imágenes' }}</p>
+                                    <p class="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">JPG, PNG hasta 2MB</p>
+                                </div>
+                                <input @if($type === 'service') wire:model="serviceImage" @else wire:model="images" multiple @endif type="file" class="hidden">
+                            </label>
+                            @if(is_object($serviceImage) || (is_array($images) && count($images) > 0))
+                                <div class="mt-2 p-2 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Archivos listos para subir</span>
+                                </div>
                             @endif
                         </div>
-                    @endforeach
+                    </div>
                 </div>
-            @endif
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">
-                    @if($type === 'service')
-                        {{ count($existingImages) > 0 ? 'Reemplazar imagen' : 'Imagen representativa del servicio' }}
-                    @else
-                        {{ count($existingImages) > 0 ? 'Agregar más imágenes' : 'Imágenes del producto' }}
-                    @endif
-                </label>
-                @if($type === 'service')
-                    <input wire:model="serviceImage" type="file" accept="image/*"
-                        class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg lg:file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100 transition-all cursor-pointer">
-                @else
-                    <input wire:model="images" type="file" accept="image/*" multiple
-                        class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg lg:file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 transition-all cursor-pointer">
-                @endif
-                <p class="text-xs text-gray-400 mt-1.5">
-                    {{ $type === 'service' ? 'Logotipo o imagen representativa del servicio.' : 'Puedes seleccionar múltiples imágenes. La primera será la principal.' }}
-                </p>
+
+                {{-- Card: Stock y Estado --}}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div class="p-6 lg:p-8 space-y-8">
+                        @if($type === 'product')
+                        <div class="space-y-4">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Límites de Inventario</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-600">Mínimo</label>
+                                    <input wire:model="min_stock" type="number" step="0.1"
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-600">Máximo</label>
+                                    <input wire:model="max_stock" type="number" step="0.1"
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20">
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <div class="pt-6 border-t border-slate-100 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-bold text-slate-800">Estado de disponibilidad</p>
+                                <p class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">{{ $is_active ? 'Visible en operaciones' : 'Registro inactivo' }}</p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input wire:model="is_active" type="checkbox" class="sr-only peer">
+                                <div class="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div>
 
-        {{-- ── Estado ───────────────────────────────────────────────────────── --}}
-        <div class="bg-white rounded-xl lg:rounded-2xl border border-gray-200 p-4 lg:p-6 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <label class="flex items-center gap-3 cursor-pointer group">
-                <input wire:model="is_active" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-                <div>
-                    <p class="text-sm font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">Activo</p>
-                    <p class="text-xs text-gray-400">Los registros inactivos no aparecerán en ventas ni compras</p>
-                </div>
-            </label>
-        </div>
-
-        {{-- ── Botones de acción con contenedor transparente ─────────────────── --}}
-        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pb-6 lg:pb-8 mt-4 lg:mt-6">
-            <a wire:navigate href="{{ route('inventory.index') }}"
-                class="px-4 lg:px-6 py-2 lg:py-2.5 text-sm font-medium border border-gray-300 hover:border-gray-400 rounded-lg lg:rounded-xl transition-all text-center text-gray-700 hover:bg-gray-50">
-                Cancelar
-            </a>
-            <button type="submit"
-                class="px-4 lg:px-6 py-2 lg:py-2.5 text-sm font-semibold {{ $type === 'service' ? 'bg-violet-600 hover:bg-violet-700' : 'bg-indigo-600 hover:bg-indigo-700' }} text-white rounded-lg lg:rounded-xl transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-[1.02]">
-                {{ $product?->exists ? 'Guardar cambios' : ($type === 'service' ? 'Crear servicio' : 'Crear producto') }}
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
 
     {{-- ═══════════════════════════════════════════════════
-         MODALES CREAR AL VUELO
+         MODALES UIX PRO MAX
     ═══════════════════════════════════════════════════ --}}
 
-    {{-- Modal: Nueva categoría --}}
-    @if($showCategoryModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-         x-data x-on:keydown.escape.window="$wire.set('showCategoryModal', false)">
-        <div class="bg-white rounded-xl lg:rounded-2xl shadow-2xl w-full max-w-md p-5 lg:p-6 space-y-4 lg:space-y-5" @click.stop>
-            <div class="flex items-center justify-between">
-                <h3 class="text-base lg:text-lg font-semibold text-gray-900">Nueva categoría</h3>
-                <button type="button" wire:click="$set('showCategoryModal', false)" 
-                    class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre *</label>
-                <input wire:model="newCategoryName" type="text" autofocus
-                    class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="Ej. Electrónica, Ferretería…">
-                @error('newCategoryName') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Color</label>
-                <div class="flex items-center gap-3">
-                    <input wire:model="newCategoryColor" type="color"
-                        class="h-8 lg:h-9 w-14 lg:w-16 rounded-lg border border-gray-200 cursor-pointer p-1">
-                    <span class="text-xs text-gray-500 font-mono">{{ $newCategoryColor }}</span>
+    @if($showCategoryModal || $showSubcategoryModal || $showSupplierModal)
+    <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6 bg-slate-900/60 backdrop-blur-sm"
+         x-data x-on:keydown.escape.window="$wire.set('showCategoryModal', false); $wire.set('showSubcategoryModal', false); $wire.set('showSupplierModal', false);">
+        
+        {{-- Modal Content --}}
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-white/20 animate-in fade-in zoom-in duration-300" @click.stop>
+            
+            {{-- Modal Header --}}
+            <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-slate-800">
+                        @if($showCategoryModal) Nueva Categoría @elseif($showSubcategoryModal) Nueva Subcategoría @else Nuevo Proveedor @endif
+                    </h3>
+                    <p class="text-xs text-slate-400 font-medium mt-1">Completa los datos esenciales para continuar</p>
                 </div>
+                <button type="button" @click="$wire.set('showCategoryModal', false); $wire.set('showSubcategoryModal', false); $wire.set('showSupplierModal', false);" 
+                    class="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm border border-slate-200 text-slate-400 hover:text-rose-500 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
-            <div class="flex gap-3 pt-2">
-                <button type="button" wire:click="saveCategory"
-                    class="flex-1 px-4 py-2 lg:py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg lg:rounded-xl transition-all">
-                    Crear categoría
-                </button>
-                <button type="button" wire:click="$set('showCategoryModal', false)"
-                    class="px-4 py-2 lg:py-2.5 text-sm font-medium border border-gray-200 rounded-lg lg:rounded-xl hover:bg-gray-50 transition-all">
-                    Cancelar
-                </button>
+
+            <div class="p-8 space-y-6">
+                @if($showCategoryModal)
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Nombre de la categoría *</label>
+                            <input wire:model="newCategoryName" type="text" autofocus
+                                class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500/20"
+                                placeholder="Ej. Materiales Eléctricos...">
+                            @error('newCategoryName') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Identificador Visual (Color)</label>
+                            <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl">
+                                <input wire:model="newCategoryColor" type="color" class="h-10 w-20 rounded-xl border-none cursor-pointer bg-transparent">
+                                <span class="text-xs font-mono font-bold text-slate-600">{{ $newCategoryColor }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="saveCategory" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]">
+                        Crear Categoría
+                    </button>
+
+                @elseif($showSubcategoryModal)
+                    <div class="space-y-4">
+                        <div class="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 mb-6">
+                            <p class="text-[10px] text-indigo-400 font-black uppercase tracking-[0.2em] mb-1">Categoría Principal</p>
+                            <p class="text-sm font-bold text-indigo-700">{{ $categories->firstWhere('id', $category_id)?->name ?? '—' }}</p>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Nombre de la subcategoría *</label>
+                            <input wire:model="newSubcategoryName" type="text" autofocus
+                                class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500/20"
+                                placeholder="Ej. Cables de Media Tensión...">
+                            @error('newSubcategoryName') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+                    <button type="button" wire:click="saveSubcategory" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98]">
+                        Crear Subcategoría
+                    </button>
+
+                @elseif($showSupplierModal)
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Nombre Comercial / Empresa *</label>
+                            <input wire:model="newSupplierName" type="text" autofocus
+                                class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500/20"
+                                placeholder="Ej. ProPower Solutions S.A.">
+                            @error('newSupplierName') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Teléfono</label>
+                                <input wire:model="newSupplierPhone" type="text" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500/20">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Email</label>
+                                <input wire:model="newSupplierEmail" type="email" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500/20">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="saveSupplier" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-indigo-200 transition-all active:scale-[0.98] mt-4">
+                        Registrar Proveedor
+                    </button>
+                @endif
             </div>
         </div>
     </div>
     @endif
-
-    {{-- Modal: Nueva subcategoría --}}
-    @if($showSubcategoryModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-         x-data x-on:keydown.escape.window="$wire.set('showSubcategoryModal', false)">
-        <div class="bg-white rounded-xl lg:rounded-2xl shadow-2xl w-full max-w-md p-5 lg:p-6 space-y-4 lg:space-y-5" @click.stop>
-            <div class="flex items-center justify-between">
-                <h3 class="text-base lg:text-lg font-semibold text-gray-900">Nueva subcategoría</h3>
-                <button type="button" wire:click="$set('showSubcategoryModal', false)" 
-                    class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <p class="text-xs text-gray-500 -mt-2">
-                Se creará dentro de
-                <span class="font-semibold text-indigo-600">{{ $categories->firstWhere('id', $category_id)?->name ?? '—' }}</span>
-            </p>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre *</label>
-                <input wire:model="newSubcategoryName" type="text" autofocus
-                    class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="Ej. Cables, Conectores…">
-                @error('newSubcategoryName') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-            </div>
-            <div class="flex gap-3 pt-2">
-                <button type="button" wire:click="saveSubcategory"
-                    class="flex-1 px-4 py-2 lg:py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg lg:rounded-xl transition-all">
-                    Crear subcategoría
-                </button>
-                <button type="button" wire:click="$set('showSubcategoryModal', false)"
-                    class="px-4 py-2 lg:py-2.5 text-sm font-medium border border-gray-200 rounded-lg lg:rounded-xl hover:bg-gray-50 transition-all">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    {{-- Modal: Nuevo proveedor --}}
-    @if($showSupplierModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-         x-data x-on:keydown.escape.window="$wire.set('showSupplierModal', false)">
-        <div class="bg-white rounded-xl lg:rounded-2xl shadow-2xl w-full max-w-md p-5 lg:p-6 space-y-4 lg:space-y-5" @click.stop>
-            <div class="flex items-center justify-between">
-                <h3 class="text-base lg:text-lg font-semibold text-gray-900">Nuevo proveedor</h3>
-                <button type="button" wire:click="$set('showSupplierModal', false)" 
-                    class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <p class="text-xs text-gray-500 -mt-2">Registro rápido. Puedes completar sus datos desde el catálogo de proveedores.</p>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Nombre / Empresa *</label>
-                <input wire:model="newSupplierName" type="text" autofocus
-                    class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="Ej. Distribuidora Norte S.A.">
-                @error('newSupplierName') <p class="text-xs text-red-500 mt-1.5">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Teléfono</label>
-                <input wire:model="newSupplierPhone" type="text"
-                    class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="Opcional">
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Email</label>
-                <input wire:model="newSupplierEmail" type="email"
-                    class="w-full border border-gray-200 rounded-lg lg:rounded-xl px-3 lg:px-4 py-2 lg:py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    placeholder="Opcional">
-            </div>
-            <div class="flex gap-3 pt-2">
-                <button type="button" wire:click="saveSupplier"
-                    class="flex-1 px-4 py-2 lg:py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg lg:rounded-xl transition-all">
-                    Crear proveedor
-                </button>
-                <button type="button" wire:click="$set('showSupplierModal', false)"
-                    class="px-4 py-2 lg:py-2.5 text-sm font-medium border border-gray-200 rounded-lg lg:rounded-xl hover:bg-gray-50 transition-all">
-                    Cancelar
-                </button>
-            </div>
-        </div>
-    </div>
-    @endif
-
 </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Company;
 use App\Models\Stock;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
@@ -61,9 +62,11 @@ class WarehouseStockPrintController extends Controller
             default => 'Todos',
         };
 
+        $company = Company::find($companyId);
+
         return view('print.warehouse-stock', compact(
             'warehouse', 'stocks', 'totalValue', 'outCount', 'lowCount',
-            'category', 'stockFilterLabel'
+            'category', 'stockFilterLabel', 'company'
         ));
     }
 }

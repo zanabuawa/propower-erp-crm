@@ -62,6 +62,15 @@
                 </select>
             </div>
             <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Vacante</label>
+                <select wire:model.live="filterJobOpening" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                    <option value="">Todas</option>
+                    @foreach($jobOpenings as $jo)
+                        <option value="{{ $jo->id }}">{{ $jo->title }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
                 <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Puesto</label>
                 <select wire:model.live="filterPosition" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
                     <option value="">Todos</option>

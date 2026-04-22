@@ -46,6 +46,14 @@
             border-radius: 5px;
         }
 
+        /* ── Select Reset ────────────────────────────────────────────── */
+        select.appearance-none::-ms-expand { display: none; }
+        select.appearance-none {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
         /* ── Sidebar active left-border indicator ────────────────────── */
         .sb-item-active::before {
             content: '';
@@ -143,22 +151,22 @@ x-init="init()">
                  x-transition:leave="transition-opacity ease-in duration-100"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 class="flex items-center justify-center py-4 px-4">
+                 class="flex items-center justify-center py-6 px-4">
                 @if($company?->logo)
                     <img src="{{ Storage::url($company->logo) }}"
                          alt="{{ $company->name }}"
-                         class="h-14 w-auto max-w-full object-contain">
+                         class="h-24 w-auto max-w-full object-contain">
                 @else
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-9 h-9 min-w-[2.25rem] rounded-lg bg-indigo-500 flex items-center justify-center
-                                    text-white font-bold text-sm shadow-lg shadow-indigo-500/30">
+                        <div class="w-12 h-12 min-w-[3rem] rounded-xl bg-indigo-500 flex items-center justify-center
+                                    text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
                             {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
                         </div>
                         <div class="min-w-0">
-                            <p class="text-[13px] font-semibold text-white/90 leading-tight truncate">
+                            <p class="text-[14px] font-bold text-white/90 leading-tight truncate">
                                 {{ $company?->name ?? config('app.name') }}
                             </p>
-                            <p class="text-[10px] text-white/30 leading-tight tracking-wide">
+                            <p class="text-[11px] text-white/30 leading-tight tracking-wide">
                                 Sistema ERP
                             </p>
                         </div>
@@ -174,16 +182,16 @@ x-init="init()">
                  x-transition:leave="transition-opacity ease-in duration-75"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 class="flex items-center justify-center py-3.5">
+                 class="flex items-center justify-center py-4">
                 @if($company?->icon)
                     <img src="{{ Storage::url($company->icon) }}"
-                         class="w-8 h-8 rounded-lg object-contain">
+                         class="w-10 h-10 rounded-xl object-contain">
                 @elseif($company?->logo)
                     <img src="{{ Storage::url($company->logo) }}"
-                         class="w-8 h-8 rounded-lg object-contain">
+                         class="w-10 h-10 rounded-xl object-contain">
                 @else
-                    <div class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center
-                                text-white font-bold text-sm shadow-lg shadow-indigo-500/30">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center
+                                text-white font-bold text-lg shadow-lg shadow-indigo-500/30">
                         {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
                     </div>
                 @endif

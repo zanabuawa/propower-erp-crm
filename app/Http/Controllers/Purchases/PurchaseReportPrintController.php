@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Purchases;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\PurchaseOrder;
 use Illuminate\Http\Request;
 
@@ -47,8 +48,10 @@ class PurchaseReportPrintController extends Controller
             ? (PurchaseOrder::STATUS[$request->status] ?? $request->status)
             : 'Todos';
 
+        $company = Company::find($companyId);
+
         return view('print.purchases-report', compact(
-            'orders', 'totalMXN', 'totalUSD', 'byStatus', 'statusLabel'
+            'orders', 'totalMXN', 'totalUSD', 'byStatus', 'statusLabel', 'company'
         ));
     }
 }

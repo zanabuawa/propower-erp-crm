@@ -2,6 +2,7 @@
 
 namespace App\Livewire\HR;
 
+use App\Models\HrJobOpening;
 use App\Models\HrPosition;
 use App\Models\HrProspect;
 use App\Models\User;
@@ -22,6 +23,7 @@ class ProspectIndex extends Component
     public string $filterDateStart = '';
     public string $filterDateEnd = '';
     public ?int $filterRecruiter = null;
+    public ?int $filterJobOpening = null;
 
     // Propiedades para evaluación
     public bool $showEvalModal = false;
@@ -41,6 +43,15 @@ class ProspectIndex extends Component
     public function updatingFilterDateStart(): void { $this->resetPage(); }
     public function updatingFilterDateEnd(): void { $this->resetPage(); }
     public function updatingFilterRecruiter(): void { $this->resetPage(); }
+    public function updatingFilterJobOpening(): void { $this->resetPage(); }
+
+    public function mount(): void
+    {
+        // Permite llegar desde "Ver candidatos" en JobOpeningIndex
+        if ($jobOpeningId = request()->query('job_opening_id')) {
+            $this->filterJobOpening = (int) $jobOpeningId;
+        }
+    }
 
     public function delete(int $id): void
     {
@@ -135,6 +146,7 @@ class ProspectIndex extends Component
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->when($this->filterPosition, fn($q) => $q->where('position_id', $this->filterPosition))
             ->when($this->filterRecruiter, fn($q) => $q->where('interviewer_id', $this->filterRecruiter))
+            ->when($this->filterJobOpening, fn($q) => $q->where('job_opening_id', $this->filterJobOpening))
             ->when($this->filterDateStart, fn($q) => $q->whereDate('interview_date', '>=', $this->filterDateStart))
             ->when($this->filterDateEnd, fn($q) => $q->whereDate('interview_date', '<=', $this->filterDateEnd))
             ->orderBy('created_at', 'desc')
@@ -150,6 +162,10 @@ class ProspectIndex extends Component
             'hired' => HrProspect::where('status', 'contratado')->count(),
         ];
 
-        return view('livewire.hr.prospect-index', compact('prospects', 'positions', 'recruiters', 'stats'));
+        $jobOpenings = HrJobOpening::where('company_id', auth()->user()->company_id)
+            ->whereIn('status', ['open', 'paused'])
+            ->orderBy('title')->get(['id', 'title']);
+
+        return view('livewire.hr.prospect-index', compact('prospects', 'positions', 'recruiters', 'stats', 'jobOpenings'));
     }
 }

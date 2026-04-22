@@ -12,7 +12,7 @@
 
         /* Header */
         .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #059669; padding-bottom: 10px; margin-bottom: 14px; }
-        .header-logo img { max-height: 52px; max-width: 160px; object-fit: contain; }
+        .header-logo img { max-height: 70px; max-width: 200px; object-fit: contain; }
         .company-name { font-size: 16px; font-weight: 700; color: #065f46; }
         .header-right { text-align: right; }
         .doc-title { font-size: 18px; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 1px; }

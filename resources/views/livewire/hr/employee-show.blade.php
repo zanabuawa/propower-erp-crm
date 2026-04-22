@@ -77,7 +77,9 @@
             'leaves' => 'Permisos',
             'incidents' => 'Incidencias',
             'evaluations' => 'Evaluaciones',
-            'payroll' => 'Nóminas'
+            'payroll' => 'Nóminas',
+            'movements' => 'Movimientos',
+            'loans' => 'Préstamos/Bonos',
         ] as $tab => $label)
         <button wire:click="setTab('{{ $tab }}')"
                 class="px-3 py-1.5 text-sm rounded-lg transition-colors
@@ -454,6 +456,191 @@
             @endforelse
         </div>
     </div>
+    @endif
+
+    {{-- Tab: Movimientos --}}
+    @if($activeTab === 'movements')
+    <div class="bg-white rounded-xl border border-slate-200">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+            <h3 class="text-sm font-semibold text-slate-700">Historial de movimientos laborales</h3>
+            @can('edit hr')
+            <button wire:click="openMovementModal"
+                    class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-1 rounded">
+                + REGISTRAR MOVIMIENTO
+            </button>
+            @endcan
+        </div>
+
+        <div class="divide-y divide-slate-100">
+            @forelse($employee->movements->sortByDesc('effective_date') as $mov)
+            <div class="px-4 py-3 flex items-start gap-4">
+                {{-- Línea de tiempo --}}
+                <div class="flex flex-col items-center pt-1">
+                    <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 flex-shrink-0"></div>
+                    @if(!$loop->last)
+                    <div class="w-px flex-1 bg-slate-200 mt-1 min-h-[24px]"></div>
+                    @endif
+                </div>
+                <div class="flex-1 pb-2">
+                    <div class="flex flex-wrap items-center gap-2 mb-0.5">
+                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
+                            {{ \App\Models\HrEmployeeMovement::TYPE_COLORS[$mov->movement_type] ?? 'bg-gray-100 text-gray-600' }}">
+                            {{ \App\Models\HrEmployeeMovement::TYPES[$mov->movement_type] ?? $mov->movement_type }}
+                        </span>
+                        <span class="text-xs text-slate-500">{{ $mov->effective_date->format('d/m/Y') }}</span>
+                        @if($mov->registeredBy)
+                        <span class="text-xs text-slate-400">· por {{ $mov->registeredBy->name }}</span>
+                        @endif
+                    </div>
+
+                    {{-- Detalle de cambios --}}
+                    @if($mov->previous_value || $mov->new_value)
+                    <div class="text-xs text-slate-500 mt-1 space-y-0.5">
+                        @if(isset($mov->new_value['position_name']))
+                        <p>Puesto: <span class="text-slate-400 line-through">{{ $mov->previous_value['position_name'] ?? '—' }}</span>
+                           → <span class="font-medium text-slate-700">{{ $mov->new_value['position_name'] }}</span></p>
+                        @endif
+                        @if(isset($mov->new_value['department_name']))
+                        <p>Área: <span class="text-slate-400 line-through">{{ $mov->previous_value['department_name'] ?? '—' }}</span>
+                           → <span class="font-medium text-slate-700">{{ $mov->new_value['department_name'] }}</span></p>
+                        @endif
+                        @if(isset($mov->new_value['salary']))
+                        <p>Salario: <span class="text-slate-400 line-through">${{ number_format($mov->previous_value['salary'] ?? 0, 2) }}</span>
+                           → <span class="font-medium text-slate-700">${{ number_format($mov->new_value['salary'], 2) }}</span></p>
+                        @endif
+                        @if(isset($mov->new_value['status']))
+                        <p>Estatus: <span class="text-slate-400 line-through">{{ \App\Models\HrEmployee::STATUSES[$mov->previous_value['status'] ?? ''] ?? '—' }}</span>
+                           → <span class="font-medium text-slate-700">{{ \App\Models\HrEmployee::STATUSES[$mov->new_value['status']] ?? $mov->new_value['status'] }}</span></p>
+                        @endif
+                        @if(isset($mov->new_value['contract_type']))
+                        <p>Contrato: <span class="text-slate-400 line-through">{{ \App\Models\HrEmployee::CONTRACT_TYPES[$mov->previous_value['contract_type'] ?? ''] ?? '—' }}</span>
+                           → <span class="font-medium text-slate-700">{{ \App\Models\HrEmployee::CONTRACT_TYPES[$mov->new_value['contract_type']] ?? $mov->new_value['contract_type'] }}</span></p>
+                        @endif
+                    </div>
+                    @endif
+
+                    @if($mov->notes)
+                    <p class="text-xs text-slate-400 mt-1 italic">{{ $mov->notes }}</p>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="px-4 py-8 text-center text-sm text-slate-400">Sin movimientos registrados</div>
+            @endforelse
+        </div>
+    </div>
+    @endif
+
+    {{-- Modal: Registrar movimiento --}}
+    @if($showMovementModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-slate-800">Registrar movimiento laboral</h3>
+                <button wire:click="$set('showMovementModal', false)" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Tipo de movimiento <span class="text-red-400">*</span></label>
+                        <select wire:model.live="movementType"
+                                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                            @foreach(\App\Models\HrEmployeeMovement::TYPES as $val => $label)
+                            <option value="{{ $val }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Fecha efectiva <span class="text-red-400">*</span></label>
+                        <input wire:model="movementDate" type="date"
+                               class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                    </div>
+                </div>
+
+                {{-- Campos según tipo --}}
+                @if(in_array($movementType, ['ascenso', 'descenso', 'traslado']))
+                <div class="grid grid-cols-2 gap-4 p-3 bg-slate-50 rounded-lg">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Nuevo puesto</label>
+                        <select wire:model="newPositionId"
+                                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                            <option value="">Sin cambio</option>
+                            @foreach($positionOptions as $p)
+                            <option value="{{ $p['id'] }}">{{ $p['name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-600 mb-1">Nueva área</label>
+                        <select wire:model="newDepartmentId"
+                                class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                            <option value="">Sin cambio</option>
+                            @foreach($departmentOptions as $d)
+                            <option value="{{ $d['id'] }}">{{ $d['name'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                @endif
+
+                @if($movementType === 'cambio_salario')
+                <div class="p-3 bg-slate-50 rounded-lg">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Nuevo salario</label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm text-slate-500">Actual: ${{ number_format($employee->salary, 2) }}</span>
+                        <span class="text-slate-300">→</span>
+                        <input wire:model="newSalary" type="number" min="0" step="0.01"
+                               class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                               placeholder="Nuevo monto">
+                    </div>
+                </div>
+                @endif
+
+                @if($movementType === 'cambio_contrato')
+                <div class="p-3 bg-slate-50 rounded-lg">
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Nuevo tipo de contrato</label>
+                    <select wire:model="newContractType"
+                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                        <option value="">Seleccionar...</option>
+                        @foreach(\App\Models\HrEmployee::CONTRACT_TYPES as $val => $label)
+                        <option value="{{ $val }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Notas / Motivo</label>
+                    <textarea wire:model="movementNotes" rows="2"
+                              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+                              placeholder="Motivo del movimiento, referencias, etc."></textarea>
+                </div>
+
+                @error('movementType') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
+                @error('movementDate') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
+            </div>
+
+            <div class="flex gap-3 mt-5">
+                <button wire:click="saveMovement" wire:loading.attr="disabled"
+                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+                    <span wire:loading.remove wire:target="saveMovement">Guardar movimiento</span>
+                    <span wire:loading wire:target="saveMovement">Guardando...</span>
+                </button>
+                <button wire:click="$set('showMovementModal', false)"
+                        class="flex-1 text-slate-600 text-sm font-medium px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Tab: Préstamos y Bonos --}}
+    @if($activeTab === 'loans')
+    <livewire:h-r.employee-loan-bonus :employee="$employee" />
     @endif
 
     <livewire:h-r.employee-expedient :employee="$employee" />

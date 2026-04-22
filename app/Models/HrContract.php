@@ -17,6 +17,7 @@ class HrContract extends Model
         'company_id', 'employee_id', 'contract_number', 'type',
         'start_date', 'end_date', 'salary', 'salary_period',
         'work_shift', 'work_hours_per_week', 'benefits',
+        'entry_time', 'exit_time', 'work_days', 'saturday_hours', 'tolerance_minutes',
         'status', 'file_path', 'notes', 'created_by',
     ];
 
@@ -26,6 +27,9 @@ class HrContract extends Model
         'salary'             => 'decimal:2',
         'benefits'           => 'array',
         'work_hours_per_week'=> 'integer',
+        'work_days'          => 'array',
+        'saturday_hours'     => 'decimal:2',
+        'tolerance_minutes'  => 'integer',
     ];
 
     const TYPES = [
@@ -68,6 +72,57 @@ class HrContract extends Model
     }
 
     // ── Accessors ──────────────────────────────────────────────────────────────
+
+    // ── Schedule helpers ───────────────────────────────────────────────────────
+
+    /**
+     * Returns the expected work hours for a given date (0 = rest day).
+     */
+    public function expectedHoursOn(\Carbon\Carbon $date): float
+    {
+        $isoDay   = (int) $date->isoFormat('E'); // 1=Mon … 7=Sun
+        $workDays = $this->work_days ?? [1, 2, 3, 4, 5];
+
+        if (! in_array($isoDay, $workDays, true)) {
+            return 0;
+        }
+
+        if ($isoDay === 6) { // Saturday
+            return (float) ($this->saturday_hours ?? 0);
+        }
+
+        if ($this->entry_time && $this->exit_time) {
+            $entry = \Carbon\Carbon::createFromTimeString($this->entry_time);
+            $exit  = \Carbon\Carbon::createFromTimeString($this->exit_time);
+            return round($entry->diffInMinutes($exit) / 60, 2);
+        }
+
+        return 8.0;
+    }
+
+    /**
+     * Returns true if the given date is a scheduled workday.
+     */
+    public function isWorkDay(\Carbon\Carbon $date): bool
+    {
+        return $this->expectedHoursOn($date) > 0;
+    }
+
+    /**
+     * Returns true if the given HH:MM string is past entry_time + tolerance.
+     */
+    public function isLate(string $timeHis): bool
+    {
+        if (! $this->entry_time) {
+            return false;
+        }
+
+        $deadline = \Carbon\Carbon::createFromTimeString($this->entry_time)
+            ->addMinutes($this->tolerance_minutes ?? 10);
+        $checkin  = \Carbon\Carbon::createFromFormat('H:i:s', $timeHis);
+
+        return $checkin->gt($deadline);
+    }
 
     public function getStatusColorAttribute(): string
     {

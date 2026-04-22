@@ -111,14 +111,24 @@ class RequisitionForm extends Component
         $product = Product::find($productId);
         if (!$product) return;
 
-        $item = $this->blankItem('product');
-        $item['product_id']  = $product->id;
-        $item['description'] = $product->name;
-        $item['quantity']    = 1;
-        $item['unit_price']  = $product->purchase_price;
-        $item['unit']        = $product->unit_of_measure?->name ?? 'pz';
-        $item['stock_info']  = $this->getStockInfo($product->id);
-        $this->items[] = $item;
+        $newItem = $this->blankItem('product');
+        $newItem['product_id']  = $product->id;
+        $newItem['description'] = $product->name;
+        $newItem['quantity']    = 1;
+        $newItem['unit_price']  = $product->purchase_price;
+        $newItem['unit']        = $product->unit_of_measure?->name ?? 'pz';
+        $newItem['stock_info']  = $this->getStockInfo($product->id);
+
+        // Buscar si hay una partida vacía para reemplazarla
+        $emptyIndex = collect($this->items)->search(function($item) {
+            return empty($item['product_id']) && (empty($item['description']) || $item['description'] === '');
+        });
+
+        if ($emptyIndex !== false) {
+            $this->items[$emptyIndex] = $newItem;
+        } else {
+            $this->items[] = $newItem;
+        }
 
         $this->productSearch  = '';
         $this->productResults = [];

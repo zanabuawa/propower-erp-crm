@@ -145,6 +145,58 @@
                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
                 </div>
 
+                {{-- Horario --}}
+                <div class="col-span-2 pt-2 border-t border-slate-100">
+                    <p class="text-xs font-semibold text-slate-600 mb-3">Horario de trabajo</p>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Hora entrada</label>
+                            <input wire:model="entry_time" type="time"
+                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                            @error('entry_time') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">Hora salida</label>
+                            <input wire:model="exit_time" type="time"
+                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                            @error('exit_time') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
+                    {{-- Días laborables --}}
+                    <div class="mb-3">
+                        <label class="block text-xs font-medium text-slate-600 mb-2">Días laborables</label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach(['1'=>'Lun','2'=>'Mar','3'=>'Mié','4'=>'Jue','5'=>'Vie','6'=>'Sáb','7'=>'Dom'] as $num => $label)
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="checkbox" wire:model="work_days" value="{{ $num }}"
+                                       class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-300">
+                                <span class="text-sm {{ $num == 6 ? 'text-orange-600 font-medium' : ($num == 7 ? 'text-red-500 font-medium' : 'text-slate-700') }}">{{ $label }}</span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">
+                                Horas el sábado
+                                <span class="text-slate-400 font-normal">(0 = descanso)</span>
+                            </label>
+                            <input wire:model="saturday_hours" type="number" step="0.5" min="0" max="12"
+                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-600 mb-1">
+                                Tolerancia tardanza
+                                <span class="text-slate-400 font-normal">(minutos)</span>
+                            </label>
+                            <input wire:model="tolerance_minutes" type="number" min="0" max="60"
+                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Prestaciones --}}
                 <div class="col-span-2 pt-2 border-t border-slate-100">
                     <p class="text-xs font-semibold text-slate-600 mb-3">Prestaciones</p>

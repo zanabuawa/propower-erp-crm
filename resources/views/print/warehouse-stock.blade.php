@@ -20,14 +20,16 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #4f46e5;
+            border-bottom: 2px solid #ef4444;
             padding-bottom: 12px;
             margin-bottom: 16px;
         }
+        .header-logo img { max-height: 70px; max-width: 200px; object-fit: contain; display: block; }
+        .header-logo .logo-placeholder { width: 70px; height: 70px; background: #fee2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #ef4444; }
         .header-left h1 {
             font-size: 18px;
             font-weight: 700;
-            color: #4f46e5;
+            color: #ef4444;
         }
         .header-left p {
             font-size: 12px;
@@ -60,7 +62,7 @@
             padding: 2px 10px;
             color: #374151;
         }
-        .filter-chip span { font-weight: 600; color: #4f46e5; }
+        .filter-chip span { font-weight: 600; color: #ef4444; }
 
         /* ── KPIs ───────────────────────────────────────────────── */
         .kpis {
@@ -87,7 +89,6 @@
             font-weight: 800;
             color: #111827;
         }
-        .kpi-value.indigo { color: #4f46e5; }
         .kpi-value.red    { color: #dc2626; }
         .kpi-value.amber  { color: #d97706; }
 
@@ -144,21 +145,10 @@
         .badge.low   { background: #fef3c7; color: #92400e; }
         .badge.out   { background: #fee2e2; color: #991b1b; }
 
-        /* ── SUBTOTAL POR CATEGORÍA ─────────────────────────────── */
-        .category-row td {
-            background: #eff6ff;
-            font-weight: 700;
-            color: #1d4ed8;
-            font-size: 10px;
-            padding: 5px 10px;
-            border-top: 1px solid #bfdbfe;
-            border-bottom: 1px solid #bfdbfe;
-        }
-
         /* ── TOTALES ────────────────────────────────────────────── */
         tfoot tr {
-            background: #f0f0ff;
-            border-top: 2px solid #4f46e5;
+            background: #fff1f2;
+            border-top: 2px solid #ef4444;
         }
         tfoot td {
             padding: 8px 10px;
@@ -191,7 +181,7 @@
     {{-- ── Botón imprimir (solo pantalla) ─────────────────────── --}}
     <div class="no-print" style="text-align:right; margin-bottom:12px;">
         <button onclick="window.print()"
-            style="background:#4f46e5;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+            style="background:#ef4444;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
             Imprimir / Guardar PDF
         </button>
         <button onclick="window.close()"
@@ -202,9 +192,19 @@
 
     {{-- ── Encabezado ─────────────────────────────────────────── --}}
     <div class="header">
-        <div class="header-left">
-            <h1>Existencias por almacén</h1>
-            <p>{{ $warehouse->name }}{{ $warehouse->branch ? ' — ' . $warehouse->branch->name : '' }}{{ $warehouse->location ? ' · ' . $warehouse->location : '' }}</p>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div class="header-logo">
+                @php $logoPath = $company->print_logo ?? $company->logo ?? null; @endphp
+                @if($logoPath)
+                    <img src="{{ asset('storage/' . $logoPath) }}" alt="{{ $company->name }}">
+                @else
+                    <div class="logo-placeholder">{{ mb_strtoupper(mb_substr($company->name ?? 'E', 0, 1)) }}</div>
+                @endif
+            </div>
+            <div class="header-left">
+                <h1>Existencias por almacén</h1>
+                <p>{{ $warehouse->name }}{{ $warehouse->branch ? ' — ' . $warehouse->branch->name : '' }}{{ $warehouse->location ? ' · ' . $warehouse->location : '' }}</p>
+            </div>
         </div>
         <div class="header-right">
             <strong>Fecha de impresión</strong>
@@ -239,7 +239,7 @@
         </div>
         <div class="kpi">
             <div class="kpi-label">Valor total (costo)</div>
-            <div class="kpi-value indigo">${{ number_format($totalValue, 2) }}</div>
+            <div class="kpi-value" style="color:#ef4444;">${{ number_format($totalValue, 2) }}</div>
         </div>
     </div>
 
@@ -302,11 +302,11 @@
         <tfoot>
             <tr>
                 <td colspan="4" style="font-size:11px;">TOTAL</td>
-                <td class="right" style="font-size:13px;color:#4f46e5;">
+                <td class="right" style="font-size:13px;color:#ef4444;">
                     {{ number_format($stocks->sum('quantity'), 2) }}
                 </td>
                 <td colspan="3"></td>
-                <td class="right" style="font-size:13px;color:#4f46e5;">
+                <td class="right" style="font-size:13px;color:#ef4444;">
                     ${{ number_format($totalValue, 2) }}
                 </td>
                 <td></td>

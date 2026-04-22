@@ -2,6 +2,7 @@
 
 namespace App\Livewire\HR;
 
+use App\Models\HrJobOpening;
 use App\Models\HrPosition;
 use App\Models\HrProspect;
 use Livewire\Attributes\Layout;
@@ -23,6 +24,7 @@ class ProspectForm extends Component
     public ?string $email = '';
     public ?string $phone = '';
     public ?int $position_id = null;
+    public ?int $job_opening_id = null;
     public ?string $source = '';
     public ?string $initial_notes = '';
     public ?string $interview_date = '';
@@ -39,7 +41,8 @@ class ProspectForm extends Component
             $this->second_last_name = $prospect->second_last_name ?? '';
             $this->email = $prospect->email ?? '';
             $this->phone = $prospect->phone ?? '';
-            $this->position_id = $prospect->position_id;
+            $this->position_id    = $prospect->position_id;
+            $this->job_opening_id = $prospect->job_opening_id;
             $this->source = $prospect->source ?? '';
             $this->initial_notes = $prospect->initial_notes ?? '';
             $this->status = $prospect->status;
@@ -55,6 +58,7 @@ class ProspectForm extends Component
             'email'          => 'nullable|email|max:191',
             'phone'          => 'nullable|string|max:20',
             'position_id'    => 'nullable|exists:hr_positions,id',
+            'job_opening_id' => 'nullable|exists:hr_job_openings,id',
             'source'         => 'nullable|string|in:' . implode(',', array_keys(HrProspect::SOURCES)),
             'status'         => 'required|string|in:' . implode(',', array_keys(HrProspect::STATUSES)),
             'interview_date' => 'nullable|date',
@@ -76,6 +80,7 @@ class ProspectForm extends Component
             'email'            => $this->email ?: null,
             'phone'            => $this->phone ?: null,
             'position_id'      => $this->position_id,
+            'job_opening_id'   => $this->job_opening_id ?: null,
             'source'           => $this->source ?: null,
             'initial_notes'    => $this->initial_notes ?: null,
             'interview_date'   => $this->interview_date ?: null,
@@ -113,7 +118,10 @@ class ProspectForm extends Component
 
     public function render()
     {
-        $positions = HrPosition::where('is_active', true)->orderBy('name')->get();
-        return view('livewire.hr.prospect-form', compact('positions'));
+        $positions   = HrPosition::where('is_active', true)->orderBy('name')->get();
+        $jobOpenings = HrJobOpening::where('company_id', auth()->user()->company_id)
+            ->whereIn('status', ['open', 'paused'])
+            ->orderBy('title')->get(['id', 'title']);
+        return view('livewire.hr.prospect-form', compact('positions', 'jobOpenings'));
     }
 }

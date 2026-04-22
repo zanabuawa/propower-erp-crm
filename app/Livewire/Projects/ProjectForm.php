@@ -5,6 +5,7 @@ namespace App\Livewire\Projects;
 use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Project;
+use App\Models\SaleOrder;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -19,9 +20,11 @@ class ProjectForm extends Component
     public string $description = '';
     public string $type = 'externo';
     public string $status = 'borrador';
-    public ?int $customer_id = null;
-    public ?int $branch_id = null;
-    public ?int $responsible_user_id = null;
+    public ?int   $customer_id = null;
+    public ?int   $sale_order_id = null;
+    public string $contract_reference = '';
+    public ?int   $branch_id = null;
+    public ?int   $responsible_user_id = null;
     public string $start_date = '';
     public string $end_date = '';
     public string $budget = '';
@@ -38,6 +41,8 @@ class ProjectForm extends Component
             $this->type                 = $project->type;
             $this->status               = $project->status;
             $this->customer_id          = $project->customer_id;
+            $this->sale_order_id        = $project->sale_order_id;
+            $this->contract_reference   = $project->contract_reference ?? '';
             $this->branch_id            = $project->branch_id;
             $this->responsible_user_id  = $project->responsible_user_id;
             $this->start_date           = $project->start_date?->format('Y-m-d') ?? '';
@@ -56,9 +61,11 @@ class ProjectForm extends Component
             'code'                => 'required|string|max:50|unique:projects,code,' . ($this->project?->id ?? 'NULL'),
             'name'                => 'required|string|max:255',
             'description'         => 'nullable|string',
-            'type'                => 'required|in:interno,externo,licitacion',
+            'type'                => 'required|in:interno,externo,licitacion,mantenimiento,instalacion,servicio',
             'status'              => 'required|in:borrador,activo,pausado,completado,cancelado',
             'customer_id'         => 'nullable|exists:customers,id',
+            'sale_order_id'       => 'nullable|exists:sale_orders,id',
+            'contract_reference'  => 'nullable|string|max:100',
             'branch_id'           => 'nullable|exists:branches,id',
             'responsible_user_id' => 'nullable|exists:users,id',
             'start_date'          => 'nullable|date',
@@ -80,6 +87,8 @@ class ProjectForm extends Component
             'type'                => $this->type,
             'status'              => $this->status,
             'customer_id'         => $this->customer_id,
+            'sale_order_id'       => $this->sale_order_id,
+            'contract_reference'  => $this->contract_reference ?: null,
             'branch_id'           => $this->branch_id,
             'responsible_user_id' => $this->responsible_user_id,
             'start_date'          => $this->start_date ?: null,
@@ -102,10 +111,16 @@ class ProjectForm extends Component
 
     public function render()
     {
-        $branches  = Branch::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
-        $customers = Customer::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
-        $users     = User::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
+        $companyId = auth()->user()->company_id;
 
-        return view('livewire.projects.project-form', compact('branches', 'customers', 'users'));
+        $branches   = Branch::where('company_id', $companyId)->orderBy('name')->get();
+        $customers  = Customer::where('company_id', $companyId)->orderBy('name')->get();
+        $users      = User::where('company_id', $companyId)->orderBy('name')->get();
+        $saleOrders = SaleOrder::where('company_id', $companyId)
+                               ->whereIn('status', ['confirmado', 'en_proceso', 'facturado'])
+                               ->orderByDesc('id')
+                               ->get(['id', 'folio', 'customer_id']);
+
+        return view('livewire.projects.project-form', compact('branches', 'customers', 'users', 'saleOrders'));
     }
 }

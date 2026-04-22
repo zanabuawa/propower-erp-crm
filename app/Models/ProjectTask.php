@@ -13,11 +13,12 @@ class ProjectTask extends Model
 
     protected $fillable = [
         'project_id', 'parent_task_id', 'title', 'description',
-        'status', 'priority', 'assigned_to', 'due_date',
+        'status', 'priority', 'assigned_to', 'start_date', 'due_date',
         'completed_at', 'progress', 'estimated_hours', 'actual_hours', 'sort_order',
     ];
 
     protected $casts = [
+        'start_date'      => 'date',
         'due_date'        => 'date',
         'completed_at'    => 'date',
         'progress'        => 'integer',

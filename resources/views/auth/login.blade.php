@@ -1,47 +1,119 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+    <div class="fixed inset-0 flex flex-col lg:flex-row overflow-hidden bg-zinc-950">
+        {{-- Fondo con imagen para Móvil y Desktop (Lado Izquierdo) --}}
+        <div class="absolute inset-0 lg:w-1/2">
+            <img src="https://images.unsplash.com/photo-1558449028-b53a39d100fc?q=80&w=1974&auto=format&fit=crop" 
+                 class="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-luminosity" 
+                 alt="Ingeniería Eléctrica">
+            <div class="absolute inset-0 bg-gradient-to-tr from-black via-black/80 to-red-900/30"></div>
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
+        {{-- LADO IZQUIERDO: Branding y Visual (Oculto en móvil) --}}
+        <div class="hidden lg:flex lg:w-1/2 relative overflow-hidden">
+            <div class="relative z-10 flex flex-col justify-center px-12 xl:px-24 w-full">
+                <div class="mb-8 flex items-center gap-3">
+                    @php $company = \App\Models\Company::first(); @endphp
+                    @if($company?->logo)
+                        <img src="{{ Storage::url($company->logo) }}" class="h-auto w-auto object-contain" alt="Logo">
+                    @else
+                        <x-application-logo class="w-16 h-16 fill-current text-red-600" />
+                    @endif
+                </div>
+                <h1 class="text-4xl xl:text-5xl font-black text-white leading-tight mb-6 uppercase tracking-tighter">
+                    Soluciones <span class="text-red-600 underline decoration-red-600/30 underline-offset-8"> <br> Calidad Y Trabajo</span>
+                </h1>
 
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
+                <div class="grid grid-cols-1 gap-6">
+                    <div class="flex items-center gap-4 text-white">
+                    </div>
+                </div>
+            </div>
 
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+            <div class="absolute bottom-8 left-12 xl:left-24 text-gray-500 text-xs font-bold uppercase tracking-widest">
+                © {{ date('Y') }} ProPower Electroconstrucciones.
+            </div>
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
-            </label>
-        </div>
+        {{-- LADO DERECHO: Formulario --}}
+        <div class="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 lg:bg-white overflow-y-auto relative z-10 backdrop-blur-sm lg:backdrop-blur-none">
+            {{-- Logo en móvil --}}
+            <div class="lg:hidden flex flex-col items-center mb-8">
+                @php $company = \App\Models\Company::first(); @endphp
+                @if($company?->logo)
+                    <img src="{{ Storage::url($company->logo) }}" class="h-24 w-auto object-contain drop-shadow-2xl" alt="Logo">
+                @else
+                    <x-application-logo class="w-20 h-20 fill-current text-red-600 drop-shadow-2xl" />
+                @endif
+            </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
+            <div class="w-full max-w-md bg-white lg:bg-transparent p-8 lg:p-0 rounded-3xl shadow-2xl lg:shadow-none border border-white/10 lg:border-none">
+                <div class="text-center lg:text-left mb-8">
+                    <h2 class="text-2xl font-extrabold text-zinc-900 tracking-tight leading-none uppercase">
+                        Iniciar <span class="text-red-600">Sesión</span>
+                    </h2>
+                </div>
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+                <x-auth-session-status class="mb-6" :status="session('status')" />
+
+                <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                    @csrf
+
+                    <div>
+                        <label for="email" class="block text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1.5 ml-1">Usuario corporativo</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors">
+                                <svg class="w-4 h-4 text-zinc-400 group-focus-within:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"/>
+                                </svg>
+                            </div>
+                            <input id="email" type="email" name="email" :value="old('email')" required autofocus
+                                class="w-full pl-14 pr-4 py-3 bg-zinc-100 border border-zinc-200 rounded-xl text-black focus:bg-white focus:ring-4 focus:ring-red-600/5 focus:border-red-600 transition-all duration-200 placeholder-zinc-400 font-bold text-sm"
+                                placeholder="usuario@propower.com">
+                        </div>
+                        <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5 ml-1">
+                            <label for="password" class="block text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">Llave de acceso</label>
+                            @if (Route::has('password.request'))
+                                <a href="{{ route('password.request') }}" class="text-[9px] font-black text-red-600 hover:text-black uppercase tracking-widest transition-colors">Recuperar</a>
+                            @endif
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors">
+                                <svg class="w-4 h-4 text-zinc-400 group-focus-within:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                            </div>
+                            <input id="password" type="password" name="password" required autocomplete="current-password"
+                                class="w-full pl-14 pr-4 py-3 bg-zinc-100 border border-zinc-200 rounded-xl text-black focus:bg-white focus:ring-4 focus:ring-red-600/5 focus:border-red-600 transition-all duration-200 placeholder-zinc-400 font-bold text-sm"
+                                placeholder="••••••••">
+                        </div>
+                        <x-input-error :messages="$errors->get('password')" class="mt-2" />
+                    </div>
+
+                    <div class="flex items-center py-2">
+                        <label for="remember_me" class="relative flex items-center cursor-pointer">
+                            <input id="remember_me" type="checkbox" name="remember" class="sr-only peer">
+                            <div class="w-9 h-5 bg-zinc-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
+                            <span class="ms-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest">Mantener sesión</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="w-full bg-red-600 hover:bg-black text-white font-black py-4 rounded-xl transition-all duration-300 shadow-xl shadow-red-600/20 hover:shadow-black/20 active:scale-[0.98] flex items-center justify-center gap-2 uppercase tracking-[0.2em] text-xs">
+                        <span>Entrar al sistema</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </button>
+                </form>
+
+                <div class="mt-12 text-center">
+                    <p class="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                        ¿Problemas técnicos? 
+                        <a href="{{ route('support') }}" class="text-red-600 hover:text-black transition-colors underline decoration-2 underline-offset-4">Contactar Soporte</a>
+                    </p>
+                </div>
+            </div>
         </div>
-    </form>
+    </div>
 </x-guest-layout>

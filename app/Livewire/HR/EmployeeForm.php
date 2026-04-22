@@ -3,6 +3,7 @@
 namespace App\Livewire\HR;
 
 use App\Models\Branch;
+use App\Models\HrContract;
 use App\Models\HrDepartment;
 use App\Models\HrEmployee;
 use App\Models\HrPosition;
@@ -217,6 +218,25 @@ class EmployeeForm extends Component
                     $prospect->changeStatus('contratado', 'Candidato contratado. Registro de empleado creado.');
                 }
             }
+
+            // Auto-create initial contract
+            HrContract::create([
+                'company_id'          => $employee->company_id,
+                'employee_id'         => $employee->id,
+                'type'                => $this->contract_type ?? 'indefinido',
+                'start_date'          => $this->hire_date,
+                'salary'              => $this->salary,
+                'salary_period'       => $this->salary_period,
+                'work_shift'          => $this->work_shift ?: null,
+                'work_hours_per_week' => 48,
+                'benefits'            => [
+                    'aguinaldo_days'       => 15,
+                    'vacation_days'        => 6,
+                    'vacation_premium_pct' => 25,
+                ],
+                'status'     => 'active',
+                'created_by' => auth()->id(),
+            ]);
 
             $this->createUserForEmployee($employee);
             session()->flash('success', 'Empleado registrado correctamente.');

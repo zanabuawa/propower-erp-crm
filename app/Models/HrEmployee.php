@@ -140,6 +140,11 @@ class HrEmployee extends Model
         return $this->hasMany(HrEmployeeDocument::class, 'employee_id');
     }
 
+    public function movements(): HasMany
+    {
+        return $this->hasMany(HrEmployeeMovement::class, 'employee_id');
+    }
+
     public function contracts(): HasMany
     {
         return $this->hasMany(HrContract::class, 'employee_id');

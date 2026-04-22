@@ -31,7 +31,7 @@
             padding-bottom: 10px;
             margin-bottom: 14px;
         }
-        .header-logo img { max-height: 52px; max-width: 160px; object-fit: contain; }
+        .header-logo img { max-height: 70px; max-width: 200px; object-fit: contain; }
         .header-logo .company-name { font-size: 16px; font-weight: 700; color: #1e3a8a; }
         .header-right { text-align: right; }
         .header-right .doc-title { font-size: 18px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 1px; }

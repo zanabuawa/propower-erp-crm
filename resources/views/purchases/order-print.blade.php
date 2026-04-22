@@ -133,7 +133,7 @@
             display: flex; align-items: flex-start; justify-content: space-between;
             border-bottom: 2px solid #4f46e5; padding-bottom: 14px; margin-bottom: 14px;
         }
-        .company-logo { height: 52px; width: auto; object-fit: contain; }
+        .company-logo { height: 70px; width: auto; object-fit: contain; }
         .company-info { flex: 1; padding-left: 16px; }
         .company-name { font-size: 15px; font-weight: 700; color: #1e293b; }
         .company-sub  { font-size: 10px; color: #64748b; margin-top: 2px; }

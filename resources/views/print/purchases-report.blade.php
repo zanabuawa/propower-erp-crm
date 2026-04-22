@@ -24,6 +24,8 @@
             padding-bottom: 12px;
             margin-bottom: 16px;
         }
+        .header-logo img { max-height: 70px; max-width: 200px; object-fit: contain; display: block; }
+        .header-logo .logo-placeholder { width: 70px; height: 70px; background: #ede9fe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #4f46e5; }
         .header-left h1 { font-size: 18px; font-weight: 700; color: #4f46e5; }
         .header-left p  { font-size: 11px; color: #6b7280; margin-top: 2px; }
         .header-right   { text-align: right; font-size: 10px; color: #6b7280; }
@@ -151,9 +153,19 @@
 
     {{-- Encabezado --}}
     <div class="header">
-        <div class="header-left">
-            <h1>Reporte general de compras</h1>
-            <p>Estado: {{ $statusLabel }} &nbsp;·&nbsp; {{ $orders->count() }} órdenes</p>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div class="header-logo">
+                @php $logoPath = $company->print_logo ?? $company->logo ?? null; @endphp
+                @if($logoPath)
+                    <img src="{{ asset('storage/' . $logoPath) }}" alt="{{ $company->name }}">
+                @else
+                    <div class="logo-placeholder">{{ mb_strtoupper(mb_substr($company->name ?? 'E', 0, 1)) }}</div>
+                @endif
+            </div>
+            <div class="header-left">
+                <h1>Reporte general de compras</h1>
+                <p>Estado: {{ $statusLabel }} &nbsp;·&nbsp; {{ $orders->count() }} órdenes</p>
+            </div>
         </div>
         <div class="header-right">
             <strong>Fecha de impresión</strong>

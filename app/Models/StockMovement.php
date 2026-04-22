@@ -11,7 +11,7 @@ class StockMovement extends Model
 {
     protected $fillable = [
         'company_id', 'warehouse_id', 'warehouse_destination_id',
-        'user_id', 'type', 'folio', 'status', 'reference', 'notes', 'moved_at',
+        'user_id', 'project_id', 'type', 'folio', 'status', 'reference', 'notes', 'moved_at',
         'dispatch_notes', 'dispatched_by', 'dispatch_is_final',
         'adjustment_reason', 'approved_by', 'approved_at',
         'finance_account_id', 'finance_transaction_id',
@@ -81,6 +81,11 @@ class StockMovement extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function warehouse(): BelongsTo

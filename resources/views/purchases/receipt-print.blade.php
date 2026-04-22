@@ -67,7 +67,7 @@
         <div class="header">
             <div class="company-info">
                 @if($receipt->company?->logo && file_exists(public_path('storage/' . $receipt->company->logo)))
-                    <img src="{{ asset('storage/' . $receipt->company->logo) }}" alt="Logo" style="height:48px; margin-bottom:6px; object-fit:contain;">
+                    <img src="{{ asset('storage/' . ($receipt->company->print_logo ?? $receipt->company->logo)) }}" alt="Logo" style="height:70px; margin-bottom:6px; object-fit:contain;">
                 @endif
                 <h2>{{ $receipt->company?->name ?? config('app.name') }}</h2>
                 @if($receipt->company?->rfc)

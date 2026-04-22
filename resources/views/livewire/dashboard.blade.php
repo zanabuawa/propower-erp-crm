@@ -320,60 +320,34 @@
              x-data="{
                 chart: null,
                 init() {
-                    const labels = {{ Js::from($salesChart->pluck('label')) }};
-                    const data   = {{ Js::from($salesChart->pluck('value')) }};
-                    const ctx    = this.$refs.canvas.getContext('2d');
-                    this.chart   = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels,
-                            datasets: [{
-                                label: 'Ventas',
-                                data,
-                                backgroundColor: 'rgba(99,102,241,0.10)',
-                                borderColor: '#6366f1',
-                                borderWidth: 2,
-                                borderRadius: 8,
-                                borderSkipped: false,
-                                hoverBackgroundColor: 'rgba(99,102,241,0.20)',
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: {
-                                    backgroundColor: '#1e293b',
-                                    titleColor: '#94a3b8',
-                                    bodyColor: '#f1f5f9',
-                                    padding: 10,
-                                    cornerRadius: 8,
-                                    displayColors: false,
-                                    callbacks: {
-                                        label: ctx => ' $' + Intl.NumberFormat('es-MX').format(ctx.raw)
-                                    }
-                                }
+                    this.$nextTick(() => {
+                        const labels = {{ Js::from($salesChart->pluck('label')) }};
+                        const data   = {{ Js::from($salesChart->pluck('value')) }};
+                        const ctx    = this.$refs.canvas.getContext('2d');
+                        if (this.chart) this.chart.destroy();
+                        this.chart   = new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels,
+                                datasets: [{
+                                    label: 'Ventas',
+                                    data,
+                                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                    borderColor: '#4f46e5',
+                                    borderWidth: 2,
+                                    borderRadius: 6,
+                                }]
                             },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    border: { display: false },
-                                    grid: { color: 'rgba(0,0,0,0.04)', drawTicks: false },
-                                    ticks: {
-                                        color: '#94a3b8',
-                                        font: { size: 11 },
-                                        padding: 8,
-                                        callback: v => '$' + Intl.NumberFormat('es-MX', { notation: 'compact' }).format(v)
-                                    }
-                                },
-                                x: {
-                                    border: { display: false },
-                                    grid: { display: false },
-                                    ticks: { color: '#94a3b8', font: { size: 11 } }
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: {
+                                    y: { beginAtZero: true, border: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+                                    x: { border: { display: false }, grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } }
                                 }
                             }
-                        }
+                        });
                     });
                 }
              }">
