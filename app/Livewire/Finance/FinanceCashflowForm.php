@@ -6,6 +6,7 @@ use App\Models\FinanceAccount;
 use App\Models\FinanceBudget;
 use App\Models\FinanceCashflow;
 use App\Models\Project;
+use App\Models\Tender;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -16,6 +17,7 @@ class FinanceCashflowForm extends Component
 
     public ?int $account_id = null;
     public ?int $project_id = null;
+    public ?int $tender_id = null;
     public ?int $budget_id = null;
     public string $concept = '';
     public string $type = 'proyectado';
@@ -36,6 +38,7 @@ class FinanceCashflowForm extends Component
             $this->cashflow       = $cashflow;
             $this->account_id     = $cashflow->account_id;
             $this->project_id     = $cashflow->project_id;
+            $this->tender_id      = $cashflow->tender_id;
             $this->budget_id      = $cashflow->budget_id;
             $this->concept        = $cashflow->concept;
             $this->type           = $cashflow->type;
@@ -55,6 +58,7 @@ class FinanceCashflowForm extends Component
         return [
             'account_id'    => 'required|exists:finance_accounts,id',
             'project_id'    => 'nullable|exists:projects,id',
+            'tender_id'     => 'nullable|exists:tenders,id',
             'budget_id'     => 'nullable|exists:finance_budgets,id',
             'concept'       => 'required|string|max:255',
             'type'          => 'required|in:proyectado,real',
@@ -76,6 +80,7 @@ class FinanceCashflowForm extends Component
         $data = [
             'account_id'    => $this->account_id,
             'project_id'    => $this->project_id,
+            'tender_id'     => $this->tender_id,
             'budget_id'     => $this->budget_id,
             'concept'       => $this->concept,
             'type'          => $this->type,
@@ -102,12 +107,14 @@ class FinanceCashflowForm extends Component
 
     public function render()
     {
-        $accounts = FinanceAccount::where('company_id', auth()->user()->company_id)
+        $companyId = auth()->user()->company_id;
+        $accounts  = FinanceAccount::where('company_id', $companyId)
             ->where('is_active', true)->orderBy('name')->get();
-        $projects = Project::whereIn('status', ['borrador', 'activo'])->orderBy('name')->get();
-        $budgets  = FinanceBudget::where('company_id', auth()->user()->company_id)
+        $projects  = Project::whereIn('status', ['borrador', 'activo'])->orderBy('name')->get();
+        $budgets   = FinanceBudget::where('company_id', $companyId)
             ->where('status', '!=', 'cerrado')->orderByDesc('year')->get();
+        $tenders   = Tender::where('company_id', $companyId)->orderByDesc('created_at')->get(['id','folio','name']);
 
-        return view('livewire.finance.finance-cashflow-form', compact('accounts', 'projects', 'budgets'));
+        return view('livewire.finance.finance-cashflow-form', compact('accounts', 'projects', 'budgets', 'tenders'));
     }
 }

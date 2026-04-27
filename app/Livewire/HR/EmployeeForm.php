@@ -87,21 +87,42 @@ class EmployeeForm extends Component
 
         if ($employee && $employee->exists) {
             $this->employee = $employee;
-            $this->fill($employee->only([
-                'employee_number','first_name','last_name','second_last_name',
-                'curp','rfc','nss','gender','email','phone',
-                'address','city','state','postal_code',
-                'department_id','position_id','branch_id','supervisor_id',
-                'is_external','contract_type',
-                'salary','salary_period','work_shift','status',
-                'payment_method','bank','bank_account','clabe',
-                'imss_regime','daily_salary_imss','infonavit_credit',
-                'emergency_contact_name','emergency_contact_phone','emergency_contact_relationship',
-                'notes',
-            ]));
+            $this->employee_number   = $employee->employee_number ?? '';
+            $this->first_name        = $employee->first_name ?? '';
+            $this->last_name         = $employee->last_name ?? '';
+            $this->second_last_name  = $employee->second_last_name ?? '';
+            $this->curp              = $employee->curp ?? '';
+            $this->rfc               = $employee->rfc ?? '';
+            $this->nss               = $employee->nss ?? '';
+            $this->gender            = $employee->gender ?? '';
+            $this->email             = $employee->email ?? '';
+            $this->phone             = $employee->phone ?? '';
+            $this->address           = $employee->address ?? '';
+            $this->city              = $employee->city ?? '';
+            $this->state             = $employee->state ?? '';
+            $this->postal_code       = $employee->postal_code ?? '';
+            $this->department_id     = $employee->department_id;
+            $this->position_id       = $employee->position_id;
+            $this->branch_id         = $employee->branch_id;
+            $this->supervisor_id     = $employee->supervisor_id;
+            $this->is_external       = (bool) $employee->is_external;
+            $this->contract_type     = $employee->contract_type ?? 'indefinido';
+            $this->salary_period     = $employee->salary_period ?? 'monthly';
+            $this->work_shift        = $employee->work_shift ?? '';
+            $this->status            = $employee->status ?? 'active';
+            $this->payment_method    = $employee->payment_method ?? 'transferencia';
+            $this->bank              = $employee->bank ?? '';
+            $this->bank_account      = $employee->bank_account ?? '';
+            $this->clabe             = $employee->clabe ?? '';
+            $this->imss_regime       = $employee->imss_regime ?? '';
+            $this->infonavit_credit  = $employee->infonavit_credit ?? '';
+            $this->emergency_contact_name         = $employee->emergency_contact_name ?? '';
+            $this->emergency_contact_phone        = $employee->emergency_contact_phone ?? '';
+            $this->emergency_contact_relationship = $employee->emergency_contact_relationship ?? '';
+            $this->notes             = $employee->notes ?? '';
             $this->birth_date = $employee->birth_date?->format('Y-m-d') ?? '';
             $this->hire_date  = $employee->hire_date?->format('Y-m-d') ?? '';
-            $this->salary = (string) $employee->salary;
+            $this->salary = (string) ($employee->salary ?? '');
             $this->daily_salary_imss = (string) ($employee->daily_salary_imss ?? '');
             $this->loadPositions();
         } elseif ($this->prospect_id) {

@@ -9,6 +9,8 @@ use App\Models\FinanceTransaction;
 use App\Models\PurchaseInvoice;
 use App\Models\SaleInvoice;
 use App\Models\ScheduledPayment;
+use App\Models\Tender;
+use App\Models\WorkLibranza;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -161,6 +163,27 @@ class FinanceDashboard extends Component
             }
         }
 
+        // ── Licitaciones y Obra ───────────────────────────────────────────
+        $libranzasPendientes = WorkLibranza::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+            ->whereIn('status', ['enviada', 'aprobada'])
+            ->sum('amount');
+
+        $libranzasPagadasMes = WorkLibranza::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+            ->where('status', 'pagada')
+            ->whereBetween('updated_at', [$monthStart, $monthEnd])
+            ->sum('amount');
+
+        $tenderesAdjudicados = Tender::where('company_id', $companyId)
+            ->where('status', 'adjudicada')
+            ->sum('awarded_amount');
+
+        $libranzasPendientesList = WorkLibranza::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+            ->whereIn('status', ['enviada', 'aprobada'])
+            ->with(['project:id,name', 'tender:id,folio'])
+            ->orderBy('period_end')
+            ->limit(5)
+            ->get();
+
         // ── Top 5 deudores (CxC vencida) ──────────────────────────────────
         $topDebtors = SaleInvoice::where('company_id', $companyId)
             ->whereNotIn('status', ['paid', 'cancelled'])
@@ -201,7 +224,9 @@ class FinanceDashboard extends Component
             'pendingReconciliations', 'periodClosed',
             'chartData', 'projectionDays',
             'topDebtors', 'topCreditors',
-            'upcomingPayments'
+            'upcomingPayments',
+            'libranzasPendientes', 'libranzasPagadasMes',
+            'tenderesAdjudicados', 'libranzasPendientesList'
         ));
     }
 }

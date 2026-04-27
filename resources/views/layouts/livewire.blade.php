@@ -50,7 +50,6 @@
             <x-sidebar-item route="inventory.index" icon="inventory" label="Inventario" />
             <x-sidebar-item route="purchases.index" icon="purchases" label="Compras" />
             <x-sidebar-item route="sales.index" icon="sales" label="Ventas" />
-            <x-sidebar-item route="accounting.index" icon="accounting" label="Contabilidad" />
             <x-sidebar-item route="hr.index" icon="hr" label="Recursos humanos" />
             <x-sidebar-item route="production.index" icon="production" label="Producción" />
             <x-sidebar-item route="projects.index" icon="projects" label="Proyectos" />

@@ -119,9 +119,8 @@ class ProspectForm extends Component
     public function render()
     {
         $positions   = HrPosition::where('is_active', true)->orderBy('name')->get();
-        $jobOpenings = HrJobOpening::where('company_id', auth()->user()->company_id)
-            ->whereIn('status', ['open', 'paused'])
-            ->orderBy('title')->get(['id', 'title']);
+        $jobOpenings = HrJobOpening::whereNotIn('status', ['cancelled'])
+            ->orderBy('title')->get(['id', 'title', 'status']);
         return view('livewire.hr.prospect-form', compact('positions', 'jobOpenings'));
     }
 }

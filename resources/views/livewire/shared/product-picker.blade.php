@@ -189,7 +189,7 @@
 
                                     {{-- Hover overlay add --}}
                                     <div class="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition flex items-center justify-center">
-                                        <span class="opacity-0 group-hover:opacity-100 transition bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                        <span class="transition bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                                             + Agregar
                                         </span>
                                     </div>

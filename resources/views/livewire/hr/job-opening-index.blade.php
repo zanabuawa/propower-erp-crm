@@ -1,283 +1,151 @@
-<div>
-    <x-page-header title="Vacantes" description="Gestión de plazas abiertas para reclutamiento">
-        <x-slot:actions>
-            @can('create hr')
-            <button wire:click="openCreate"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
-                + Nueva vacante
+<div class="min-h-screen bg-slate-50/50 -m-4 sm:-m-6 lg:-m-8">
+    {{-- ── STICKY HEADER ────────────────────────────────────────────────── --}}
+    <div class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between gap-4 max-w-full mx-auto">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-indigo-500/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H5a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 truncate">Vacantes</h1>
+                    <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Gestión de reclutamiento y selección</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                @can('create hr')
+                <a wire:navigate href="{{ route('hr.job-openings.create') }}"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Publicar vacante</span>
+                </a>
+                @endcan
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        @if(session('success'))
+            <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="text-sm font-semibold">{{ session('success') }}</p>
+            </div>
+        @endif
+
+        {{-- Stats / Quick Filters --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            @foreach(['open' => 'Abiertas', 'paused' => 'Pausadas', 'closed' => 'Cerradas'] as $k => $v)
+                <button wire:click="$set('filterStatus', '{{ $k }}')" 
+                    class="bg-white p-5 rounded-3xl border {{ $filterStatus === $k ? 'border-indigo-500 ring-4 ring-indigo-500/5' : 'border-slate-200/60 shadow-sm' }} text-left transition-all duration-200 group">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-indigo-500 transition-colors">{{ $v }}</p>
+                    <p class="text-2xl font-black text-slate-800">{{ $stats[$k] ?? 0 }}</p>
+                </button>
+            @endforeach
+            <button wire:click="$set('filterStatus', '')" 
+                class="bg-white p-5 rounded-3xl border {{ $filterStatus === '' ? 'border-indigo-500 ring-4 ring-indigo-500/5' : 'border-slate-200/60 shadow-sm' }} text-left transition-all duration-200 group">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-indigo-500 transition-colors">Total</p>
+                <p class="text-2xl font-black text-slate-800">{{ array_sum($stats->toArray()) }}</p>
             </button>
-            @endcan
-        </x-slot:actions>
-    </x-page-header>
-
-    <x-alert />
-
-    {{-- KPIs --}}
-    @php
-        $statuses = \App\Models\HrJobOpening::STATUSES;
-        $statusColors = ['open'=>'text-green-700 bg-green-50','paused'=>'text-yellow-700 bg-yellow-50','closed'=>'text-slate-600 bg-slate-100','cancelled'=>'text-red-600 bg-red-50'];
-    @endphp
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        @foreach($statuses as $k => $v)
-        <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
-            <p class="text-2xl font-bold {{ explode(' ',$statusColors[$k])[0] }}">{{ $stats[$k] ?? 0 }}</p>
-            <p class="text-xs text-slate-500 mt-0.5">{{ $v }}</p>
         </div>
-        @endforeach
-    </div>
 
-    {{-- Filtros --}}
-    <div class="flex flex-wrap gap-3 mb-5">
-        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar vacante..."
-               class="flex-1 min-w-[200px] px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-        <select wire:model.live="filterStatus"
-                class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-            <option value="">Todos los estados</option>
-            @foreach(\App\Models\HrJobOpening::STATUSES as $k => $v)
-                <option value="{{ $k }}">{{ $v }}</option>
-            @endforeach
-        </select>
-        <select wire:model.live="filterType"
-                class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-            <option value="">Todos los tipos</option>
-            @foreach(\App\Models\HrJobOpening::TYPES as $k => $v)
-                <option value="{{ $k }}">{{ $v }}</option>
-            @endforeach
-        </select>
-    </div>
-
-    {{-- Grid de vacantes --}}
-    @if($openings->isEmpty())
-    <div class="bg-white rounded-xl border border-slate-200 p-12 text-center">
-        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
+        {{-- Filtros --}}
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/60 shadow-sm flex flex-wrap gap-4 items-center">
+            <div class="flex-1 min-w-[280px] relative group">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar vacante por título..."
+                    class="w-full pl-11 pr-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm">
+            </div>
+            
+            <select wire:model.live="filterType"
+                class="px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm font-bold text-slate-600">
+                <option value="">Todos los tipos</option>
+                @foreach(\App\Models\HrJobOpening::TYPES as $k => $v)
+                    <option value="{{ $k }}">{{ $v }}</option>
+                @endforeach
+            </select>
         </div>
-        <p class="text-slate-500 mb-3">No hay vacantes registradas.</p>
-        @can('create hr')
-        <button wire:click="openCreate"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition">
-            Crear primera vacante
-        </button>
-        @endcan
-    </div>
-    @else
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        @foreach($openings as $opening)
-        @php
-            $statusBadge = match($opening->status) {
-                'open'      => 'bg-green-100 text-green-700',
-                'paused'    => 'bg-yellow-100 text-yellow-700',
-                'closed'    => 'bg-slate-100 text-slate-600',
-                'cancelled' => 'bg-red-100 text-red-600',
-                default     => 'bg-gray-100 text-gray-600',
-            };
-            $typeBadge = match($opening->type) {
-                'internal' => 'bg-blue-100 text-blue-700',
-                'external' => 'bg-purple-100 text-purple-700',
-                default    => 'bg-indigo-100 text-indigo-700',
-            };
-        @endphp
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden {{ $opening->status === 'closed' || $opening->status === 'cancelled' ? 'opacity-70' : '' }}">
-            <div class="p-4">
-                <div class="flex items-start justify-between gap-2 mb-2">
-                    <div class="flex-1 min-w-0">
-                        <h3 class="font-semibold text-slate-800 truncate">{{ $opening->title }}</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">{{ $opening->position?->name }}</p>
-                        @if($opening->branch)
-                        <p class="text-xs text-slate-400">{{ $opening->branch->name }}</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-500">
+            @forelse($openings as $opening)
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all duration-300 group overflow-hidden flex flex-col h-full">
+                    <div class="p-6 space-y-4 flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="min-w-0">
+                                <h3 class="text-base font-bold text-slate-800 group-hover:text-indigo-600 transition-colors truncate">{{ $opening->title }}</h3>
+                                <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mt-1">{{ $opening->position->name }}</p>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border border-current
+                                {{ $opening->status === 'open' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : ($opening->status === 'paused' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-slate-50 text-slate-400 border-slate-100') }}">
+                                {{ $opening->status_label }}
+                            </span>
+                        </div>
+
+                        <div class="flex items-center justify-between py-3 border-y border-slate-50">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Candidatos</span>
+                                <span class="text-sm font-black text-slate-700">{{ $opening->prospects_count }}</span>
+                            </div>
+                            <div class="flex flex-col text-right">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Plazas</span>
+                                <span class="text-sm font-black text-slate-700">{{ $opening->quantity }}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 text-[10px] font-bold text-slate-500">
+                            <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <span>{{ $opening->branch?->name ?? 'Remoto / General' }}</span>
+                        </div>
+
+                        @if($opening->salary_range)
+                            <div class="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-wider">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>{{ $opening->salary_range }}</span>
+                            </div>
                         @endif
                     </div>
-                    <div class="flex flex-col gap-1 items-end flex-shrink-0">
-                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $statusBadge }}">
-                            {{ \App\Models\HrJobOpening::STATUSES[$opening->status] }}
-                        </span>
-                        <span class="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase {{ $typeBadge }}">
-                            {{ \App\Models\HrJobOpening::TYPES[$opening->type] }}
-                        </span>
+
+                    <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between gap-4">
+                        <span class="text-[10px] font-bold text-slate-400">{{ $opening->published_at?->diffForHumans() ?? 'No publicada' }}</span>
+                        <div class="flex items-center gap-1">
+                            @can('edit hr')
+                                <button wire:click="toggleStatus({{ $opening->id }})" 
+                                        class="p-2 rounded-xl text-slate-400 hover:text-amber-600 hover:bg-white hover:shadow-sm transition-all"
+                                        title="{{ $opening->status === 'open' ? 'Pausar' : 'Activar' }}">
+                                    @if($opening->status === 'open')
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    @else
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    @endif
+                                </button>
+                                <a wire:navigate href="{{ route('hr.job-openings.edit', $opening) }}" 
+                                   class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                </a>
+                                <button wire:click="delete({{ $opening->id }})" wire:confirm="¿Seguro que desea eliminar esta vacante?"
+                                        class="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-white hover:shadow-sm transition-all">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-4v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            @endcan
+                        </div>
                     </div>
                 </div>
-
-                {{-- Stats --}}
-                <div class="grid grid-cols-3 gap-2 text-center text-xs mt-3 mb-3">
-                    <div class="bg-slate-50 rounded-lg py-2">
-                        <p class="text-lg font-bold text-slate-700">{{ $opening->quantity }}</p>
-                        <p class="text-slate-400">Plazas</p>
+            @empty
+                <div class="col-span-full bg-white rounded-3xl border border-slate-200/60 p-12 text-center space-y-4">
+                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H5a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
                     </div>
-                    <div class="bg-indigo-50 rounded-lg py-2">
-                        <p class="text-lg font-bold text-indigo-600">{{ $opening->prospects_count }}</p>
-                        <p class="text-slate-400">Candidatos</p>
-                    </div>
-                    <div class="bg-slate-50 rounded-lg py-2">
-                        <p class="text-sm font-semibold text-slate-700 mt-1">
-                            {{ $opening->closing_date ? $opening->closing_date->format('d/m') : '—' }}
-                        </p>
-                        <p class="text-slate-400">Cierre</p>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800">No hay vacantes</h3>
+                        <p class="text-sm text-slate-400 max-w-xs mx-auto">No se encontraron publicaciones que coincidan con los filtros aplicados.</p>
                     </div>
                 </div>
-
-                @if($opening->salary_range)
-                <p class="text-xs text-slate-500 mb-2">
-                    <span class="font-medium">Rango salarial:</span> {{ $opening->salary_range }}
-                </p>
-                @endif
-
-                {{-- Ver candidatos --}}
-                <a href="{{ route('hr.prospects.index', ['job_opening_id' => $opening->id]) }}"
-                   class="block w-full text-center text-xs text-indigo-600 hover:text-indigo-800 border border-indigo-100 hover:bg-indigo-50 rounded-lg py-1.5 transition">
-                    Ver candidatos
-                </a>
-            </div>
-
-            <div class="border-t border-slate-100 px-4 py-2.5 flex items-center justify-between gap-2 bg-slate-50">
-                @if($opening->status === 'open')
-                <button wire:click="toggleStatus({{ $opening->id }})"
-                        class="text-xs text-yellow-600 hover:text-yellow-800 font-medium">Pausar</button>
-                @elseif($opening->status === 'paused')
-                <button wire:click="toggleStatus({{ $opening->id }})"
-                        class="text-xs text-green-600 hover:text-green-800 font-medium">Reactivar</button>
-                @else
-                <span></span>
-                @endif
-
-                <div class="flex gap-3">
-                    @can('edit hr')
-                    <button wire:click="openEdit({{ $opening->id }})"
-                            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Editar</button>
-                    @if($opening->status !== 'closed')
-                    <button wire:click="close({{ $opening->id }})"
-                            wire:confirm="¿Cerrar esta vacante?"
-                            class="text-xs text-slate-500 hover:text-slate-700 font-medium">Cerrar</button>
-                    @endif
-                    <button wire:click="delete({{ $opening->id }})"
-                            wire:confirm="¿Eliminar esta vacante permanentemente?"
-                            class="text-xs text-red-500 hover:text-red-700 font-medium">Eliminar</button>
-                    @endcan
-                </div>
-            </div>
-        </div>
-        @endforeach
-    </div>
-
-    @if($openings->hasPages())
-    <div class="mt-4">{{ $openings->links() }}</div>
-    @endif
-    @endif
-
-    {{-- Modal --}}
-    @if($showModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 class="text-base font-bold text-slate-800 mb-5">
-                {{ $editingId ? 'Editar vacante' : 'Nueva vacante' }}
-            </h3>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Título <span class="text-red-400">*</span></label>
-                    <input wire:model="title" type="text"
-                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                           placeholder="Ej. Ingeniero Civil Senior">
-                    @error('title') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Puesto <span class="text-red-400">*</span></label>
-                    <select wire:model="position_id"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
-                        <option value="">Seleccionar puesto</option>
-                        @foreach($positionOptions as $pos)
-                        <option value="{{ $pos['id'] }}">{{ $pos['name'] }}</option>
-                        @endforeach
-                    </select>
-                    @error('position_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Sucursal</label>
-                    <select wire:model="branch_id"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
-                        <option value="">Sin sucursal específica</option>
-                        @foreach($branchOptions as $b)
-                        <option value="{{ $b['id'] }}">{{ $b['name'] }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Tipo</label>
-                    <select wire:model="type"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
-                        @foreach(\App\Models\HrJobOpening::TYPES as $k => $v)
-                        <option value="{{ $k }}">{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Número de plazas</label>
-                    <input wire:model="quantity" type="number" min="1"
-                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Rango salarial</label>
-                    <input wire:model="salary_range" type="text"
-                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-                           placeholder="Ej. $18,000 – $22,000 mensuales">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Fecha publicación</label>
-                    <input wire:model="published_at" type="date"
-                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Fecha cierre</label>
-                    <input wire:model="closing_date" type="date"
-                           class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Descripción del puesto</label>
-                    <textarea wire:model="description" rows="3"
-                              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
-                              placeholder="Responsabilidades principales..."></textarea>
-                </div>
-
-                <div class="col-span-2">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Requisitos</label>
-                    <textarea wire:model="requirements" rows="3"
-                              class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
-                              placeholder="Experiencia, escolaridad, habilidades..."></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Estado</label>
-                    <select wire:model="status"
-                            class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
-                        @foreach(\App\Models\HrJobOpening::STATUSES as $k => $v)
-                        <option value="{{ $k }}">{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <div class="flex gap-3 mt-6">
-                <button wire:click="save" wire:loading.attr="disabled"
-                        class="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-                    <span wire:loading.remove wire:target="save">Guardar vacante</span>
-                    <span wire:loading wire:target="save">Guardando...</span>
-                </button>
-                <button wire:click="$set('showModal', false)"
-                        class="flex-1 text-slate-600 text-sm px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 transition">
-                    Cancelar
-                </button>
-            </div>
+            @endforelse
         </div>
     </div>
-    @endif
 </div>

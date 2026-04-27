@@ -100,7 +100,7 @@
                             </td>
                             <td class="px-5 py-4 text-right">
                                 <a wire:navigate href="{{ route('sales.crm.prospects.show', $prospect) }}"
-                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-indigo-500 hover:text-white hover:bg-indigo-600 bg-indigo-50 opacity-0 group-hover:opacity-100 transition-all">
+                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-indigo-500 hover:text-white hover:bg-indigo-600 bg-indigo-50 transition-all">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </a>
                             </td>

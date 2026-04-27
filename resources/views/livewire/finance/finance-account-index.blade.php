@@ -1,89 +1,134 @@
-<div>
-    <x-page-header title="Cuentas" description="Cuentas bancarias y cajas">
-        <x-slot:actions>
-            @can('create finance')
-            <a wire:navigate href="{{ route('finance.accounts.create') }}"
-                class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Nueva cuenta
-            </a>
-            @endcan
-        </x-slot:actions>
-    </x-page-header>
-
-    <x-alert />
-
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-        <div class="relative">
-            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
-            <input wire:model.live.debounce.300ms="search" type="text"
-                placeholder="Buscar por código, nombre o banco..."
-                class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+<div class="min-h-screen bg-slate-50/50 -m-4 sm:-m-6 lg:-m-8">
+    {{-- STICKY HEADER --}}
+    <div class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between gap-4 max-w-full mx-auto">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 truncate">Cuentas</h1>
+                    <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Cuentas bancarias y cajas</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                @can('create finance')
+                <a wire:navigate href="{{ route('finance.accounts.create') }}"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Nueva cuenta</span>
+                </a>
+                @endcan
+            </div>
         </div>
-        <select wire:model.live="filterType" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
-            <option value="">Todos los tipos</option>
-            <option value="banco">Banco</option>
-            <option value="caja">Caja</option>
-            <option value="credito">Crédito</option>
-            <option value="inversion">Inversión</option>
-            <option value="otro">Otro</option>
-        </select>
-        <select wire:model.live="filterBranch" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
-            <option value="">Todas las sucursales</option>
-            @foreach($branches as $branch)
-                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
-            @endforeach
-        </select>
     </div>
 
-    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm min-w-[640px]">
-                <thead>
-                    <tr class="border-b border-gray-200 bg-gray-50">
-                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Código</th>
-                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Nombre</th>
-                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden md:table-cell">Banco</th>
-                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Tipo</th>
-                        <th class="text-right px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide">Saldo actual</th>
-                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide hidden lg:table-cell">Estado</th>
-                        <th class="px-5 py-3"></th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    @forelse($accounts as $account)
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-5 py-3 font-mono text-xs text-gray-500">{{ $account->code }}</td>
-                        <td class="px-5 py-3 font-medium text-gray-900">{{ $account->name }}</td>
-                        <td class="px-5 py-3 hidden md:table-cell text-gray-600">{{ $account->bank_name ?? '—' }}</td>
-                        <td class="px-5 py-3 capitalize text-gray-600">{{ $account->type }}</td>
-                        <td class="px-5 py-3 text-right font-medium {{ $account->current_balance < 0 ? 'text-red-600' : 'text-gray-900' }}">
-                            {{ $account->currency }} {{ number_format($account->current_balance, 2) }}
-                        </td>
-                        <td class="px-5 py-3 hidden lg:table-cell">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $account->is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500' }}">
-                                {{ $account->is_active ? 'Activa' : 'Inactiva' }}
-                            </span>
-                        </td>
-                        <td class="px-5 py-3 text-right">
-                            @can('edit finance')
-                            <a wire:navigate href="{{ route('finance.accounts.edit', $account) }}"
-                                class="text-indigo-600 hover:text-indigo-800 text-xs font-medium">Editar</a>
-                            @endcan
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="7" class="px-5 py-10 text-center text-gray-400 text-sm">No se encontraron cuentas.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($accounts->hasPages())
-        <div class="px-5 py-3 border-t border-gray-100">{{ $accounts->links() }}</div>
+    <div class="max-w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        @if(session('success'))
+            <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="text-sm font-semibold">{{ session('success') }}</p>
+            </div>
         @endif
+
+        {{-- Filters --}}
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/60 shadow-sm flex flex-wrap gap-4 items-center">
+            <div class="flex-1 min-w-[280px] relative group">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar por código, nombre o banco..."
+                    class="w-full pl-11 pr-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm">
+            </div>
+            <select wire:model.live="filterType"
+                class="px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm font-bold text-slate-600">
+                <option value="">Todos los tipos</option>
+                <option value="banco">Banco</option>
+                <option value="caja">Caja</option>
+                <option value="credito">Crédito</option>
+                <option value="inversion">Inversión</option>
+                <option value="otro">Otro</option>
+            </select>
+            <select wire:model.live="filterBranch"
+                class="px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm font-bold text-slate-600">
+                <option value="">Todas las sucursales</option>
+                @foreach($branches as $branch)
+                    <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        {{-- Table --}}
+        <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-100">
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Código</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nombre</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden md:table-cell">Banco</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tipo</th>
+                            <th class="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Saldo actual</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden lg:table-cell">Estado</th>
+                            <th class="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($accounts as $account)
+                        <tr class="hover:bg-slate-50/50 transition-colors group">
+                            <td class="px-6 py-4">
+                                <p class="font-mono text-xs text-slate-500">{{ $account->code }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm font-bold text-slate-700">{{ $account->name }}</p>
+                            </td>
+                            <td class="px-6 py-4 hidden md:table-cell">
+                                <p class="text-sm text-slate-500">{{ $account->bank_name ?? '—' }}</p>
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm text-slate-500 capitalize">{{ $account->type }}</p>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <p class="text-sm font-mono font-bold {{ $account->current_balance < 0 ? 'text-red-600' : 'text-slate-700' }}">
+                                    {{ $account->currency }} {{ number_format($account->current_balance, 2) }}
+                                </p>
+                            </td>
+                            <td class="px-6 py-4 hidden lg:table-cell">
+                                <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider {{ $account->is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-400 border border-slate-200' }}">
+                                    {{ $account->is_active ? 'Activa' : 'Inactiva' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                    @can('edit finance')
+                                    <a wire:navigate href="{{ route('finance.accounts.edit', $account) }}"
+                                        class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:shadow-sm transition-all" title="Editar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    </a>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="7" class="px-6 py-16 text-center">
+                                <div class="flex flex-col items-center gap-2">
+                                    <svg class="w-10 h-10 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                    <p class="text-slate-400 text-sm font-medium">No se encontraron cuentas.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($accounts->hasPages())
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+                    {{ $accounts->links() }}
+                </div>
+            @endif
+        </div>
     </div>
 </div>

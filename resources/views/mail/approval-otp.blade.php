@@ -1,49 +1,68 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Código de verificación</title>
-    <style>
-        body { margin: 0; padding: 0; background: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-        .wrapper { max-width: 520px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
-        .header  { background: #4f46e5; padding: 28px 32px; }
-        .header h1 { margin: 0; color: #fff; font-size: 18px; font-weight: 600; }
-        .body    { padding: 32px; }
-        .greeting { font-size: 15px; color: #1e293b; margin: 0 0 16px; }
-        .ctx     { font-size: 14px; color: #475569; margin: 0 0 28px; }
-        .code-box { background: #f1f5f9; border: 2px dashed #c7d2fe; border-radius: 10px; text-align: center; padding: 20px 0; margin-bottom: 28px; }
-        .code    { font-size: 42px; font-weight: 700; letter-spacing: 10px; color: #4f46e5; font-family: 'Courier New', monospace; }
-        .expiry  { font-size: 13px; color: #64748b; margin: 0 0 24px; }
-        .warning { font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 8px; }
-        .footer  { background: #f8fafc; padding: 16px 32px; text-align: center; }
-        .footer p { margin: 0; font-size: 12px; color: #94a3b8; }
-    </style>
-</head>
-<body>
-    <div class="wrapper">
-        <div class="header">
-            <h1>{{ config('app.name') }}</h1>
-        </div>
-        <div class="body">
-            <p class="greeting">Hola, <strong>{{ $user->name }}</strong></p>
-            <p class="ctx">
-                Recibiste este correo porque se solicitó un código de verificación para:
-                <strong>{{ $context }}</strong>.
-            </p>
-            <div class="code-box">
-                <div class="code">{{ $code }}</div>
-            </div>
-            <p class="expiry">
-                Este código es válido por <strong>10 minutos</strong> y solo puede usarse una vez.
-            </p>
-            <p class="warning">
-                Si no solicitaste este código, ignora este correo. Nadie más puede usar este código sin acceso a tu cuenta.
-            </p>
-        </div>
-        <div class="footer">
-            <p>{{ config('app.name') }} &middot; Sistema ERP</p>
-        </div>
-    </div>
-</body>
-</html>
+@extends('layouts.mail')
+
+@section('content')
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr><td align="center">
+<table border="0" cellpadding="0" cellspacing="0" width="580" style="width:580px;max-width:580px;">
+<tr>
+  <td style="background-color:#ffffff;border-radius:12px;border:1px solid #e2e8f0;padding:40px 48px;font-family:Arial,sans-serif;">
+
+    {{-- Badge --}}
+    <p style="margin:0 0 20px;text-align:center;">
+      <span style="background-color:#fee2e2;color:#991b1b;padding:4px 16px;border-radius:20px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;font-family:Arial,sans-serif;">Verificación de Seguridad</span>
+    </p>
+
+    {{-- Título --}}
+    <h2 style="margin:0 0 8px;text-align:center;font-size:24px;font-weight:800;color:#0f172a;font-family:Arial,sans-serif;line-height:1.2;">
+      Código de Aprobación
+    </h2>
+
+    {{-- Divider --}}
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+      <tr><td style="border-top:1px solid #f1f5f9;padding-top:24px;"></td></tr>
+    </table>
+
+    {{-- Saludo --}}
+    <p style="margin:0 0 6px;font-size:15px;color:#334155;line-height:1.6;font-family:Arial,sans-serif;">
+      Hola, <strong>{{ $user->name }}</strong>
+    </p>
+    <p style="margin:0 0 32px;font-size:14px;color:#64748b;line-height:1.6;font-family:Arial,sans-serif;">
+      Recibiste este código para aprobar: <strong style="color:#334155;">{{ $context }}</strong>
+    </p>
+
+    {{-- Código OTP --}}
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
+      <tr>
+        <td align="center" style="background-color:#fff1f2;border:2px dashed #E21F26;border-radius:10px;padding:24px 16px;">
+          <p style="margin:0 0 8px;font-size:11px;font-weight:800;color:#E21F26;text-transform:uppercase;letter-spacing:0.15em;font-family:Arial,sans-serif;">
+            Tu código OTP
+          </p>
+          <p style="margin:0;font-size:44px;font-weight:900;letter-spacing:10px;color:#0f172a;font-family:'Courier New',Courier,monospace;line-height:1.1;">
+            {{ $code }}
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    {{-- Aviso --}}
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:24px;">
+      <tr>
+        <td style="background-color:#fffbeb;border-left:4px solid #f59e0b;padding:12px 16px;border-radius:0 4px 4px 0;">
+          <p style="margin:0;font-size:13px;color:#92400e;font-family:Arial,sans-serif;line-height:1.5;">
+            <strong>Importante:</strong> Este código expira en <strong>10 minutos</strong> y solo puede usarse una vez.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    {{-- Descargo --}}
+    <p style="margin:0;font-size:12px;color:#94a3b8;font-family:Arial,sans-serif;line-height:1.6;text-align:center;">
+      Si no solicitaste este código, ignora este correo.
+    </p>
+
+  </td>
+</tr>
+</table>
+</td></tr>
+</table>
+@endsection

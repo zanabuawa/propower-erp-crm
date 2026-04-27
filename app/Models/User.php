@@ -50,4 +50,15 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Branch::class);
     }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new \App\Notifications\Auth\CustomResetPasswordNotification($token));
+    }
 }

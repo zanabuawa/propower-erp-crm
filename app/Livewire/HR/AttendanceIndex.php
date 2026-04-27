@@ -22,92 +22,14 @@ class AttendanceIndex extends Component
     public string $filterStatus = '';
     public string $filterProject = '';
 
-    // Registro masivo / individual
-    public bool $showModal = false;
-    public ?int $editingId = null;
-    public ?int $employee_id = null;
-    public ?int $project_id = null;
-    public string $date = '';
-    public string $check_in = '';
-    public string $check_out = '';
-    public string $status = 'present';
-    public string $notes = '';
-
     public function mount(): void
     {
         $this->filterDate = now()->format('Y-m-d');
-        $this->date       = now()->format('Y-m-d');
     }
 
     public function updatingFilterDate(): void { $this->resetPage(); }
     public function updatingFilterEmployee(): void { $this->resetPage(); }
     public function updatingFilterProject(): void { $this->resetPage(); }
-
-    public function openCreate(): void
-    {
-        $this->reset(['editingId', 'employee_id', 'project_id', 'check_in', 'check_out', 'notes']);
-        $this->date   = $this->filterDate ?: now()->format('Y-m-d');
-        $this->status = 'present';
-        $this->showModal = true;
-    }
-
-    public function openEdit(int $id): void
-    {
-        $att = HrAttendance::findOrFail($id);
-        $this->editingId   = $id;
-        $this->employee_id = $att->employee_id;
-        $this->project_id  = $att->project_id;
-        $this->date        = $att->date->format('Y-m-d');
-        $this->check_in    = $att->check_in ?? '';
-        $this->check_out   = $att->check_out ?? '';
-        $this->status      = $att->status;
-        $this->notes       = $att->notes ?? '';
-        $this->showModal   = true;
-    }
-
-    public function save(): void
-    {
-        $this->validate([
-            'employee_id' => 'required|exists:hr_employees,id',
-            'project_id'  => 'nullable|exists:projects,id',
-            'date'        => 'required|date',
-            'check_in'    => 'nullable|date_format:H:i',
-            'check_out'   => 'nullable|date_format:H:i|after:check_in',
-            'status'      => 'required|in:' . implode(',', array_keys(HrAttendance::STATUSES)),
-        ]);
-
-        $workedHours = null;
-        if ($this->check_in && $this->check_out) {
-            $in  = \Carbon\Carbon::createFromFormat('H:i', $this->check_in);
-            $out = \Carbon\Carbon::createFromFormat('H:i', $this->check_out);
-            $workedHours = round($in->diffInMinutes($out) / 60, 2);
-        }
-
-        $data = [
-            'company_id'   => auth()->user()->company_id,
-            'employee_id'  => $this->employee_id,
-            'project_id'   => $this->project_id,
-            'date'         => $this->date,
-            'check_in'     => $this->check_in ?: null,
-            'check_out'    => $this->check_out ?: null,
-            'worked_hours' => $workedHours,
-            'status'       => $this->status,
-            'notes'        => $this->notes ?: null,
-            'recorded_by'  => auth()->id(),
-        ];
-
-        if ($this->editingId) {
-            HrAttendance::findOrFail($this->editingId)->update($data);
-        } else {
-            HrAttendance::updateOrCreate(
-                ['employee_id' => $this->employee_id, 'date' => $this->date],
-                $data
-            );
-        }
-
-        session()->flash('success', 'Asistencia registrada.');
-        $this->showModal = false;
-    }
 
     public function registerAllPresent(): void
     {

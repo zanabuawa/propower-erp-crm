@@ -81,7 +81,23 @@
         this.$nextTick(() => {
             this.$el.querySelector('aside')?.classList.add('sb-animated');
         });
-        document.addEventListener('livewire:navigating', () => { this.saveState(); });
+
+        // Persistencia de scroll del sidebar
+        document.addEventListener('livewire:navigating', () => {
+            const nav = document.querySelector('.sb-nav');
+            if (nav) {
+                sessionStorage.setItem('sidebar-scroll', nav.scrollTop);
+            }
+        });
+
+        document.addEventListener('livewire:navigated', () => {
+            const nav = document.querySelector('.sb-nav');
+            const scrollPos = sessionStorage.getItem('sidebar-scroll');
+            if (nav && scrollPos) {
+                nav.scrollTop = scrollPos;
+            }
+        });
+
         window.addEventListener('beforeunload', () => { this.saveState(); });
     },
 
@@ -356,17 +372,61 @@ x-init="init()">
                     <x-sidebar-subitem route="projects.index" label="Mis proyectos" />
                 </x-sidebar-menu>
                 @endcanany
+            </div>
+            @endcanany
 
-                @canany(['view projects', 'create projects'])
-                <x-sidebar-menu id="lic" label="Licitaciones e ingeniería" icon="licitaciones" :routes="['licitaciones.*']">
-                    <x-sidebar-subitem route="projects.index" label="Licitaciones" />
+            {{-- ·· LICITACIONES Y OBRAS ──────────────────────── --}}
+            @canany(['view tenders', 'create tenders', 'manage tender catalog', 'manage work permits', 'manage work reports', 'approve libranzas'])
+            <div class="pt-3 mb-1">
+                <div class="transition-all duration-200 overflow-hidden"
+                     :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
+                    <span class="text-[10px] font-semibold uppercase tracking-widest text-white/25 select-none">
+                        Licitaciones y Obras
+                    </span>
+                </div>
+
+                @canany(['view tenders', 'create tenders', 'edit tenders'])
+                <x-sidebar-menu id="tenders" label="Licitaciones" icon="tenders"
+                    :routes="['tenders.index','tenders.create','tenders.show','tenders.edit']">
+                    @can('view tenders')
+                    <x-sidebar-subitem route="tenders.index" label="Todas las licitaciones" />
+                    @endcan
+                    @can('create tenders')
+                    <x-sidebar-subitem route="tenders.create" label="Nueva licitación" />
+                    @endcan
+                    @can('view tenders')
+                    <x-sidebar-subitem route="tenders.visits.index" label="Visitas de campo" />
+                    @endcan
+                </x-sidebar-menu>
+                @endcanany
+
+                @can('manage tender catalog')
+                <x-sidebar-menu id="catalog" label="Catálogo APU" icon="catalog"
+                    :routes="['tenders.catalog.*']">
+                    <x-sidebar-subitem route="tenders.catalog.index" label="Conceptos y partidas" />
+                </x-sidebar-menu>
+                @endcan
+
+                @canany(['manage work permits', 'manage work reports', 'approve libranzas', 'view tenders'])
+                <x-sidebar-menu id="obras" label="Control de Obra" icon="obras"
+                    :routes="['tenders.permits.*','tenders.reports.*','tenders.photo-reports.*','tenders.libranzas.*']">
+                    @can('manage work permits')
+                    <x-sidebar-subitem route="tenders.permits.index" label="Permisos de trabajo" />
+                    @endcan
+                    @can('manage work reports')
+                    <x-sidebar-subitem route="tenders.reports.index" label="Reportes semanales" />
+                    <x-sidebar-subitem route="tenders.photo-reports.index" label="Reportes fotográficos" />
+                    @endcan
+                    @canany(['approve libranzas', 'view tenders'])
+                    <x-sidebar-subitem route="tenders.libranzas.index" label="Libranzas / Estimaciones" />
+                    @endcanany
                 </x-sidebar-menu>
                 @endcanany
             </div>
             @endcanany
 
             {{-- ·· FINANZAS ───────────────────────────────────── --}}
-            @canany(['view hr', 'create hr', 'view accounting', 'create accounting', 'view finance', 'create finance', 'view assets', 'create assets'])
+            @canany(['view hr', 'create hr', 'view finance', 'create finance', 'view assets', 'create assets'])
             <div class="pt-3 mb-1">
                 <div class="transition-all duration-200 overflow-hidden"
                      :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
@@ -391,12 +451,6 @@ x-init="init()">
                     <x-sidebar-subitem route="hr.incidents.index" label="Incidencias" />
                     <x-sidebar-subitem route="hr.evaluations.index" label="Evaluaciones" />
                     @endcan
-                </x-sidebar-menu>
-                @endcanany
-
-                @canany(['view accounting', 'create accounting', 'edit accounting', 'delete accounting'])
-                <x-sidebar-menu id="acc" label="Contabilidad" icon="accounting" :routes="['accounting.*']">
-                    <x-sidebar-subitem route="accounting.index" label="Cuentas" />
                 </x-sidebar-menu>
                 @endcanany
 
@@ -542,7 +596,6 @@ x-init="init()">
                         request()->routeIs('contacts.*', 'suppliers.*', 'opportunities.*',
                                            'tickets.*', 'campaigns.*') => 'CRM',
                         request()->routeIs('hr.*')           => 'Recursos humanos',
-                        request()->routeIs('accounting.*')   => 'Contabilidad',
                         request()->routeIs('projects.*', 'licitaciones.*') => 'Proyectos',
                         request()->routeIs('finance.*')      => 'Finanzas',
                         request()->routeIs('assets.*')       => 'Activos fijos',

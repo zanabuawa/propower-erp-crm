@@ -144,7 +144,7 @@ class InvoiceForm extends Component
             'type'                 => 'required|in:internal,cfdi',
             'currency'             => 'required|in:MXN,USD',
             'payment_method'       => 'required|in:cash,transfer,card,check,credit',
-            'payment_terms'        => 'required|integer|min:0',
+            'payment_terms'        => 'required|integer|min:0|max:3650',
             'global_discount'      => 'required|numeric|min:0|max:100',
             'issued_at'            => 'required|date',
             'items'                => 'required|array|min:1',

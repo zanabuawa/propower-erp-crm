@@ -13,7 +13,7 @@ class FinanceCashflow extends Model
     protected $table = 'finance_cashflow';
 
     protected $fillable = [
-        'account_id', 'project_id', 'budget_id', 'concept',
+        'account_id', 'project_id', 'tender_id', 'libranza_id', 'budget_id', 'concept',
         'type', 'flow', 'category', 'amount', 'currency',
         'expected_date', 'realized_date', 'is_realized', 'notes',
     ];
@@ -33,6 +33,16 @@ class FinanceCashflow extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function tender(): BelongsTo
+    {
+        return $this->belongsTo(Tender::class);
+    }
+
+    public function libranza(): BelongsTo
+    {
+        return $this->belongsTo(WorkLibranza::class, 'libranza_id');
     }
 
     public function budget(): BelongsTo

@@ -12,87 +12,13 @@ use Livewire\Component;
 #[Title('Puestos Laborales')]
 class PositionIndex extends Component
 {
-    public bool $showModal = false;
-    public ?int $editingId = null;
-
-    public string $name = '';
-    public string $code = '';
-    public string $description       = '';
-    public string $responsibilities  = '';
-    public string $requirements      = '';
-    public int    $authorized_headcount = 1;
-    public ?int   $department_id     = null;
-    public string $salary_type       = 'monthly';
-    public string $min_salary        = '';
-    public string $max_salary        = '';
-    public bool   $is_active         = true;
-
     public string $search = '';
     public string $filterDepartment = '';
 
-    public function openCreate(): void
-    {
-        $this->reset(['editingId','name','code','description','responsibilities','requirements',
-                      'department_id','salary_type','min_salary','max_salary']);
-        $this->salary_type          = 'monthly';
-        $this->authorized_headcount = 1;
-        $this->is_active            = true;
-        $this->showModal   = true;
-    }
-
-    public function openEdit(int $id): void
+    public function toggleActive(int $id): void
     {
         $pos = HrPosition::findOrFail($id);
-        $this->editingId              = $id;
-        $this->name                   = $pos->name;
-        $this->code                   = $pos->code ?? '';
-        $this->description            = $pos->description ?? '';
-        $this->responsibilities       = $pos->responsibilities ?? '';
-        $this->requirements           = $pos->requirements ?? '';
-        $this->authorized_headcount   = $pos->authorized_headcount ?? 1;
-        $this->department_id          = $pos->department_id;
-        $this->salary_type            = $pos->salary_type;
-        $this->min_salary             = (string) ($pos->min_salary ?? '');
-        $this->max_salary             = (string) ($pos->max_salary ?? '');
-        $this->is_active              = $pos->is_active;
-        $this->showModal     = true;
-    }
-
-    public function save(): void
-    {
-        $this->validate([
-            'name'                  => 'required|string|max:100',
-            'department_id'         => 'required|exists:hr_departments,id',
-            'salary_type'           => 'required|in:' . implode(',', array_keys(HrPosition::SALARY_TYPES)),
-            'min_salary'            => 'nullable|numeric|min:0',
-            'max_salary'            => 'nullable|numeric|min:0',
-            'authorized_headcount'  => 'required|integer|min:0',
-        ]);
-
-        $data = [
-            'company_id'            => auth()->user()->company_id,
-            'name'                  => $this->name,
-            'code'                  => $this->code ?: null,
-            'description'           => $this->description ?: null,
-            'responsibilities'      => $this->responsibilities ?: null,
-            'requirements'          => $this->requirements ?: null,
-            'authorized_headcount'  => $this->authorized_headcount,
-            'department_id'         => $this->department_id,
-            'salary_type'           => $this->salary_type,
-            'min_salary'            => $this->min_salary ?: null,
-            'max_salary'            => $this->max_salary ?: null,
-            'is_active'             => $this->is_active,
-        ];
-
-        if ($this->editingId) {
-            HrPosition::findOrFail($this->editingId)->update($data);
-            session()->flash('success', 'Puesto actualizado.');
-        } else {
-            HrPosition::create($data);
-            session()->flash('success', 'Puesto creado.');
-        }
-
-        $this->showModal = false;
+        $pos->update(['is_active' => !$pos->is_active]);
     }
 
     public function render()

@@ -178,7 +178,7 @@
                                         </span>
                                     </td>
                                     <td class="px-8 py-5 text-right w-32">
-                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <div class="flex items-center justify-end gap-2 transition-all">
                                             <button wire:click="toggleActive({{ $member->id }})" title="{{ $member->is_active ? 'Baja Temporal' : 'Reactivar' }}"
                                                 class="p-2 bg-white rounded-lg text-slate-400 hover:text-indigo-600 border border-slate-100 shadow-sm transition-all">
                                                 @if ($member->is_active)

@@ -78,6 +78,24 @@ class UserForm extends Component
     }
 
     /**
+     * Toggle all selectable (non-role) permissions for a module.
+     */
+    public function toggleModule(array $permissionNames): void
+    {
+        $rolePerms = $this->rolePermissions;
+        $selectable = array_values(array_filter($permissionNames, fn($p) => !in_array($p, $rolePerms)));
+
+        $allSelected = count($selectable) > 0
+            && count(array_diff($selectable, $this->selectedPermissions)) === 0;
+
+        if ($allSelected) {
+            $this->selectedPermissions = array_values(array_diff($this->selectedPermissions, $selectable));
+        } else {
+            $this->selectedPermissions = array_values(array_unique(array_merge($this->selectedPermissions, $selectable)));
+        }
+    }
+
+    /**
      * Permissions the current role grants (for display purposes).
      */
     public function getRolePermissionsProperty(): array

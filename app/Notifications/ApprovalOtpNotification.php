@@ -2,8 +2,8 @@
 
 namespace App\Notifications;
 
+use App\Models\Company;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -14,15 +14,32 @@ class ApprovalOtpNotification extends Notification
     public function __construct(
         public string $title,
         public string $message,
-    ) {}
+        public string $code = '',
+        public string $context = '',
+    ) {
+        if (empty($this->context)) {
+            $this->context = $this->title;
+        }
+    }
 
     public function via(object $notifiable): array
     {
-        return ['mail', 'database', 'broadcast'];
+        return ['mail', 'database'];
     }
 
     public function toMail(object $notifiable): MailMessage
     {
+        $company = Company::first();
+
+        if ($this->code) {
+            return (new MailMessage)->view('mail.approval-otp', [
+                'user'    => $notifiable,
+                'code'    => $this->code,
+                'context' => $this->context,
+                'company' => $company,
+            ])->subject($this->title);
+        }
+
         return (new MailMessage)
             ->subject($this->title)
             ->line($this->message)
@@ -36,10 +53,5 @@ class ApprovalOtpNotification extends Notification
             'message' => $this->message,
             'type'    => 'approval_otp',
         ];
-    }
-
-    public function toBroadcast(object $notifiable): BroadcastMessage
-    {
-        return new BroadcastMessage($this->toArray($notifiable));
     }
 }

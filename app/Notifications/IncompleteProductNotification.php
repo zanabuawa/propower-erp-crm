@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class IncompleteProductNotification extends Notification
@@ -20,7 +19,7 @@ class IncompleteProductNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database'];
     }
 
     public function toArray(object $notifiable): array
@@ -33,10 +32,5 @@ class IncompleteProductNotification extends Notification
             'product_name' => $this->productName,
             'product_type' => $this->productType,
         ];
-    }
-
-    public function toBroadcast(object $notifiable): BroadcastMessage
-    {
-        return new BroadcastMessage($this->toArray($notifiable));
     }
 }

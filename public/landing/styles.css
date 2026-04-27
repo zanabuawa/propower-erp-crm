@@ -1,0 +1,164 @@
+/* Fuentes */
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Figtree', -apple-system, sans-serif; background: #0a0a0a; }
+img { display: block; max-width: 100%; }
+button { font-family: inherit; }
+a { text-decoration: none; }
+input, textarea { font-family: inherit; }
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
+input:focus, textarea:focus { outline: none; }
+
+/* Tokens */
+:root {
+  --pp-red:  #e52421;
+  --pp-dark: #0a0a0a;
+}
+
+/* ── Scroll reveal ─────────────────────────────────────────────────────────── */
+.pp-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+  will-change: opacity, transform;
+}
+.pp-reveal.pp-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Cards (zoom imagen en hover vía CSS, sin JS) ──────────────────────────── */
+.pp-card { overflow: hidden; cursor: pointer; }
+.pp-card .pp-img {
+  transition: transform 0.55s ease;
+  will-change: transform;
+}
+.pp-card:hover .pp-img { transform: scale(1.06); }
+
+/* Sector card: flecha desliza */
+.pp-sector-cta { transition: transform 0.3s ease; }
+.pp-card:hover .pp-sector-cta { transform: translateX(6px); }
+
+/* Icono del sector: borde rojo en hover */
+.pp-sector-icon {
+  transition: border-color 0.3s;
+  border: 1px solid rgba(255,255,255,0.35);
+}
+.pp-card:hover .pp-sector-icon { border-color: var(--pp-red); }
+
+/* ── Filas de servicios ────────────────────────────────────────────────────── */
+.pp-svc {
+  transition: background 0.22s ease;
+  cursor: pointer;
+}
+.pp-svc:hover { background: #0a0a0a !important; }
+.pp-svc .pp-svc-t,
+.pp-svc .pp-svc-d,
+.pp-svc .pp-svc-a { transition: color 0.22s ease, transform 0.22s ease; }
+.pp-svc:hover .pp-svc-t { color: #fff !important; }
+.pp-svc:hover .pp-svc-d { color: rgba(255,255,255,0.65) !important; }
+.pp-svc:hover .pp-svc-a { color: var(--pp-red) !important; transform: translateX(4px); }
+
+/* ── Botones ───────────────────────────────────────────────────────────────── */
+.pp-btn { transition: opacity 0.18s ease; cursor: pointer; border: none; }
+.pp-btn:hover { opacity: 0.82; }
+.pp-btn-filter {
+  transition: background 0.18s ease, color 0.18s ease;
+  cursor: pointer;
+}
+
+/* ── Links ─────────────────────────────────────────────────────────────────── */
+.pp-link { transition: color 0.18s ease; }
+.pp-link:hover { color: var(--pp-red) !important; }
+
+/* ── Nav links ─────────────────────────────────────────────────────────────── */
+.pp-nav-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+.pp-nav-btn:hover { color: var(--pp-red) !important; }
+
+/* ── WhatsApp float ────────────────────────────────────────────────────────── */
+.pp-wa {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+.pp-wa:hover {
+  transform: scale(1.12) !important;
+  box-shadow: 0 12px 32px rgba(37,211,102,0.7) !important;
+}
+
+/* ── Slider dots ───────────────────────────────────────────────────────────── */
+.pp-dot { transition: width 0.3s ease, background 0.3s ease; border: none; cursor: pointer; padding: 0; }
+
+/* ── Form inputs (underline style) ────────────────────────────────────────── */
+.pp-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 17px;
+  padding: 16px 0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.pp-input:focus { border-bottom-color: var(--pp-red); }
+.pp-input-m {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 15px;
+  padding: 13px 0;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.pp-input-m:focus { border-bottom-color: var(--pp-red); }
+
+/* ── Mobile menu overlay ───────────────────────────────────────────────────── */
+.pp-menu-line {
+  width: 26px; height: 2px; background: #fff;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  display: block;
+}
+
+/* ── Splash screen ─────────────────────────────────────────────────────────── */
+@keyframes pp-ring {
+  0%   { transform: scale(0.85); opacity: 0.55; }
+  100% { transform: scale(2.8);  opacity: 0; }
+}
+@keyframes pp-logo-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.07); opacity: 0.85; }
+}
+.pp-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid var(--pp-red);
+  width: 160px;
+  height: 160px;
+  animation: pp-ring 2.2s ease-out infinite;
+  will-change: transform, opacity;
+}
+.pp-logo-pulse {
+  animation: pp-logo-pulse 1.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+/* ── Footer links ──────────────────────────────────────────────────────────── */
+.pp-footer-btn {
+  background: none; border: none; cursor: pointer; padding: 0;
+  font-size: 14px; text-align: left; display: block;
+  color: rgba(255,255,255,0.85);
+  transition: color 0.18s;
+  font-family: 'Figtree', sans-serif;
+  margin-bottom: 10px;
+}
+.pp-footer-btn:hover { color: var(--pp-red); }

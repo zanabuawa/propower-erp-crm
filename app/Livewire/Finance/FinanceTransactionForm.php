@@ -5,6 +5,7 @@ namespace App\Livewire\Finance;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\Project;
+use App\Models\Tender;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -16,6 +17,7 @@ class FinanceTransactionForm extends Component
     public ?int $account_id = null;
     public ?int $transfer_to_account_id = null;
     public ?int $project_id = null;
+    public ?int $tender_id = null;
     public string $type = 'ingreso';
     public string $concept = '';
     public string $category = 'otro';
@@ -36,6 +38,7 @@ class FinanceTransactionForm extends Component
             $this->account_id             = $transaction->account_id;
             $this->transfer_to_account_id = $transaction->transfer_to_account_id;
             $this->project_id             = $transaction->project_id;
+            $this->tender_id              = $transaction->tender_id;
             $this->type                   = $transaction->type;
             $this->concept                = $transaction->concept;
             $this->category               = $transaction->category;
@@ -55,6 +58,7 @@ class FinanceTransactionForm extends Component
             'account_id'             => 'required|exists:finance_accounts,id',
             'transfer_to_account_id' => 'nullable|exists:finance_accounts,id|different:account_id',
             'project_id'             => 'nullable|exists:projects,id',
+            'tender_id'              => 'nullable|exists:tenders,id',
             'type'                   => 'required|in:ingreso,egreso,transferencia',
             'concept'                => 'required|string|max:255',
             'category'               => 'required|in:venta,compra,nomina,impuesto,prestamo,inversion,proyecto,otro',
@@ -76,6 +80,7 @@ class FinanceTransactionForm extends Component
             'account_id'             => $this->account_id,
             'transfer_to_account_id' => $this->type === 'transferencia' ? $this->transfer_to_account_id : null,
             'project_id'             => $this->project_id,
+            'tender_id'              => $this->tender_id,
             'registered_by'          => auth()->id(),
             'type'                   => $this->type,
             'concept'                => $this->concept,
@@ -103,10 +108,12 @@ class FinanceTransactionForm extends Component
 
     public function render()
     {
-        $accounts = FinanceAccount::where('company_id', auth()->user()->company_id)
+        $companyId = auth()->user()->company_id;
+        $accounts = FinanceAccount::where('company_id', $companyId)
             ->where('is_active', true)->orderBy('name')->get();
         $projects = Project::where('status', 'activo')->orderBy('name')->get();
+        $tenders  = Tender::where('company_id', $companyId)->orderByDesc('created_at')->get(['id','folio','name']);
 
-        return view('livewire.finance.finance-transaction-form', compact('accounts', 'projects'));
+        return view('livewire.finance.finance-transaction-form', compact('accounts', 'projects', 'tenders'));
     }
 }

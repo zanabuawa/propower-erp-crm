@@ -93,7 +93,7 @@
                                 @endif
 
                                 {{-- Acciones Rápidas (Hover) --}}
-                                <div class="mt-4 flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 scale-95 group-hover:scale-100">
+                                <div class="mt-4 flex items-center justify-end gap-2 transition-all duration-200 scale-95 group-hover:scale-100">
                                     @can('edit projects')
                                         <button wire:click="editTask({{ $task->id }})" class="p-2 bg-slate-50 text-slate-400 hover:text-indigo-600 rounded-lg transition-all" title="Editar">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>

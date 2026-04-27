@@ -179,7 +179,7 @@
                                                 <p class="text-[10px] text-slate-400 font-mono font-bold">{{ $result['sku'] ?? 'SIN SKU' }}</p>
                                             </div>
                                             <div class="shrink-0 flex items-center gap-3">
-                                                <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Agregar Partida</span>
+                                                <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest transition-opacity">Agregar Partida</span>
                                                 <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                                 </div>

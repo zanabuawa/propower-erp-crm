@@ -50,7 +50,7 @@
                                 <span class="px-1.5 py-0.5 rounded-full text-[10px] font-medium {{ $prospect->status_color }}">
                                     {{ $prospect->status_label }}
                                 </span>
-                                <button wire:click="selectProspect({{ $prospect->id }})" class="text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button wire:click="selectProspect({{ $prospect->id }})" class="text-indigo-600 transition-opacity">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 </button>
                             </div>

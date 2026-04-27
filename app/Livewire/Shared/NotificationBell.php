@@ -3,30 +3,20 @@
 namespace App\Livewire\Shared;
 
 use Livewire\Component;
-use Livewire\Attributes\On;
 
 class NotificationBell extends Component
 {
-    public int  $count  = 0;
-    public bool $open   = false;
-    public int  $userId = 0;
+    public int  $count = 0;
+    public bool $open  = false;
 
     public function mount(): void
     {
-        $this->userId = auth()->id();
         $this->refreshCount();
     }
 
     public function refreshCount(): void
     {
         $this->count = auth()->user()->unreadNotifications()->count();
-    }
-
-    // Escucha el evento de broadcast en el canal privado del usuario
-    #[On('echo-private:App.Models.User.{userId},Illuminate\\Notifications\\Events\\BroadcastNotificationCreated')]
-    public function handleNewNotification(): void
-    {
-        $this->refreshCount();
     }
 
     public function toggle(): void

@@ -9,8 +9,8 @@ Route::post('/broadcasting/auth', function () {
 })->middleware(['web', 'auth']);
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('landing');
+})->name('landing');
 
 Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/ejecutivo', \App\Livewire\Reports\ExecutiveDashboard::class)->middleware(['auth', 'verified'])->name('reports.executive');
@@ -214,6 +214,36 @@ Route::middleware('auth')->group(function () {
     });
     Route::middleware('can:edit projects')->get('/proyectos/{project}/editar', \App\Livewire\Projects\ProjectForm::class)->name('projects.edit');
 
+    // ── Licitaciones ─────────────────────────────────────────────────────────
+    Route::middleware('can:view tenders')->group(function () {
+        Route::get('/licitaciones', \App\Livewire\Tenders\TenderIndex::class)->name('tenders.index');
+        Route::get('/licitaciones/catalogo', \App\Livewire\Tenders\CatalogIndex::class)->name('tenders.catalog.index');
+        Route::get('/licitaciones/{tender}', \App\Livewire\Tenders\TenderShow::class)->name('tenders.show');
+        Route::get('/licitaciones/{tender}/cotizacion/crear', \App\Livewire\Tenders\QuotationForm::class)->name('tenders.quotations.create');
+    });
+    Route::middleware('can:create tenders')->group(function () {
+        Route::get('/licitaciones/crear', \App\Livewire\Tenders\TenderForm::class)->name('tenders.create');
+        Route::get('/licitaciones/catalogo/crear', \App\Livewire\Tenders\CatalogItemForm::class)->name('tenders.catalog.create');
+        Route::get('/licitaciones/catalogo/{item}/editar', \App\Livewire\Tenders\CatalogItemForm::class)->name('tenders.catalog.edit');
+    });
+    Route::middleware('can:edit tenders')->get('/licitaciones/{tender}/editar', \App\Livewire\Tenders\TenderForm::class)->name('tenders.edit');
+
+    // ── Control de Obras ─────────────────────────────────────────────────────
+    Route::middleware('can:view tenders')->group(function () {
+        Route::get('/obras/permisos', \App\Livewire\Tenders\WorkPermitIndex::class)->name('works.permits.index');
+        Route::get('/obras/reportes-semanales', \App\Livewire\Tenders\WorkReportIndex::class)->name('works.reports.index');
+        Route::get('/obras/reportes-fotograficos', \App\Livewire\Tenders\WorkPhotoReportIndex::class)->name('works.photo-reports.index');
+        Route::get('/obras/libranzas', \App\Livewire\Tenders\WorkLibranzaIndex::class)->name('works.libranzas.index');
+        Route::get('/obras/programa/{project}', \App\Livewire\Tenders\WorkProgramIndex::class)->name('works.program.index');
+    });
+
+    // ── Visitas de Campo ──────────────────────────────────────────────────────
+    Route::middleware('can:view tenders')->group(function () {
+        Route::get('/visitas', \App\Livewire\Tenders\SiteVisitIndex::class)->name('tenders.visits.index');
+        Route::get('/visitas/crear', \App\Livewire\Tenders\SiteVisitForm::class)->name('tenders.visits.create');
+        Route::get('/visitas/{siteVisit}/editar', \App\Livewire\Tenders\SiteVisitForm::class)->name('tenders.visits.edit');
+    });
+
     // ── Recursos Humanos ─────────────────────────────────────────────────────
     // Rutas estáticas primero (antes de los parámetros dinámicos)
     Route::middleware('can:create hr')->group(function () {
@@ -229,19 +259,39 @@ Route::middleware('auth')->group(function () {
         Route::get('/rrhh/prospectos/agenda', \App\Livewire\HR\ProspectAgenda::class)->name('hr.prospects.agenda');
         Route::get('/rrhh/prospectos/{prospect}', \App\Livewire\HR\ProspectShow::class)->name('hr.prospects.show');
         Route::get('/rrhh/departamentos', \App\Livewire\HR\DepartmentIndex::class)->name('hr.departments.index');
+        Route::get('/rrhh/departamentos/crear', \App\Livewire\HR\DepartmentForm::class)->name('hr.departments.create');
+        Route::get('/rrhh/departamentos/{department}/editar', \App\Livewire\HR\DepartmentForm::class)->name('hr.departments.edit');
         Route::get('/rrhh/puestos', \App\Livewire\HR\PositionIndex::class)->name('hr.positions.index');
+        Route::get('/rrhh/puestos/crear', \App\Livewire\HR\PositionForm::class)->name('hr.positions.create');
+        Route::get('/rrhh/puestos/{position}/editar', \App\Livewire\HR\PositionForm::class)->name('hr.positions.edit');
         Route::get('/rrhh/contratos', \App\Livewire\HR\ContractIndex::class)->name('hr.contracts.index');
+        Route::get('/rrhh/contratos/crear', \App\Livewire\HR\ContractForm::class)->name('hr.contracts.create');
+        Route::get('/rrhh/contratos/{contract}/editar', \App\Livewire\HR\ContractForm::class)->name('hr.contracts.edit');
         Route::get('/rrhh/asistencias', \App\Livewire\HR\AttendanceIndex::class)->name('hr.attendances.index');
+        Route::get('/rrhh/asistencias/crear', \App\Livewire\HR\AttendanceForm::class)->name('hr.attendances.create');
+        Route::get('/rrhh/asistencias/{attendance}/editar', \App\Livewire\HR\AttendanceForm::class)->name('hr.attendances.edit');
         Route::get('/rrhh/nominas', \App\Livewire\HR\PayrollIndex::class)->name('hr.payrolls.index');
         Route::get('/rrhh/nominas/{payroll}', \App\Livewire\HR\PayrollShow::class)->name('hr.payrolls.show');
         Route::get('/rrhh/permisos', \App\Livewire\HR\LeaveIndex::class)->name('hr.leaves.index');
+        Route::get('/rrhh/permisos/crear', \App\Livewire\HR\LeaveForm::class)->name('hr.leaves.create');
+        Route::get('/rrhh/permisos/{leave}/editar', \App\Livewire\HR\LeaveForm::class)->name('hr.leaves.edit');
         Route::get('/rrhh/incidencias', \App\Livewire\HR\IncidentIndex::class)->name('hr.incidents.index');
+        Route::get('/rrhh/incidencias/crear', \App\Livewire\HR\IncidentForm::class)->name('hr.incidents.create');
+        Route::get('/rrhh/incidencias/{incident}/editar', \App\Livewire\HR\IncidentForm::class)->name('hr.incidents.edit');
         Route::get('/rrhh/evaluaciones', \App\Livewire\HR\EvaluationIndex::class)->name('hr.evaluations.index');
+        Route::get('/rrhh/evaluaciones/crear', \App\Livewire\HR\EvaluationForm::class)->name('hr.evaluations.create');
+        Route::get('/rrhh/evaluaciones/{evaluation}/editar', \App\Livewire\HR\EvaluationForm::class)->name('hr.evaluations.edit');
         Route::get('/rrhh/capacitacion/costos', \App\Livewire\HR\TrainingCostIndex::class)->name('hr.training.costs');
         Route::get('/rrhh/conceptos-nomina', \App\Livewire\HR\PayrollConceptIndex::class)->name('hr.payroll.concepts');
+        Route::get('/rrhh/conceptos-nomina/crear', \App\Livewire\HR\PayrollConceptForm::class)->name('hr.payroll.concepts.create');
+        Route::get('/rrhh/conceptos-nomina/{payrollConcept}/editar', \App\Livewire\HR\PayrollConceptForm::class)->name('hr.payroll.concepts.edit');
         Route::get('/rrhh/zonas-asistencia', \App\Livewire\HR\AttendanceLocationIndex::class)->name('hr.attendance.locations');
+        Route::get('/rrhh/zonas-asistencia/crear', \App\Livewire\HR\AttendanceLocationForm::class)->name('hr.attendance.locations.create');
+        Route::get('/rrhh/zonas-asistencia/{attendanceLocation}/editar', \App\Livewire\HR\AttendanceLocationForm::class)->name('hr.attendance.locations.edit');
         Route::get('/rrhh/checkin', \App\Livewire\HR\AttendanceCheckin::class)->name('hr.attendance.checkin');
         Route::get('/rrhh/vacantes', \App\Livewire\HR\JobOpeningIndex::class)->name('hr.job-openings.index');
+        Route::get('/rrhh/vacantes/crear', \App\Livewire\HR\JobOpeningForm::class)->name('hr.job-openings.create');
+        Route::get('/rrhh/vacantes/{jobOpening}/editar', \App\Livewire\HR\JobOpeningForm::class)->name('hr.job-openings.edit');
         Route::get('/rrhh/organigrama', \App\Livewire\HR\OrgChart::class)->name('hr.org-chart');
         Route::get('/rrhh/plantilla', \App\Livewire\HR\WorkforcePlanning::class)->name('hr.workforce-planning');
     });

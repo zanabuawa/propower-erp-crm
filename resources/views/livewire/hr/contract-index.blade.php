@@ -1,246 +1,123 @@
-<div>
-    <x-page-header title="Contratos" description="Gestión de contratos laborales">
-        <x-slot:actions>
-            @can('create hr')
-            <button wire:click="openCreate"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg">
-                + Nuevo contrato
-            </button>
-            @endcan
-        </x-slot:actions>
-    </x-page-header>
-
-    @if(session('success'))
-        <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{ session('success') }}</div>
-    @endif
-
-    <div class="flex flex-wrap gap-3 mb-5">
-        <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar empleado..."
-               class="flex-1 min-w-[200px] px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-        <select wire:model.live="filterStatus"
-                class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-            <option value="">Todos los estados</option>
-            @foreach(\App\Models\HrContract::STATUSES as $k => $v)
-                <option value="{{ $k }}">{{ $v }}</option>
-            @endforeach
-        </select>
-    </div>
-
-    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="border-b border-slate-100 bg-slate-50/60">
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Empleado</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Tipo</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase hidden md:table-cell">Vigencia</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase hidden lg:table-cell">Salario</th>
-                    <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase">Estado</th>
-                    <th class="px-4 py-3"></th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-                @forelse($contracts as $contract)
-                <tr class="hover:bg-slate-50/50">
-                    <td class="px-4 py-3">
-                        <p class="font-medium text-slate-800">{{ $contract->employee?->full_name ?? '—' }}</p>
-                        @if($contract->contract_number) <p class="text-xs text-slate-400">#{{ $contract->contract_number }}</p> @endif
-                    </td>
-                    <td class="px-4 py-3 hidden md:table-cell text-slate-600">{{ $contract->type_label }}</td>
-                    <td class="px-4 py-3 hidden md:table-cell text-xs text-slate-500">
-                        {{ $contract->start_date->format('d/m/Y') }}<br>
-                        {{ $contract->end_date ? '→ '.$contract->end_date->format('d/m/Y') : '(indefinido)' }}
-                    </td>
-                    <td class="px-4 py-3 hidden lg:table-cell text-slate-600">
-                        ${{ number_format($contract->salary, 2) }}
-                        <span class="text-xs text-slate-400">/ {{ \App\Models\HrEmployee::SALARY_PERIODS[$contract->salary_period] ?? '' }}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ $contract->status_color }}">{{ $contract->status_label }}</span>
-                    </td>
-                    <td class="px-4 py-3 text-right">
-                        @can('edit hr')
-                        <button wire:click="openEdit({{ $contract->id }})"
-                                class="text-xs text-indigo-600 hover:text-indigo-800">Editar</button>
-                        @endcan
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="6" class="px-4 py-10 text-center text-slate-400 text-sm">No hay contratos registrados.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-        @if($contracts->hasPages())
-        <div class="px-4 py-3 border-t border-slate-100">{{ $contracts->links() }}</div>
-        @endif
-    </div>
-
-    {{-- Modal --}}
-    @if($showModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" wire:click.self="$set('showModal', false)">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <h2 class="text-base font-semibold text-slate-800 mb-4">{{ $editingId ? 'Editar' : 'Nuevo' }} contrato</h2>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-2">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Empleado <span class="text-red-500">*</span></label>
-                    <select wire:model="employee_id"
-                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        <option value="">Seleccionar empleado</option>
-                        @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}">{{ $emp->last_name }} {{ $emp->first_name }}</option>
-                        @endforeach
-                    </select>
-                    @error('employee_id') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
+<div class="min-h-screen bg-slate-50/50 -m-4 sm:-m-6 lg:-m-8">
+    {{-- ── STICKY HEADER ────────────────────────────────────────────────── --}}
+    <div class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between gap-4 max-w-full mx-auto">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-indigo-500/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">N° Contrato</label>
-                    <input wire:model="contract_number" type="text"
-                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Tipo <span class="text-red-500">*</span></label>
-                    <select wire:model="type"
-                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        @foreach(\App\Models\HrContract::TYPES as $k => $v)
-                            <option value="{{ $k }}">{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Fecha inicio <span class="text-red-500">*</span></label>
-                    <input wire:model="start_date" type="date"
-                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Fecha fin</label>
-                    <input wire:model="end_date" type="date"
-                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Salario <span class="text-red-500">*</span></label>
-                    <input wire:model="salary" type="number" step="0.01" min="0"
-                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Periodicidad</label>
-                    <select wire:model="salary_period"
-                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        @foreach(\App\Models\HrEmployee::SALARY_PERIODS as $k => $v)
-                            <option value="{{ $k }}">{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Turno</label>
-                    <select wire:model="work_shift"
-                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        <option value="">Seleccionar</option>
-                        @foreach(\App\Models\HrEmployee::WORK_SHIFTS as $k => $v)
-                            <option value="{{ $k }}">{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Horas/semana</label>
-                    <input wire:model="work_hours_per_week" type="number" min="1" max="96"
-                           class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                </div>
-
-                {{-- Horario --}}
-                <div class="col-span-2 pt-2 border-t border-slate-100">
-                    <p class="text-xs font-semibold text-slate-600 mb-3">Horario de trabajo</p>
-                    <div class="grid grid-cols-2 gap-3 mb-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Hora entrada</label>
-                            <input wire:model="entry_time" type="time"
-                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                            @error('entry_time') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Hora salida</label>
-                            <input wire:model="exit_time" type="time"
-                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                            @error('exit_time') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
-                        </div>
-                    </div>
-
-                    {{-- Días laborables --}}
-                    <div class="mb-3">
-                        <label class="block text-xs font-medium text-slate-600 mb-2">Días laborables</label>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach(['1'=>'Lun','2'=>'Mar','3'=>'Mié','4'=>'Jue','5'=>'Vie','6'=>'Sáb','7'=>'Dom'] as $num => $label)
-                            <label class="flex items-center gap-1.5 cursor-pointer">
-                                <input type="checkbox" wire:model="work_days" value="{{ $num }}"
-                                       class="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-300">
-                                <span class="text-sm {{ $num == 6 ? 'text-orange-600 font-medium' : ($num == 7 ? 'text-red-500 font-medium' : 'text-slate-700') }}">{{ $label }}</span>
-                            </label>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">
-                                Horas el sábado
-                                <span class="text-slate-400 font-normal">(0 = descanso)</span>
-                            </label>
-                            <input wire:model="saturday_hours" type="number" step="0.5" min="0" max="12"
-                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">
-                                Tolerancia tardanza
-                                <span class="text-slate-400 font-normal">(minutos)</span>
-                            </label>
-                            <input wire:model="tolerance_minutes" type="number" min="0" max="60"
-                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Prestaciones --}}
-                <div class="col-span-2 pt-2 border-t border-slate-100">
-                    <p class="text-xs font-semibold text-slate-600 mb-3">Prestaciones</p>
-                    <div class="grid grid-cols-3 gap-3">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Días aguinaldo</label>
-                            <input wire:model="aguinaldo_days" type="number" min="15"
-                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Días vacaciones</label>
-                            <input wire:model="vacation_days" type="number" min="6"
-                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-600 mb-1">Prima vacacional %</label>
-                            <input wire:model="vacation_premium_pct" type="number" min="25" max="100"
-                                   class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Estado</label>
-                    <select wire:model="status"
-                            class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
-                        @foreach(\App\Models\HrContract::STATUSES as $k => $v)
-                            <option value="{{ $k }}">{{ $v }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-span-2">
-                    <label class="block text-xs font-medium text-slate-600 mb-1">Notas</label>
-                    <textarea wire:model="notes" rows="2"
-                              class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/30 resize-none"></textarea>
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-800 truncate">Contratos Laborales</h1>
+                    <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Gestión de expedientes y vigencias</p>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button wire:click="$set('showModal', false)"
-                        class="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Cancelar</button>
-                <button wire:click="save"
-                        class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">Guardar</button>
+
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                @can('create hr')
+                <a wire:navigate href="{{ route('hr.contracts.create') }}"
+                    class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Nuevo contrato</span>
+                </a>
+                @endcan
             </div>
         </div>
     </div>
-    @endif
+
+    <div class="max-w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+        @if(session('success'))
+            <div class="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <p class="text-sm font-semibold">{{ session('success') }}</p>
+            </div>
+        @endif
+
+        {{-- Filtros --}}
+        <div class="bg-white p-4 rounded-3xl border border-slate-200/60 shadow-sm flex flex-wrap gap-4 items-center">
+            <div class="flex-1 min-w-[280px] relative group">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </span>
+                <input wire:model.live.debounce.300ms="search" type="text" placeholder="Buscar por empleado..."
+                    class="w-full pl-11 pr-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm">
+            </div>
+            <select wire:model.live="filterStatus"
+                class="px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm font-bold text-slate-600">
+                <option value="">Todos los estados</option>
+                @foreach(\App\Models\HrContract::STATUSES as $k => $v)
+                    <option value="{{ $k }}">{{ $v }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-100">
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Empleado</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Contrato / Tipo</th>
+                            <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vigencia</th>
+                            <th class="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Salario</th>
+                            <th class="px-6 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estado</th>
+                            <th class="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach($contracts as $c)
+                            <tr class="hover:bg-slate-50/50 transition-colors group">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs">
+                                            {{ substr($c->employee->first_name, 0, 1) }}{{ substr($c->employee->last_name, 0, 1) }}
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-slate-700">{{ $c->employee->full_name }}</p>
+                                            <p class="text-[10px] font-medium text-slate-400 uppercase tracking-tight">{{ $c->employee->department?->name }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <p class="text-sm font-bold text-slate-700">{{ $c->contract_number ?? 'FOL-'.$c->id }}</p>
+                                    <p class="text-[10px] font-medium text-indigo-500 uppercase tracking-widest">{{ $c->type_label }}</p>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-slate-600">Desde: {{ $c->start_date->format('d/m/Y') }}</span>
+                                        <span class="text-[10px] font-medium text-slate-400">Hasta: {{ $c->end_date ? $c->end_date->format('d/m/Y') : 'Indefinido' }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <p class="text-sm font-black text-slate-700 font-mono">${{ number_format($c->salary, 2) }}</p>
+                                    <p class="text-[10px] font-medium text-slate-400 uppercase tracking-tight">{{ $c->salary_period }}</p>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex justify-center">
+                                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider {{ \App\Models\HrContract::STATUS_COLORS[$c->status] }} border border-current opacity-80">
+                                            {{ $c->status_label }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex justify-end gap-2">
+                                        @can('edit hr')
+                                            <a wire:navigate href="{{ route('hr.contracts.edit', $c) }}" 
+                                               class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            </a>
+                                        @endcan
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @if($contracts->hasPages())
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
+                    {{ $contracts->links() }}
+                </div>
+            @endif
+        </div>
+    </div>
 </div>

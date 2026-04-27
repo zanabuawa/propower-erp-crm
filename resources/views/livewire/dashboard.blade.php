@@ -522,7 +522,7 @@
                             <td class="py-2.5 text-right">
                                 <a wire:navigate href="{{ route('sales.invoices.show', $inv) }}"
                                    class="font-medium text-indigo-600 hover:text-indigo-700 cursor-pointer
-                                          opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                          transition-opacity duration-150">
                                     Ver →
                                 </a>
                             </td>
@@ -581,7 +581,7 @@
                             <td class="py-2.5 text-right">
                                 <a wire:navigate href="{{ route('purchases.requisitions.show', $req) }}"
                                    class="font-medium text-indigo-600 hover:text-indigo-700 cursor-pointer
-                                          opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                          transition-opacity duration-150">
                                     Ver →
                                 </a>
                             </td>

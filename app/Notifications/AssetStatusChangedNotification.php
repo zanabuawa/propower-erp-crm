@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class AssetStatusChangedNotification extends Notification
@@ -20,7 +19,7 @@ class AssetStatusChangedNotification extends Notification
 
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return ['database'];
     }
 
     public function toArray(object $notifiable): array
@@ -32,10 +31,5 @@ class AssetStatusChangedNotification extends Notification
             'asset_id'    => $this->assetId,
             'transfer_id' => $this->transferId,
         ];
-    }
-
-    public function toBroadcast(object $notifiable): BroadcastMessage
-    {
-        return new BroadcastMessage($this->toArray($notifiable));
     }
 }

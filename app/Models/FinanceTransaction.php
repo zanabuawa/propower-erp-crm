@@ -12,7 +12,7 @@ class FinanceTransaction extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'account_id', 'transfer_to_account_id', 'project_id', 'registered_by',
+        'account_id', 'transfer_to_account_id', 'project_id', 'tender_id', 'libranza_id', 'registered_by',
         'folio', 'type', 'concept', 'category', 'amount', 'currency',
         'exchange_rate', 'transaction_date', 'reference', 'status', 'notes',
     ];
@@ -36,6 +36,16 @@ class FinanceTransaction extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function tender(): BelongsTo
+    {
+        return $this->belongsTo(Tender::class);
+    }
+
+    public function libranza(): BelongsTo
+    {
+        return $this->belongsTo(WorkLibranza::class, 'libranza_id');
     }
 
     public function registeredBy(): BelongsTo

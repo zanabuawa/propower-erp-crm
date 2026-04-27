@@ -183,7 +183,7 @@
                 <div class="flex-1 flex flex-col items-center gap-1">
                     <div class="w-full bg-indigo-100 hover:bg-indigo-200 rounded-t transition-all duration-300 relative group"
                          style="height: {{ $barHeight }}%">
-                        <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition pointer-events-none z-10">
+                        <div class="absolute -top-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-1.5 py-0.5 rounded whitespace-nowrap transition pointer-events-none z-10">
                             ${{ number_format($m['amount'], 0) }}
                         </div>
                     </div>

@@ -114,6 +114,62 @@
         </div>
     </div>
 
+    {{-- ── LICITACIONES Y OBRA ─────────────────────────────────────────────── --}}
+    @if($libranzasPendientes > 0 || $tenderesAdjudicados > 0)
+    <div class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-indigo-50 bg-indigo-50/50">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <h3 class="text-sm font-semibold text-indigo-700">Licitaciones y Obra</h3>
+            </div>
+            <a href="{{ route('tenders.libranzas.index') }}" wire:navigate class="text-xs text-indigo-500 hover:underline">Ver libranzas →</a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+            <div class="px-5 py-4">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Libranzas pendientes</p>
+                <p class="text-xl font-black text-amber-600 mt-1">${{ number_format($libranzasPendientes, 2) }}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Enviadas o aprobadas sin cobrar</p>
+            </div>
+            <div class="px-5 py-4">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cobrado este mes</p>
+                <p class="text-xl font-black text-emerald-600 mt-1">${{ number_format($libranzasPagadasMes, 2) }}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Libranzas pagadas en {{ now()->isoFormat('MMMM') }}</p>
+            </div>
+            <div class="px-5 py-4">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Licitaciones adjudicadas</p>
+                <p class="text-xl font-black text-indigo-600 mt-1">${{ number_format($tenderesAdjudicados, 2) }}</p>
+                <p class="text-[10px] text-slate-400 mt-0.5">Monto total adjudicado</p>
+            </div>
+        </div>
+        @if($libranzasPendientesList->count() > 0)
+        <div class="border-t border-slate-100">
+            <div class="divide-y divide-slate-50">
+                @foreach($libranzasPendientesList as $lib)
+                <div class="flex items-center justify-between px-5 py-2.5">
+                    <div class="min-w-0">
+                        <p class="text-xs font-bold text-slate-700 truncate">
+                            #{{ $lib->number }} — {{ $lib->concept }}
+                        </p>
+                        <p class="text-[10px] text-slate-400">
+                            {{ $lib->project?->name }}
+                            @if($lib->tender) · {{ $lib->tender->folio }} @endif
+                            · Vence {{ $lib->period_end->format('d/m/Y') }}
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 ml-4 shrink-0">
+                        <span class="text-xs font-black text-slate-800">${{ number_format($lib->amount, 0) }}</span>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-black uppercase {{ $lib->status === 'aprobada' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600' }}">
+                            {{ $lib->status }}
+                        </span>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
+
     {{-- ── GRÁFICAS ──────────────────────────────────────────────────────────── --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
