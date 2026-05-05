@@ -24,3 +24,6 @@ Homestead.yaml
 Thumbs.db
 .claude/skills/
 .claude/settings.local.json
+.env.testing
+debug-env.php
+test-mail.php
