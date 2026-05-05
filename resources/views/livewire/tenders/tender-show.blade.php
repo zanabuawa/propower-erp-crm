@@ -60,7 +60,7 @@
         {{-- Tabs --}}
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="flex overflow-x-auto border-b border-slate-100 px-4 gap-1 pt-2">
-                @foreach(['partidas' => 'Partidas', 'cotizaciones' => 'Cotizaciones', 'permisos' => 'Permisos', 'reportes' => 'Reportes', 'libranzas' => 'Libranzas', 'visitas' => 'Visitas'] as $tab => $label)
+                @foreach(['partidas' => 'Partidas', 'cotizaciones' => 'Cotizaciones', 'permisos' => 'Permisos', 'reportes' => 'Reportes', 'libranzas' => 'Libranzas', 'visitas' => 'Visitas', 'finanzas' => 'Finanzas'] as $tab => $label)
                     <button wire:click="$set('activeTab', '{{ $tab }}')"
                         class="shrink-0 px-4 py-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-colors {{ $activeTab === $tab ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600' }}">
                         {{ $label }}
@@ -176,6 +176,81 @@
                         @empty
                             <p class="text-center text-slate-400 text-sm py-6">Sin visitas de campo</p>
                         @endforelse
+                    </div>
+
+                @elseif($activeTab === 'finanzas')
+                    <div class="space-y-5">
+                        {{-- Resumen financiero --}}
+                        @php
+                            $totalCobrado   = $financeTransactions->where('type', 'ingreso')->where('status', 'confirmado')->sum('amount');
+                            $totalProyectado = $financeCashflows->where('is_realized', false)->sum('amount');
+                        @endphp
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cobrado</p>
+                                <p class="text-lg font-black text-emerald-600 mt-1">${{ number_format($totalCobrado, 2) }}</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Proyectado</p>
+                                <p class="text-lg font-black text-amber-600 mt-1">${{ number_format($totalProyectado, 2) }}</p>
+                            </div>
+                            <div class="bg-slate-50 rounded-2xl p-4 text-center">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Adjudicado</p>
+                                <p class="text-lg font-black text-indigo-600 mt-1">${{ $tender->awarded_amount ? number_format($tender->awarded_amount, 2) : '—' }}</p>
+                            </div>
+                        </div>
+
+                        {{-- Transacciones vinculadas --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Transacciones registradas</p>
+                                <a wire:navigate href="{{ route('finance.transactions.create') }}" class="text-[10px] text-indigo-500 hover:underline font-bold">+ Nueva</a>
+                            </div>
+                            @forelse($financeTransactions as $tx)
+                            <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 mb-1.5">
+                                <div>
+                                    <p class="font-bold text-slate-800 text-xs">{{ $tx->concept }}</p>
+                                    <p class="text-[10px] text-slate-400">{{ $tx->transaction_date->format('d/m/Y') }} · {{ $tx->account?->name }} · {{ $tx->folio }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs font-black {{ $tx->type === 'ingreso' ? 'text-emerald-600' : 'text-red-500' }}">
+                                        {{ $tx->type === 'ingreso' ? '+' : '-' }}${{ number_format($tx->amount, 2) }}
+                                    </p>
+                                    <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md {{ $tx->status === 'confirmado' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500' }}">{{ $tx->status }}</span>
+                                </div>
+                            </div>
+                            @empty
+                            <p class="text-center text-slate-400 text-xs py-4">Sin transacciones registradas para esta licitación.</p>
+                            @endforelse
+                        </div>
+
+                        {{-- Flujo de caja vinculado --}}
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Flujo de caja</p>
+                                <a wire:navigate href="{{ route('finance.cashflow.create') }}" class="text-[10px] text-indigo-500 hover:underline font-bold">+ Nueva entrada</a>
+                            </div>
+                            @forelse($financeCashflows as $cf)
+                            <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 mb-1.5">
+                                <div>
+                                    <p class="font-bold text-slate-800 text-xs">{{ $cf->concept }}</p>
+                                    <p class="text-[10px] text-slate-400">Esperado: {{ $cf->expected_date->format('d/m/Y') }}
+                                        @if($cf->is_realized) · Realizado: {{ $cf->realized_date?->format('d/m/Y') }} @endif
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs font-black {{ $cf->flow === 'entrada' ? 'text-emerald-600' : 'text-red-500' }}">
+                                        {{ $cf->flow === 'entrada' ? '+' : '-' }}${{ number_format($cf->amount, 2) }}
+                                    </p>
+                                    <span class="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md {{ $cf->is_realized ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600' }}">
+                                        {{ $cf->is_realized ? 'realizado' : $cf->type }}
+                                    </span>
+                                </div>
+                            </div>
+                            @empty
+                            <p class="text-center text-slate-400 text-xs py-4">Sin entradas de flujo de caja para esta licitación.</p>
+                            @endforelse
+                        </div>
                     </div>
                 @endif
             </div>

@@ -108,7 +108,7 @@
             </div>
             @if($branches->hasPages())
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
-                    {{ $branches->links() }}
+                    {{ $branches->links('vendor.pagination.tailwind') }}
                 </div>
             @endif
         </div>

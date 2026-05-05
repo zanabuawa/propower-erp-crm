@@ -113,7 +113,7 @@ class WorkPhotoReportIndex extends Component
     public function render()
     {
         $companyId = auth()->user()->company_id;
-        $reports = WorkPhotoReport::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+        $reports = WorkPhotoReport::whereHas('project', fn($q) => $q->whereHas('branch', fn($bq) => $bq->where('company_id', $companyId)))
             ->when($this->search, fn($q) => $q->where('title', 'like', '%' . $this->search . '%'))
             ->with(['project', 'tender', 'createdBy'])
             ->latest('report_date')
@@ -121,7 +121,7 @@ class WorkPhotoReportIndex extends Component
 
         return view('livewire.tenders.work-photo-report-index', [
             'reports'  => $reports,
-            'projects' => Project::where('company_id', $companyId)->orderBy('name')->get(),
+            'projects' => Project::whereHas('branch', fn($q) => $q->where('company_id', $companyId))->orderBy('name')->get(),
             'tenders'  => Tender::where('company_id', $companyId)->orderBy('name')->get(),
         ]);
     }

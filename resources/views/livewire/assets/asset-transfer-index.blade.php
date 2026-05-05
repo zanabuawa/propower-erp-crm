@@ -76,7 +76,7 @@
             </table>
         </div>
         @if($transfers->hasPages())
-            <div class="px-5 py-3 border-t border-gray-100">{{ $transfers->links() }}</div>
+            <div class="px-5 py-3 border-t border-gray-100">{{ $transfers->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 </div>

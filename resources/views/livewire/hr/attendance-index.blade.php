@@ -15,6 +15,13 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <a href="{{ route('hr.attendances.print', request()->query()) }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg border border-slate-200 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Imprimir
+                </a>
                 @can('create hr')
                 <button wire:click="registerAllPresent" wire:confirm="¿Registrar asistencia como 'Presente' para todo el personal activo en la fecha seleccionada?"
                     class="hidden md:inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors">
@@ -163,7 +170,7 @@
             </div>
             @if($attendances->hasPages())
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
-                    {{ $attendances->links() }}
+                    {{ $attendances->links('vendor.pagination.tailwind') }}
                 </div>
             @endif
         </div>

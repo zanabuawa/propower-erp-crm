@@ -513,9 +513,11 @@ class GoodsReceiptForm extends Component
 
                 // Actualizar precios del producto (no aplica para defectuosos ni transferencias)
                 if (!in_array($this->reception_type, ['defective', 'transfer'])) {
-                    $newSalePrice  = round($newPurchasePrice * (1 + $profitMargin / 100), 2);
+                    $marginDiv     = 1 - $profitMargin / 100;
+                    $newSalePrice  = $marginDiv > 0 ? round($newPurchasePrice / $marginDiv, 2) : 0;
                     Product::where('id', $productId)->update([
                         'purchase_price'    => $newPurchasePrice,
+                        'profit_margin'     => $profitMargin,
                         'operational_costs' => $opCostPct,
                         'sale_price'        => $newSalePrice,
                     ]);

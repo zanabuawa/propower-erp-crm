@@ -263,7 +263,8 @@
                                                 $received  = $item['received'] ?? true;
                                                 $cost      = (float)($item['purchase_price'] ?? 0);
                                                 $margin    = (float)($item['profit_margin'] ?? 0);
-                                                $salePrice = round($cost * (1 + $margin / 100), 2);
+                                                $_div      = 1 - $margin / 100;
+                                                $salePrice = $_div > 0 ? round($cost / $_div, 2) : 0;
                                             @endphp
                                             <tr class="{{ $received ? "hover:bg-slate-50/50" : "opacity-40 grayscale" }} transition-all">
                                                 <td class="px-5 py-3 text-center">

@@ -205,7 +205,7 @@
 
         @if($products->hasPages())
             <div class="px-5 py-4 border-t border-gray-100">
-                {{ $products->links() }}
+                {{ $products->links('vendor.pagination.tailwind') }}
             </div>
         @endif
     </div>

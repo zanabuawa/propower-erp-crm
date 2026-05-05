@@ -3,6 +3,7 @@
 namespace App\Livewire\Tenders;
 
 use App\Models\Company;
+use App\Models\Product;
 use App\Models\Tender;
 use App\Models\TenderQuotation;
 use App\Models\TenderQuotationItem;
@@ -70,6 +71,17 @@ class QuotationForm extends Component
         ];
     }
 
+    public function loadProduct(int $index, ?int $productId): void
+    {
+        if (!$productId) return;
+        $p = Product::with('unitOfMeasure')->find($productId);
+        if (!$p) return;
+        $this->items[$index]['description'] = $p->name;
+        $this->items[$index]['unit']        = $p->unitOfMeasure?->abbreviation ?? '';
+        $this->items[$index]['unit_price']  = (float) $p->sale_price;
+        $this->recalcItem($index);
+    }
+
     public function removeItem(int $index): void
     {
         array_splice($this->items, $index, 1);
@@ -135,9 +147,13 @@ class QuotationForm extends Component
 
     public function render()
     {
+        $companyId = auth()->user()->company_id;
         return view('livewire.tenders.quotation-form', [
             'companies' => Company::where('is_active', true)->orderBy('name')->get(),
             'statuses'  => TenderQuotation::STATUSES,
+            'products'  => Product::where('company_id', $companyId)->where('is_active', true)
+                            ->with('unitOfMeasure:id,abbreviation', 'category:id,name')
+                            ->orderBy('name')->get(['id','name','sku','sale_price','unit_of_measure_id','category_id','type']),
         ]);
     }
 }

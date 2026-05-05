@@ -156,15 +156,14 @@
                 </a>
             </div>
         @empty
-            <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
-                <x-empty-state message="No se encontraron facturas." />
-            </div>
+        <div class="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
+            <x-empty-state message="No se encontraron facturas." />
+        </div>
         @endforelse
-        {{ $invoices->links() }}
-    </div>
+        {{ $invoices->links('vendor.pagination.tailwind') }}
+        </div>
 
-    {{-- VISTA ESCRITORIO --}}
-    <div class="hidden lg:block bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        {{-- VISTA ESCRITORIO --}}    <div class="hidden lg:block bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-gray-50 border-b border-gray-200 text-left">
@@ -250,4 +249,6 @@
         @endif
     </div>
 </div>
+
+iv>
 

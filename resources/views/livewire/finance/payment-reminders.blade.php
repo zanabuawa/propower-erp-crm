@@ -182,7 +182,7 @@
         @endif
 
         @if($invoices->hasPages())
-        <div class="px-5 py-3 border-t border-gray-100">{{ $invoices->links() }}</div>
+        <div class="px-5 py-3 border-t border-gray-100">{{ $invoices->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 

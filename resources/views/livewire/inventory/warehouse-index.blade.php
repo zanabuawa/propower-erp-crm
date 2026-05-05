@@ -95,6 +95,18 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2">
+                                        <a wire:navigate href="{{ route('inventory.warehouses.locations', $warehouse) }}"
+                                           class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 hover:shadow-sm transition-all" title="Asignar ubicaciones">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            </svg>
+                                        </a>
+                                        <a wire:navigate href="{{ route('inventory.warehouses.layout', $warehouse) }}"
+                                           class="p-2 rounded-xl text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:shadow-sm transition-all" title="Diseñar plano">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                                            </svg>
+                                        </a>
                                         <a wire:navigate href="{{ route('inventory.warehouses.edit', $warehouse) }}" class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:shadow-sm transition-all" title="Editar">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                         </a>
@@ -119,7 +131,7 @@
             </div>
             @if($warehouses->hasPages())
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
-                    {{ $warehouses->links() }}
+                    {{ $warehouses->links('vendor.pagination.tailwind') }}
                 </div>
             @endif
         </div>

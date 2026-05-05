@@ -8,6 +8,7 @@ use App\Models\PriceList;
 use App\Models\Product;
 use App\Models\SaleQuotation;
 use App\Models\User;
+use App\Notifications\DiscountApprovalNotification;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -34,10 +35,20 @@ class QuotationForm extends Component
 
     private static function blankItem(): array
     {
-        return ['product_id' => null, 'description' => '', 'quantity' => 1,
-                'unit_price' => 0, 'discount_pct' => 0, 'tax_rate' => 16,
-                'ieps_rate' => 0, 'unit' => '', 'notes' => '',
-                'min_sale_price' => 0, 'max_discount_pct' => 100];
+        return [
+            'product_id'         => null,
+            'description'        => '',
+            'quantity'           => 1,
+            'unit_price'         => 0,
+            'discount_pct'       => 0,
+            'tax_rate'           => 16,
+            'ieps_rate'          => 0,
+            'unit'               => '',
+            'notes'              => '',
+            'min_sale_price'     => 0,
+            'max_discount_pct'   => 100,
+            'global_discount_cap'=> 100,
+        ];
     }
 
     public function updatedCustomerId(): void
@@ -89,26 +100,28 @@ class QuotationForm extends Component
             if ($listPrice) $price = $listPrice;
         }
 
-        // Precio mínimo = costo * (1 + gastos_op% / 100)
-        $cost         = (float) $product->purchase_price;
-        $minSalePrice = round($cost * (1 + (float)$product->operational_costs / 100), 2);
-        // Descuento máximo en % sobre el precio de venta normal
-        $maxDiscountPct = $price > 0
+        $cost             = (float) $product->purchase_price;
+        $opDiv            = 1 - (float)$product->operational_costs / 100;
+        $minSalePrice     = $opDiv > 0 ? round($cost / $opDiv, 2) : 0;
+        $maxDiscountPct   = $price > 0
             ? round(max(0, ($price - $minSalePrice) / $price * 100), 4)
             : 0;
+        // Cap global = (margen_utilidad + gastos_op) / 2
+        $globalDiscountCap = round(((float)$product->profit_margin + (float)$product->operational_costs) / 2, 4);
 
         $this->items[] = [
-            'product_id'       => $product->id,
-            'description'      => $product->name,
-            'quantity'         => 1,
-            'unit_price'       => $price,
-            'discount_pct'     => 0,
-            'tax_rate'         => 16,
-            'ieps_rate'        => (float) $product->ieps_rate,
-            'unit'             => $product->unitOfMeasure?->abbreviation ?? '',
-            'notes'            => '',
-            'min_sale_price'   => $minSalePrice,
-            'max_discount_pct' => $maxDiscountPct,
+            'product_id'          => $product->id,
+            'description'         => $product->name,
+            'quantity'            => 1,
+            'unit_price'          => $price,
+            'discount_pct'        => 0,
+            'tax_rate'            => 16,
+            'ieps_rate'           => (float) $product->ieps_rate,
+            'unit'                => $product->unitOfMeasure?->abbreviation ?? '',
+            'notes'               => '',
+            'min_sale_price'      => $minSalePrice,
+            'max_discount_pct'    => $maxDiscountPct,
+            'global_discount_cap' => $globalDiscountCap,
         ];
 
         $this->productSearch  = '';
@@ -178,11 +191,12 @@ class QuotationForm extends Component
         return $this->subtotal - $this->discount + $this->ieps + $this->tax;
     }
 
-    public function getMaxGlobalDiscountProperty(): float
+    /** Cap del descuento global sin autorización = mínimo de (margen+gastos_op)/2 entre todos los ítems. */
+    public function getMaxGlobalDiscountCapProperty(): float
     {
-        // El descuento global máximo es el mínimo de los máximos por línea
         if (empty($this->items)) return 100;
-        return (float) collect($this->items)->min('max_discount_pct') ?? 100;
+        $caps = collect($this->items)->pluck('global_discount_cap')->filter(fn($v) => $v < 100);
+        return $caps->isEmpty() ? 100 : (float) $caps->min();
     }
 
     public string $approvalNotes  = '';
@@ -206,50 +220,65 @@ class QuotationForm extends Component
         ];
     }
 
-    /** Detecta si algún ítem supera su descuento máximo permitido. */
-    private function checkDiscountLimits(): bool
+    /**
+     * Verifica límites de descuento.
+     * Retorna ['exceeds'=>bool, 'requested'=>float, 'max_allowed'=>float]
+     */
+    private function checkDiscountLimits(): array
     {
-        foreach ($this->items as $index => $item) {
-            $minPrice   = (float) ($item['min_sale_price'] ?? 0);
-            $unitPrice  = (float) ($item['unit_price'] ?? 0);
-            $discPct    = (float) ($item['discount_pct'] ?? 0);
-            $maxPct     = (float) ($item['max_discount_pct'] ?? 100);
+        $globalDisc = (float) $this->global_discount;
+        $globalCap  = $this->maxGlobalDiscountCap;
 
+        // 1. Descuento global supera el cap permitido sin autorización
+        if ($globalDisc > $globalCap) {
+            $this->exceedingMaxPct = $globalCap;
+            return ['exceeds' => true, 'requested' => $globalDisc, 'max_allowed' => $globalCap];
+        }
+
+        foreach ($this->items as $item) {
+            $minPrice  = (float) ($item['min_sale_price'] ?? 0);
+            $unitPrice = (float) ($item['unit_price'] ?? 0);
+            $discPct   = (float) ($item['discount_pct'] ?? 0);
+            $maxPct    = (float) ($item['max_discount_pct'] ?? 100);
+
+            // 2. Descuento por línea excede su máximo individual
             if ($discPct > $maxPct) {
                 $this->exceedingMaxPct = $maxPct;
-                return true;
+                return ['exceeds' => true, 'requested' => $discPct, 'max_allowed' => $maxPct];
             }
-            if ($minPrice > 0 && $unitPrice > 0) {
-                $finalPrice = $unitPrice * (1 - $discPct / 100);
-                if ($finalPrice < $minPrice) {
-                    $this->exceedingMaxPct = round(max(0, ($unitPrice - $minPrice) / $unitPrice * 100), 2);
-                    return true;
+
+            // 3. Precio efectivo combinado (línea + global) cae por debajo del precio mínimo
+            if ($unitPrice > 0 && $minPrice > 0) {
+                $effectivePrice = $unitPrice * (1 - $discPct / 100) * (1 - $globalDisc / 100);
+                if ($effectivePrice < $minPrice) {
+                    $effectivePct = round((1 - (1 - $discPct / 100) * (1 - $globalDisc / 100)) * 100, 2);
+                    $this->exceedingMaxPct = $maxPct;
+                    return ['exceeds' => true, 'requested' => $effectivePct, 'max_allowed' => $maxPct];
                 }
             }
         }
-        return false;
+
+        return ['exceeds' => false, 'requested' => 0.0, 'max_allowed' => 0.0];
     }
 
     public function save(bool $forceApproval = false): void
     {
         $this->validate();
 
-        $exceedsLimit = $this->checkDiscountLimits();
+        $limitCheck   = $this->checkDiscountLimits();
+        $exceedsLimit = $limitCheck['exceeds'];
 
         if ($exceedsLimit && !$forceApproval) {
-            // Mostrar modal de solicitud de autorización
             $this->needsApproval = true;
             return;
         }
 
-        DB::transaction(function () use ($exceedsLimit) {
+        DB::transaction(function () use ($exceedsLimit, $limitCheck) {
             $companyId = auth()->user()->company_id;
             $folio = 'COT-' . str_pad(
                 SaleQuotation::where('company_id', $companyId)->count() + 1,
                 6, '0', STR_PAD_LEFT
             );
-
-            $approvalStatus = $exceedsLimit ? 'pending' : null;
 
             $quotation = SaleQuotation::create([
                 'company_id'      => $companyId,
@@ -260,7 +289,7 @@ class QuotationForm extends Component
                 'folio'           => $folio,
                 'currency'        => $this->currency,
                 'status'          => 'draft',
-                'approval_status' => $approvalStatus,
+                'approval_status' => $exceedsLimit ? 'pending' : null,
                 'subtotal'        => $this->subtotal,
                 'discount_amount' => $this->discount,
                 'ieps'            => $this->ieps,
@@ -273,11 +302,11 @@ class QuotationForm extends Component
             ]);
 
             foreach ($this->items as $item) {
-                $base        = $item['quantity'] * $item['unit_price'];
-                $discAmt     = $base * ($item['discount_pct'] / 100);
-                $baseNet     = $base - $discAmt;
-                $iepsAmt     = $baseNet * ($item['ieps_rate'] / 100);
-                $taxAmt      = ($baseNet + $iepsAmt) * ($item['tax_rate'] / 100);
+                $base    = $item['quantity'] * $item['unit_price'];
+                $discAmt = $base * ($item['discount_pct'] / 100);
+                $baseNet = $base - $discAmt;
+                $iepsAmt = $baseNet * ($item['ieps_rate'] / 100);
+                $taxAmt  = ($baseNet + $iepsAmt) * ($item['tax_rate'] / 100);
 
                 $quotation->items()->create([
                     'product_id'      => $item['product_id'],
@@ -295,29 +324,37 @@ class QuotationForm extends Component
                 ]);
             }
 
-            // Crear solicitud de aprobación si excede límites
             if ($exceedsLimit) {
-                $maxAllowed = collect($this->items)->min('max_discount_pct') ?? 0;
                 $approval = DiscountApproval::create([
                     'company_id'             => $companyId,
                     'requester_id'           => auth()->id(),
                     'model_type'             => SaleQuotation::class,
                     'model_id'               => $quotation->id,
                     'status'                 => 'pending',
-                    'requested_discount_pct' => (float) $this->global_discount,
-                    'max_allowed_pct'        => (float) $maxAllowed,
+                    'requested_discount_pct' => $limitCheck['requested'],
+                    'max_allowed_pct'        => $limitCheck['max_allowed'],
                     'requester_notes'        => $this->approvalNotes ?: null,
                 ]);
                 $quotation->update(['approval_id' => $approval->id]);
+
+                // Notificar a todos los usuarios con permiso de aprobar descuentos
+                User::where('company_id', $companyId)
+                    ->permission('approve discounts')
+                    ->get()
+                    ->each(fn($u) => $u->notify(new DiscountApprovalNotification(
+                        type:          'requested',
+                        folio:         $quotation->folio,
+                        requestedPct:  $limitCheck['requested'],
+                        maxAllowedPct: $limitCheck['max_allowed'],
+                        notes:         $this->approvalNotes ?: null,
+                        approvalId:    $approval->id,
+                    )));
             }
         });
 
         $this->needsApproval = false;
-        if ($this->checkDiscountLimits() || true) {
-            // always redirect after save
-        }
         session()->flash('success', $exceedsLimit
-            ? 'Cotización guardada y enviada a autorización.'
+            ? 'Cotización guardada y enviada a autorización de descuento.'
             : 'Cotización creada correctamente.');
         $this->redirect(route('sales.index'), navigate: true);
     }

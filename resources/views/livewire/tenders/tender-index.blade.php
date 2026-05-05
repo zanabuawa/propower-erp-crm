@@ -6,9 +6,12 @@
                 <p class="text-[11px] text-slate-400 uppercase tracking-wider">Control de procesos licitatorios</p>
             </div>
             <div class="flex items-center gap-2">
-                <a wire:navigate href="{{ route('tenders.catalog.index') }}"
-                    class="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:border-indigo-200 hover:text-indigo-600 transition-all">
-                    Catálogo APU
+                <a href="{{ route('tenders.report.print', request()->query()) }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-xl border border-slate-200 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Imprimir
                 </a>
                 @can('create tenders')
                 <a wire:navigate href="{{ route('tenders.create') }}"

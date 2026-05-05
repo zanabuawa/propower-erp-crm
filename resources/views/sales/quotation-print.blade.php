@@ -6,17 +6,18 @@
     <title>Cotización {{ $quotation->folio }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a1a; background: #fff; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #1a1a2e; background: #fff; }
 
         .page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 14mm 16mm; }
 
-        /* Header */
-        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #059669; padding-bottom: 10px; margin-bottom: 14px; }
+        /* ── Header ── */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #ef4444; padding-bottom: 10px; margin-bottom: 14px; }
         .header-logo img { max-height: 70px; max-width: 200px; object-fit: contain; }
-        .company-name { font-size: 16px; font-weight: 700; color: #065f46; }
+        .header-logo .logo-placeholder { width: 70px; height: 70px; background: #fee2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #ef4444; }
+        .company-name { font-size: 16px; font-weight: 700; color: #1a1a2e; }
         .header-right { text-align: right; }
-        .doc-title { font-size: 18px; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 1px; }
-        .folio { font-size: 22px; font-weight: 800; color: #059669; }
+        .doc-title { font-size: 18px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 1px; }
+        .folio { font-size: 22px; font-weight: 800; color: #dc2626; }
         .status-badge { display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
         .status-accepted { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
         .status-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
@@ -24,53 +25,53 @@
         .status-draft    { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
         .status-expired  { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
 
-        /* Two-column header info */
+        /* ── Two-column header info ── */
         .cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
         .info-box { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; }
-        .info-box-title { font-size: 9px; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; border-bottom: 1px solid #d1fae5; padding-bottom: 4px; }
+        .info-box-title { font-size: 9px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; border-bottom: 1px solid #fee2e2; padding-bottom: 4px; }
         .info-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
         .info-label { font-size: 9px; color: #64748b; text-transform: uppercase; }
         .info-value { font-size: 10.5px; color: #1e293b; font-weight: 500; text-align: right; max-width: 60%; }
         .info-value.large { font-size: 12px; font-weight: 700; }
         .info-value.red { color: #dc2626; }
 
-        /* Section title */
-        .section-title { font-size: 10px; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #a7f3d0; padding-bottom: 4px; margin-bottom: 8px; }
+        /* ── Section title ── */
+        .section-title { font-size: 10px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #fecaca; padding-bottom: 4px; margin-bottom: 8px; }
 
-        /* Table */
+        /* ── Table ── */
         table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-        thead tr { background: #059669; color: #fff; }
+        thead tr { background: #ef4444; color: #fff; }
         thead th { padding: 6px 8px; text-align: left; font-size: 9.5px; font-weight: 700; }
         thead th.right { text-align: right; }
-        tbody tr:nth-child(even) { background: #f0fdf4; }
+        tbody tr:nth-child(even) { background: #fafafa; }
         tbody td { padding: 5px 8px; font-size: 10.5px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
         tbody td.right { text-align: right; }
         tfoot td { padding: 5px 8px; }
 
-        /* Totals */
+        /* ── Totals ── */
         .totals-block { display: flex; justify-content: flex-end; margin-bottom: 18px; }
         .totals-table { width: 250px; }
         .totals-table tr td:first-child { color: #475569; font-size: 10px; padding: 3px 0; }
         .totals-table tr td:last-child { text-align: right; font-size: 11px; font-weight: 600; padding: 3px 0; }
-        .totals-table .total-row td { font-size: 14px; font-weight: 700; color: #059669; border-top: 2px solid #059669; padding-top: 6px; }
+        .totals-table .total-row td { font-size: 14px; font-weight: 700; color: #ef4444; border-top: 2px solid #ef4444; padding-top: 6px; }
 
-        /* Notes / Terms */
+        /* ── Notes / Terms ── */
         .text-box { border: 1px solid #e2e8f0; border-radius: 5px; padding: 8px 10px; font-size: 10.5px; color: #334155; margin-bottom: 12px; min-height: 30px; line-height: 1.5; }
         .text-box-label { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; }
 
-        /* Validity strip */
-        .validity-strip { background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 6px; padding: 8px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
-        .validity-strip .valid-label { font-size: 10px; color: #065f46; font-weight: 600; }
-        .validity-strip .valid-date { font-size: 12px; font-weight: 700; color: #059669; }
+        /* ── Validity strip ── */
+        .validity-strip { background: #fff7f7; border: 1px solid #fecaca; border-radius: 6px; padding: 8px 14px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+        .validity-strip .valid-label { font-size: 10px; color: #991b1b; font-weight: 600; }
+        .validity-strip .valid-date { font-size: 12px; font-weight: 700; color: #ef4444; }
 
-        /* Signature lines */
+        /* ── Signature lines ── */
         .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
         .sig-box { border-top: 1px solid #475569; padding-top: 6px; text-align: center; }
         .sig-box-name { font-size: 10px; color: #334155; }
         .sig-box-label { font-size: 9px; color: #64748b; }
 
-        /* Footer */
-        .footer { border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 20px; display: flex; justify-content: space-between; font-size: 8.5px; color: #94a3b8; }
+        /* ── Footer ── */
+        .footer { border-top: 1px solid #e2e8f0; padding-top: 8px; margin-top: 20px; display: flex; justify-content: space-between; font-size: 9px; color: #9ca3af; }
 
         @media print {
             body { padding: 0; }
@@ -81,25 +82,36 @@
 </head>
 <body>
 
-<div class="no-print" style="background:#059669;color:#fff;padding:8px 20px;display:flex;justify-content:space-between;align-items:center;font-family:Arial,sans-serif;font-size:12px;">
-    <span>Cotización — {{ $quotation->folio }}</span>
-    <div style="display:flex;gap:10px;">
-        <button onclick="window.print()" style="background:#fff;color:#059669;border:none;padding:6px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;">🖨 Imprimir / PDF</button>
-        <a href="{{ url()->previous() }}" style="color:#a7f3d0;text-decoration:none;padding:6px 12px;">← Regresar</a>
-    </div>
+{{-- ── Botones (solo pantalla) ─────────────────────────────────── --}}
+<div class="no-print" style="text-align:right; padding:12px 20px; background:#fff; border-bottom:1px solid #e5e7eb;">
+    <button onclick="window.print()"
+        style="background:#ef4444;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+        Imprimir / Guardar PDF
+    </button>
+    <button onclick="window.close()"
+        style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
+        Cerrar
+    </button>
 </div>
 
 <div class="page">
 
-    {{-- HEADER --}}
+    {{-- ── HEADER ── --}}
     @php $company = $quotation->company; @endphp
     <div class="header">
-        <div class="header-logo">
-            @if($company->print_logo ?? $company->logo ?? null)
-                <img src="{{ Storage::url($company->print_logo ?? $company->logo) }}" alt="{{ $company->name }}">
-            @else
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div class="header-logo">
+                @php $logoPath = $company->print_logo ?? $company->logo ?? null; @endphp
+                @if($logoPath)
+                    <img src="{{ asset('storage/' . $logoPath) }}" alt="{{ $company->name }}">
+                @else
+                    <div class="logo-placeholder">{{ mb_strtoupper(mb_substr($company->name ?? 'E', 0, 1)) }}</div>
+                @endif
+            </div>
+            <div>
                 <div class="company-name">{{ $company->name }}</div>
-            @endif
+                @if($company->rfc) <div style="font-size:10px;color:#6b7280;">RFC: {{ $company->rfc }}</div> @endif
+            </div>
         </div>
         <div class="header-right">
             <div class="doc-title">Cotización</div>
@@ -118,7 +130,7 @@
         </div>
     </div>
 
-    {{-- DOS COLUMNAS: Cliente / Detalles --}}
+    {{-- ── DOS COLUMNAS: Cliente / Detalles ── --}}
     <div class="cols-2">
         {{-- Cliente --}}
         <div class="info-box">
@@ -191,7 +203,7 @@
         </div>
     </div>
 
-    {{-- PRODUCTOS --}}
+    {{-- ── PRODUCTOS ── --}}
     <div class="section-title">Partidas</div>
     <table>
         <thead>
@@ -215,7 +227,7 @@
                     <td>
                         <strong>{{ $item->description }}</strong>
                         @if($item->product?->sku)
-                            <br><span style="font-size:9px;color:#94a3b8;font-family:monospace;">{{ $item->product->sku }}</span>
+                            <br><span style="font-size:9px;color:#94a3b8;font-family:'Courier New',monospace;">{{ $item->product->sku }}</span>
                         @endif
                         @if($item->notes)
                             <br><span style="font-size:9px;color:#64748b;">{{ $item->notes }}</span>
@@ -231,7 +243,7 @@
         </tbody>
     </table>
 
-    {{-- TOTALES --}}
+    {{-- ── TOTALES ── --}}
     <div class="totals-block">
         <table class="totals-table">
             <tr>
@@ -255,7 +267,7 @@
         </table>
     </div>
 
-    {{-- VIGENCIA --}}
+    {{-- ── VIGENCIA ── --}}
     @if($quotation->valid_until)
         <div class="validity-strip">
             <span class="valid-label">Esta cotización es válida hasta:</span>
@@ -263,19 +275,19 @@
         </div>
     @endif
 
-    {{-- NOTAS --}}
+    {{-- ── NOTAS ── --}}
     @if($quotation->notes)
         <div class="text-box-label">Notas</div>
         <div class="text-box">{{ $quotation->notes }}</div>
     @endif
 
-    {{-- TÉRMINOS --}}
+    {{-- ── TÉRMINOS ── --}}
     @if($quotation->terms)
         <div class="text-box-label">Términos y condiciones</div>
         <div class="text-box">{{ $quotation->terms }}</div>
     @endif
 
-    {{-- FIRMAS --}}
+    {{-- ── FIRMAS ── --}}
     <div class="sig-grid" style="margin-top: 30px;">
         <div class="sig-box" style="height:50px;">
             <div class="sig-box-name">{{ $quotation->createdBy?->name ?? '_________________________' }}</div>
@@ -287,8 +299,9 @@
         </div>
     </div>
 
-    {{-- FOOTER --}}
+    {{-- ── FOOTER ── --}}
     <div class="footer">
+        <span>ProPower ERP • Módulo de Ventas</span>
         <span>{{ $company->name }}@if($company->address) · {{ $company->address }}@endif</span>
         <span>{{ $quotation->folio }} · Generado: {{ now()->format('d/m/Y H:i') }}</span>
     </div>

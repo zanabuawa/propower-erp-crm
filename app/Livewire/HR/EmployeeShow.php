@@ -6,6 +6,7 @@ use App\Models\HrDepartment;
 use App\Models\HrEmployee;
 use App\Models\HrEmployeeMovement;
 use App\Models\HrPosition;
+use App\Models\TravelExpense;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -152,6 +153,23 @@ class EmployeeShow extends Component
         session()->flash('success', 'Movimiento registrado correctamente.');
     }
 
+    // ── Viáticos ──────────────────────────────────────────────────────────────
+
+    public function confirmTrip(int $travelId): void
+    {
+        $travel = TravelExpense::where('employee_id', $this->employee->id)
+            ->where('status', 'pagado')
+            ->findOrFail($travelId);
+
+        $travel->update([
+            'trip_confirmed'    => true,
+            'trip_confirmed_at' => now(),
+            'trip_confirmed_by' => auth()->id(),
+        ]);
+
+        session()->flash('success', "Viaje {$travel->folio} confirmado.");
+    }
+
     public function render()
     {
         $recentPayrolls = $this->employee->payrollItems()
@@ -160,6 +178,11 @@ class EmployeeShow extends Component
             ->limit(6)
             ->get();
 
-        return view('livewire.hr.employee-show', compact('recentPayrolls'));
+        $travelExpenses = TravelExpense::with(['assignedBy', 'project', 'financeAccount'])
+            ->where('employee_id', $this->employee->id)
+            ->latest()
+            ->get();
+
+        return view('livewire.hr.employee-show', compact('recentPayrolls', 'travelExpenses'));
     }
 }

@@ -4,9 +4,9 @@ namespace App\Livewire\Tenders;
 
 use App\Models\Branch;
 use App\Models\Customer;
+use App\Models\Product;
 use App\Models\Project;
 use App\Models\Tender;
-use App\Models\TenderCatalogItem;
 use App\Models\TenderItem;
 use App\Models\User;
 use Livewire\Attributes\Layout;
@@ -57,15 +57,15 @@ class TenderForm extends Component
             $this->feedback             = $tender->feedback ?? '';
             $this->notes                = $tender->notes ?? '';
             $this->items = $tender->items->map(fn($i) => [
-                'id'             => $i->id,
-                'catalog_item_id'=> $i->catalog_item_id,
-                'code'           => $i->code ?? '',
-                'category'       => $i->category ?? '',
-                'description'    => $i->description,
-                'unit'           => $i->unit ?? '',
-                'quantity'       => $i->quantity,
-                'unit_price'     => $i->unit_price,
-                'total'          => $i->total,
+                'id'          => $i->id,
+                'product_id'  => $i->product_id,
+                'code'        => $i->code ?? '',
+                'category'    => $i->category ?? '',
+                'description' => $i->description,
+                'unit'        => $i->unit ?? '',
+                'quantity'    => $i->quantity,
+                'unit_price'  => $i->unit_price,
+                'total'       => $i->total,
             ])->toArray();
         }
         if (empty($this->items)) {
@@ -76,15 +76,15 @@ class TenderForm extends Component
     public function addItem(): void
     {
         $this->items[] = [
-            'id'             => null,
-            'catalog_item_id'=> null,
-            'code'           => '',
-            'category'       => '',
-            'description'    => '',
-            'unit'           => '',
-            'quantity'       => 1,
-            'unit_price'     => 0,
-            'total'          => 0,
+            'id'          => null,
+            'product_id'  => null,
+            'code'        => '',
+            'category'    => '',
+            'description' => '',
+            'unit'        => '',
+            'quantity'    => 1,
+            'unit_price'  => 0,
+            'total'       => 0,
         ];
     }
 
@@ -93,16 +93,21 @@ class TenderForm extends Component
         array_splice($this->items, $index, 1);
     }
 
-    public function loadCatalogItem(int $index, int $catalogItemId): void
+    public function loadProduct(int $index, ?int $productId): void
     {
-        $ci = TenderCatalogItem::with('resources', 'category')->find($catalogItemId);
-        if (!$ci) return;
-        $this->items[$index]['catalog_item_id'] = $ci->id;
-        $this->items[$index]['code']            = $ci->code ?? '';
-        $this->items[$index]['category']        = $ci->category?->name ?? '';
-        $this->items[$index]['description']     = $ci->name;
-        $this->items[$index]['unit']            = $ci->unit ?? '';
-        $this->items[$index]['unit_price']      = $ci->unitPrice;
+        if (!$productId) {
+            $this->items[$index]['product_id'] = null;
+            return;
+        }
+        $p = Product::with('unitOfMeasure', 'category')->find($productId);
+        if (!$p) return;
+
+        $this->items[$index]['product_id']  = $p->id;
+        $this->items[$index]['code']        = $p->sku ?? '';
+        $this->items[$index]['category']    = $p->category?->name ?? '';
+        $this->items[$index]['description'] = $p->name;
+        $this->items[$index]['unit']        = $p->unitOfMeasure?->abbreviation ?? '';
+        $this->items[$index]['unit_price']  = (float) $p->sale_price;
         $this->recalcItem($index);
     }
 
@@ -166,16 +171,16 @@ class TenderForm extends Component
         foreach ($this->items as $i => $row) {
             if (empty($row['description'])) continue;
             TenderItem::create([
-                'tender_id'       => $tender->id,
-                'catalog_item_id' => $row['catalog_item_id'] ?: null,
-                'code'            => $row['code'] ?: null,
-                'category'        => $row['category'] ?: null,
-                'description'     => $row['description'],
-                'unit'            => $row['unit'] ?: null,
-                'quantity'        => $row['quantity'],
-                'unit_price'      => $row['unit_price'],
-                'total'           => $row['total'],
-                'sort_order'      => $i,
+                'tender_id'   => $tender->id,
+                'product_id'  => $row['product_id'] ?: null,
+                'code'        => $row['code'] ?: null,
+                'category'    => $row['category'] ?: null,
+                'description' => $row['description'],
+                'unit'        => $row['unit'] ?: null,
+                'quantity'    => $row['quantity'],
+                'unit_price'  => $row['unit_price'],
+                'total'       => $row['total'],
+                'sort_order'  => $i,
             ]);
         }
 
@@ -185,14 +190,18 @@ class TenderForm extends Component
 
     public function render()
     {
+        $companyId = auth()->user()->company_id;
+
         return view('livewire.tenders.tender-form', [
-            'customers'    => Customer::where('company_id', auth()->user()->company_id)->orderBy('name')->get(),
-            'projects'     => Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get(),
-            'branches'     => Branch::where('company_id', auth()->user()->company_id)->orderBy('name')->get(),
-            'users'        => User::where('company_id', auth()->user()->company_id)->orderBy('name')->get(),
-            'catalogItems' => TenderCatalogItem::where('company_id', auth()->user()->company_id)->orderBy('name')->get(),
-            'types'        => Tender::TYPES,
-            'statuses'     => Tender::STATUSES,
+            'customers' => Customer::where('company_id', $companyId)->orderBy('name')->get(),
+            'projects'  => Project::whereHas('branch', fn($q) => $q->where('company_id', $companyId))->orderBy('name')->get(),
+            'branches'  => Branch::where('company_id', $companyId)->orderBy('name')->get(),
+            'users'     => User::where('company_id', $companyId)->orderBy('name')->get(),
+            'products'  => Product::where('company_id', $companyId)->where('is_active', true)
+                            ->with('unitOfMeasure:id,abbreviation', 'category:id,name')
+                            ->orderBy('name')->get(['id','name','sku','sale_price','unit_of_measure_id','category_id','type']),
+            'types'     => Tender::TYPES,
+            'statuses'  => Tender::STATUSES,
         ]);
     }
 }

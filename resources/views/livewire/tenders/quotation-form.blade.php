@@ -54,7 +54,10 @@
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Conceptos Cotizados</h3>
+                <div>
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Conceptos Cotizados</h3>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Pre-cargados desde la licitación. Ajusta precios por empresa emisora.</p>
+                </div>
                 <button type="button" wire:click="addItem"
                     class="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-600 uppercase tracking-wider">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -64,7 +67,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead><tr class="bg-slate-50/50 border-b border-slate-100">
-                        <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase">Descripción</th>
+                        <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase">Producto / Descripción</th>
                         <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase w-16">Unidad</th>
                         <th class="text-right px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase w-24">Cantidad</th>
                         <th class="text-right px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase w-28">P. Unit.</th>
@@ -74,12 +77,29 @@
                     <tbody class="divide-y divide-slate-50">
                         @foreach($items as $i => $row)
                             <tr>
-                                <td class="px-2 py-2">
-                                    <input wire:model="items.{{ $i }}.description" type="text"
+                                <td class="px-2 py-2 space-y-1">
+                                    @php $grouped = $products->groupBy(fn($p) => $p->category?->name ?? 'Sin categoría'); @endphp
+                                    <select onchange="fillQuotationRow({{ $i }}, this.value)"
+                                        class="w-full px-2 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg text-[10px] text-indigo-700 font-bold">
+                                        <option value="">— Buscar producto del catálogo —</option>
+                                        @foreach($grouped as $cat => $prods)
+                                            <optgroup label="{{ $cat }}">
+                                                @foreach($prods as $prod)
+                                                    <option value="{{ $prod->id }}"
+                                                        data-name="{{ $prod->name }}"
+                                                        data-unit="{{ $prod->unitOfMeasure?->abbreviation ?? '' }}"
+                                                        data-price="{{ $prod->sale_price }}">
+                                                        {{ $prod->name }} — ${{ number_format($prod->sale_price, 2) }}
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
+                                    </select>
+                                    <input wire:model="items.{{ $i }}.description" type="text" placeholder="Descripción del concepto"
                                         class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                                 </td>
                                 <td class="px-2 py-2">
-                                    <input wire:model="items.{{ $i }}.unit" type="text"
+                                    <input wire:model="items.{{ $i }}.unit" type="text" id="quot-unit-{{ $i }}"
                                         class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-center">
                                 </td>
                                 <td class="px-2 py-2">
@@ -89,6 +109,7 @@
                                 </td>
                                 <td class="px-2 py-2">
                                     <input wire:model.live="items.{{ $i }}.unit_price" type="number" step="0.01" min="0"
+                                        id="quot-price-{{ $i }}"
                                         wire:change="recalcItem({{ $i }})"
                                         class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-right font-mono">
                                 </td>
@@ -113,3 +134,23 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function fillQuotationRow(index, productId) {
+    if (!productId) return;
+    const sel = event.target;
+    const opt = sel.options[sel.selectedIndex];
+    const name  = opt.dataset.name  || '';
+    const unit  = opt.dataset.unit  || '';
+    const price = opt.dataset.price || '0';
+
+    @this.call('loadProduct', index, parseInt(productId));
+
+    const unitEl  = document.getElementById('quot-unit-' + index);
+    const priceEl = document.getElementById('quot-price-' + index);
+    if (unitEl)  { unitEl.value  = unit;  unitEl.dispatchEvent(new Event('input')); }
+    if (priceEl) { priceEl.value = price; priceEl.dispatchEvent(new Event('input')); }
+}
+</script>
+@endpush

@@ -175,7 +175,7 @@
             </table>
         </div>
         @if($movements->hasPages())
-            <div class="px-5 py-4 border-t border-gray-100">{{ $movements->links() }}</div>
+            <div class="px-5 py-4 border-t border-gray-100">{{ $movements->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 </div>

@@ -98,7 +98,7 @@ class SiteVisitForm extends Component
     {
         $companyId = auth()->user()->company_id;
         return view('livewire.tenders.site-visit-form', [
-            'projects' => Project::where('company_id', $companyId)->orderBy('name')->get(),
+            'projects' => Project::whereHas('branch', fn($q) => $q->where('company_id', $companyId))->orderBy('name')->get(),
             'tenders'  => Tender::where('company_id', $companyId)->orderBy('name')->get(),
             'types'    => SiteVisit::TYPES,
             'statuses' => SiteVisit::STATUSES,

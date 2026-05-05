@@ -197,7 +197,7 @@
         </table>
         @if($notes->hasPages())
             <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
-                {{ $notes->links() }}
+                {{ $notes->links('vendor.pagination.tailwind') }}
             </div>
         @endif
     </div>

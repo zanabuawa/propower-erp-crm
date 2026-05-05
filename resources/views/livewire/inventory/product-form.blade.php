@@ -212,19 +212,22 @@
                 </div>
 
                 {{-- Card: Precios y Fiscal --}}
-                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                @canany(['edit product prices', 'view product cost'])
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm">
                     <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
                         <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Precios y Configuración Fiscal</h2>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] font-bold text-slate-400">IVA (16%)</span>
+                        <div class="flex items-center gap-3 bg-white px-3 py-1.5 rounded-xl border border-slate-100 shadow-sm">
+                            <span class="text-[10px] font-bold {{ $purchase_price_includes_iva ? 'text-indigo-600' : 'text-slate-400' }} uppercase tracking-tight">
+                                {{ $purchase_price_includes_iva ? 'Costo con IVA incluido' : 'Costo sin IVA' }}
+                            </span>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input wire:model="purchase_price_includes_iva" type="checkbox" class="sr-only peer">
+                                <input wire:model.live="purchase_price_includes_iva" type="checkbox" class="sr-only peer">
                                 <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-indigo-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
                             </label>
                         </div>
                     </div>
                     <div class="p-6 lg:p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-slate-600">{{ $type === 'service' ? 'Costo base *' : 'Precio de compra *' }}</label>
                                 <div class="relative group">
@@ -233,6 +236,17 @@
                                         class="w-full bg-slate-50 border-none rounded-xl pl-8 pr-4 py-3 text-lg font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20">
                                 </div>
                                 @error('purchase_price') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-600">Gastos de operación *</label>
+                                <div class="relative">
+                                    <input wire:model.live="operational_costs" type="number" step="0.1" min="0" max="99"
+                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:ring-2 focus:ring-amber-500/20">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
+                                </div>
+                                <p class="text-[9px] text-slate-400">Precio mínimo: <span class="font-bold text-amber-600">${{ number_format($this->minSalePrice, 2) }}</span></p>
+                                @error('operational_costs') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="space-y-2">
@@ -251,7 +265,7 @@
                                     <span class="text-sm font-bold opacity-80">$</span>
                                     <span class="text-2xl font-black">{{ number_format($this->normalSalePrice, 2) }}</span>
                                 </div>
-                                <p class="text-[9px] mt-2 font-medium opacity-70 italic">* Basado en costo + margen seleccionado</p>
+                                <p class="text-[9px] mt-2 font-medium opacity-70 italic">* Costo / (1 − margen%)</p>
                             </div>
                         </div>
 
@@ -263,55 +277,157 @@
                                 $satUnitList = collect(\App\Models\Product::SAT_UNIT_CODES)->map(fn($l,$c)=>['code'=>$c,'label'=>$l])->values();
                             @endphp
                             
-                            <div class="space-y-2" x-data="{ open: false, search: '', value: $wire.entangle('sat_product_code'), items: {{ $satProductList->toJson() }} }">
+                            {{-- SAT Producto Modal Selector --}}
+                            <div class="space-y-2" x-data="{ 
+                                open: false, 
+                                search: '', 
+                                value: $wire.entangle('sat_product_code'), 
+                                items: {{ $satProductList->toJson() }},
+                                get filteredItems() {
+                                    return this.items.filter(i => 
+                                        i.label.toLowerCase().includes(this.search.toLowerCase()) || 
+                                        i.code.includes(this.search)
+                                    )
+                                }
+                            }">
                                 <label class="text-xs font-bold text-slate-600">Clave SAT (Prod/Serv)</label>
-                                <div class="relative">
-                                    <button type="button" @click="open = !open" 
-                                        class="w-full bg-slate-50 text-left border-none rounded-xl px-4 py-3 text-sm text-slate-700 flex items-center justify-between">
-                                        <span class="truncate" x-text="items.find(i => i.code === value)?.label || 'Seleccionar clave...'"></span>
-                                        <svg class="w-4 h-4 text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                    </button>
-                                    <div x-show="open" @click.outside="open = false" class="absolute z-40 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
-                                        <div class="p-3 border-b border-slate-50">
-                                            <input x-model="search" type="text" placeholder="Buscar clave..." class="w-full bg-slate-50 border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500/30">
-                                        </div>
-                                        <div class="max-h-60 overflow-y-auto">
-                                            <template x-for="item in items.filter(i => i.label.toLowerCase().includes(search.toLowerCase()) || i.code.includes(search))" :key="item.code">
-                                                <button type="button" @click="value = item.code; open = false" class="w-full text-left px-4 py-2.5 text-xs hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0" :class="value === item.code ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600'">
-                                                    <span x-text="item.label"></span>
+                                <button type="button" @click="open = true; search = ''" 
+                                    class="w-full bg-slate-50 text-left border border-slate-100 rounded-xl px-4 py-3 text-sm text-slate-700 flex items-center justify-between hover:bg-slate-100 transition-colors">
+                                    <span class="truncate" x-text="items.find(i => i.code === value)?.label || 'Seleccionar clave...'"></span>
+                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </button>
+
+                                {{-- Modal --}}
+                                <template x-teleport="body">
+                                    <div x-show="open" 
+                                        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+                                        x-transition:enter="transition ease-out duration-200"
+                                        x-transition:enter-start="opacity-0"
+                                        x-transition:enter-end="opacity-100"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="opacity-100"
+                                        x-transition:leave-end="opacity-0">
+                                        
+                                        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="open = false"></div>
+                                        
+                                        <div class="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden"
+                                            x-transition:enter="transition ease-out duration-300"
+                                            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                                            x-transition:enter-end="opacity-100 scale-100 translate-y-0">
+                                            
+                                            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                                                <h3 class="font-bold text-slate-800">Clave SAT (Producto/Servicio)</h3>
+                                                <button type="button" @click="open = false" class="text-slate-400 hover:text-slate-600">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                                 </button>
-                                            </template>
+                                            </div>
+
+                                            <div class="p-4 bg-slate-50">
+                                                <div class="relative">
+                                                    <input x-model="search" type="text" placeholder="Buscar por código o descripción..." 
+                                                        class="w-full bg-white border-none rounded-2xl px-11 py-3 text-sm focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
+                                                        x-init="$watch('open', v => v && $nextTick(() => $el.focus()))">
+                                                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                </div>
+                                            </div>
+
+                                            <div class="max-h-[400px] overflow-y-auto p-2">
+                                                <template x-for="item in filteredItems" :key="item.code">
+                                                    <button type="button" @click="value = item.code; open = false" 
+                                                        class="w-full text-left px-4 py-3 rounded-xl transition-all duration-200 group"
+                                                        :class="value === item.code ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-indigo-50 text-slate-600'">
+                                                        <div class="flex flex-col">
+                                                            <span class="text-[10px] font-bold uppercase tracking-wider mb-0.5" :class="value === item.code ? 'text-indigo-200' : 'text-indigo-600'">Código: <span x-text="item.code"></span></span>
+                                                            <span class="text-sm font-medium" x-text="item.label.split('- ').pop()"></span>
+                                                        </div>
+                                                    </button>
+                                                </template>
+                                                <div x-show="filteredItems.length === 0" class="p-8 text-center">
+                                                    <p class="text-sm text-slate-400 italic">No se encontraron resultados...</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </template>
                             </div>
 
-                            {{-- SAT Unidad --}}
-                            <div class="space-y-2" x-data="{ open: false, search: '', value: $wire.entangle('sat_unit_code'), items: {{ $satUnitList->toJson() }} }">
+                            {{-- SAT Unidad Modal Selector --}}
+                            <div class="space-y-2" x-data="{ 
+                                open: false, 
+                                search: '', 
+                                value: $wire.entangle('sat_unit_code'), 
+                                items: {{ $satUnitList->toJson() }},
+                                get filteredItems() {
+                                    return this.items.filter(i => 
+                                        i.label.toLowerCase().includes(this.search.toLowerCase()) || 
+                                        i.code.includes(this.search)
+                                    )
+                                }
+                            }">
                                 <label class="text-xs font-bold text-slate-600">Clave SAT (Unidad)</label>
-                                <div class="relative">
-                                    <button type="button" @click="open = !open" 
-                                        class="w-full bg-slate-50 text-left border-none rounded-xl px-4 py-3 text-sm text-slate-700 flex items-center justify-between">
-                                        <span class="truncate" x-text="items.find(i => i.code === value)?.label || 'Seleccionar unidad...'"></span>
-                                        <svg class="w-4 h-4 text-slate-400 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                    </button>
-                                    <div x-show="open" @click.outside="open = false" class="absolute z-40 w-full mt-2 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
-                                        <div class="p-3 border-b border-slate-50">
-                                            <input x-model="search" type="text" placeholder="Buscar unidad..." class="w-full bg-slate-50 border-none rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500/30">
-                                        </div>
-                                        <div class="max-h-60 overflow-y-auto">
-                                            <template x-for="item in items.filter(i => i.label.toLowerCase().includes(search.toLowerCase()) || i.code.includes(search))" :key="item.code">
-                                                <button type="button" @click="value = item.code; open = false" class="w-full text-left px-4 py-2.5 text-xs hover:bg-indigo-50 transition-colors border-b border-slate-50 last:border-0" :class="value === item.code ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-600'">
-                                                    <span x-text="item.label"></span>
+                                <button type="button" @click="open = true; search = ''" 
+                                    class="w-full bg-slate-50 text-left border border-slate-100 rounded-xl px-4 py-3 text-sm text-slate-700 flex items-center justify-between hover:bg-slate-100 transition-colors">
+                                    <span class="truncate" x-text="items.find(i => i.code === value)?.label || 'Seleccionar unidad...'"></span>
+                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                </button>
+
+                                {{-- Modal --}}
+                                <template x-teleport="body">
+                                    <div x-show="open" 
+                                        class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
+                                        x-transition:enter="transition ease-out duration-200"
+                                        x-transition:enter-start="opacity-0"
+                                        x-transition:enter-end="opacity-100"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="opacity-100"
+                                        x-transition:leave-end="opacity-0">
+                                        
+                                        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="open = false"></div>
+                                        
+                                        <div class="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden"
+                                            x-transition:enter="transition ease-out duration-300"
+                                            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                                            x-transition:enter-end="opacity-100 scale-100 translate-y-0">
+                                            
+                                            <div class="p-6 border-b border-slate-100 flex items-center justify-between">
+                                                <h3 class="font-bold text-slate-800">Clave SAT (Unidad de Medida)</h3>
+                                                <button type="button" @click="open = false" class="text-slate-400 hover:text-slate-600">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                                 </button>
-                                            </template>
+                                            </div>
+
+                                            <div class="p-4 bg-slate-50">
+                                                <div class="relative">
+                                                    <input x-model="search" type="text" placeholder="Buscar unidad..." 
+                                                        class="w-full bg-white border-none rounded-2xl px-11 py-3 text-sm focus:ring-2 focus:ring-indigo-500/20 shadow-sm"
+                                                        x-init="$watch('open', v => v && $nextTick(() => $el.focus()))">
+                                                    <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                </div>
+                                            </div>
+
+                                            <div class="max-h-[400px] overflow-y-auto p-2">
+                                                <template x-for="item in filteredItems" :key="item.code">
+                                                    <button type="button" @click="value = item.code; open = false" 
+                                                        class="w-full text-left px-4 py-3 rounded-xl transition-all duration-200 group"
+                                                        :class="value === item.code ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-indigo-50 text-slate-600'">
+                                                        <div class="flex flex-col">
+                                                            <span class="text-[10px] font-bold uppercase tracking-wider mb-0.5" :class="value === item.code ? 'text-indigo-200' : 'text-indigo-600'">Clave: <span x-text="item.code"></span></span>
+                                                            <span class="text-sm font-medium" x-text="item.label.split('- ').pop()"></span>
+                                                        </div>
+                                                    </button>
+                                                </template>
+                                                <div x-show="filteredItems.length === 0" class="p-8 text-center">
+                                                    <p class="text-sm text-slate-400 italic">No se encontraron resultados...</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </template>
                             </div>
                         </div>
                     </div>
                 </div>
+                @endcanany
 
             </div>
 

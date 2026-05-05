@@ -169,7 +169,7 @@
             </table>
         </div>
         @if($payments->hasPages())
-        <div class="px-5 py-3 border-t border-gray-100">{{ $payments->links() }}</div>
+        <div class="px-5 py-3 border-t border-gray-100">{{ $payments->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 

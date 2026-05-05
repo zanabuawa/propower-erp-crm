@@ -261,7 +261,7 @@
                     <x-empty-state message="No hay requisiciones pendientes." />
                 </div>
             @endforelse
-            {{ $requisitions->links() }}
+            {{ $requisitions->links('vendor.pagination.tailwind') }}
         </div>
 
         {{-- VISTA ESCRITORIO (Requisiciones) --}}
@@ -328,8 +328,8 @@
                 </tbody>
             </table>
             @if($requisitions->hasPages())
-                <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
-                    {{ $requisitions->links() }}
+                <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+                    {{ $requisitions->links('vendor.pagination.tailwind') }}
                 </div>
             @endif
         </div>

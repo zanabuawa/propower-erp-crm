@@ -92,12 +92,32 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Desc. Global (%)</label>
+                            @php
+                                $gCap        = $this->maxGlobalDiscountCap;
+                                $gVal        = (float) $global_discount;
+                                $gOverCap    = $gCap < 100 && $gVal > $gCap;
+                                $gNearCap    = $gCap < 100 && !$gOverCap && $gVal >= ($gCap * 0.8);
+                            @endphp
+                            <div class="flex items-center justify-between">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Desc. Global (%)</label>
+                                @if($gCap < 100)
+                                    <span class="text-[9px] font-black uppercase tracking-wider {{ $gOverCap ? 'text-rose-500' : 'text-amber-500' }}">
+                                        Máx. sin autorizar: {{ number_format($gCap, 1) }}%
+                                    </span>
+                                @endif
+                            </div>
                             <div class="relative">
                                 <input wire:model.live="global_discount" type="number" step="0.01" min="0" max="100"
-                                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-black text-rose-600 focus:ring-4 focus:ring-rose-500/10 text-right">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-300 font-bold">%</span>
+                                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-black focus:ring-4 text-right
+                                        {{ $gOverCap ? 'text-rose-600 focus:ring-rose-500/20 ring-2 ring-rose-300' : ($gNearCap ? 'text-amber-600 focus:ring-amber-500/10' : 'text-rose-600 focus:ring-rose-500/10') }}">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold {{ $gOverCap ? 'text-rose-400' : 'text-rose-300' }}">%</span>
                             </div>
+                            @if($gOverCap)
+                                <p class="text-[9px] text-rose-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    Excede el límite — se solicitará autorización
+                                </p>
+                            @endif
                         </div>
 
                         {{-- Notas y Términos --}}
@@ -197,15 +217,23 @@
                                 <tbody class="divide-y divide-slate-200/40 bg-white">
                                     @forelse($items as $index => $item)
                                         @php
-                                            $discPct    = (float) ($item['discount_pct'] ?? 0);
-                                            $maxDiscPct = (float) ($item['max_discount_pct'] ?? 100);
-                                            $overLimit  = $discPct > 0 && $discPct > $maxDiscPct;
-                                            $base       = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
-                                            $discAmt    = $base * ($discPct / 100);
-                                            $baseNet    = $base - $discAmt;
-                                            $iepsAmt    = $baseNet * (($item['ieps_rate'] ?? 0) / 100);
-                                            $taxAmt     = ($baseNet + $iepsAmt) * (($item['tax_rate'] ?? 0) / 100);
-                                            $lineTotal  = $baseNet + $iepsAmt + $taxAmt;
+                                            $discPct      = (float) ($item['discount_pct'] ?? 0);
+                                            $maxDiscPct   = (float) ($item['max_discount_pct'] ?? 100);
+                                            $minPrice     = (float) ($item['min_sale_price'] ?? 0);
+                                            $unitPrice    = (float) ($item['unit_price'] ?? 0);
+                                            $gDiscPct     = (float) $global_discount;
+                                            // Precio efectivo combinando descuento por línea + global
+                                            $effectivePrice = $unitPrice > 0
+                                                ? round($unitPrice * (1 - $discPct / 100) * (1 - $gDiscPct / 100), 2)
+                                                : 0;
+                                            $overLimit    = ($discPct > $maxDiscPct)
+                                                || ($minPrice > 0 && $effectivePrice > 0 && $effectivePrice < $minPrice);
+                                            $base         = ($item['quantity'] ?? 0) * $unitPrice;
+                                            $discAmt      = $base * ($discPct / 100);
+                                            $baseNet      = $base - $discAmt;
+                                            $iepsAmt      = $baseNet * (($item['ieps_rate'] ?? 0) / 100);
+                                            $taxAmt       = ($baseNet + $iepsAmt) * (($item['tax_rate'] ?? 0) / 100);
+                                            $lineTotal    = $baseNet + $iepsAmt + $taxAmt;
                                         @endphp
                                         <tr class="{{ $overLimit ? "bg-rose-50/50" : "hover:bg-slate-50/50" }} transition-colors">
                                             <td class="px-5 py-3">
@@ -233,7 +261,13 @@
                                                         <span class="text-xs font-bold {{ $overLimit ? "text-rose-400" : "text-slate-400" }}">%</span>
                                                     </div>
                                                     @if($overLimit)
-                                                        <p class="text-[9px] text-rose-500 font-black uppercase text-center tracking-tighter">Máx: {{ number_format($maxDiscPct, 0) }}%</p>
+                                                        <p class="text-[9px] text-rose-500 font-black uppercase text-center tracking-tighter">
+                                                            Mín: ${{ number_format($minPrice, 2) }}
+                                                        </p>
+                                                    @elseif($maxDiscPct < 100)
+                                                        <p class="text-[9px] text-slate-400 font-bold text-center tracking-tighter">
+                                                            Máx: {{ number_format($maxDiscPct, 1) }}%
+                                                        </p>
                                                     @endif
                                                 </div>
                                             </td>

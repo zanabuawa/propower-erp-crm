@@ -6,7 +6,6 @@
     $destBranch = $order->requisition?->branch;
     $approvals  = $order->requisition?->finalQuotation?->approvals?->sortBy('level') ?? collect();
 
-    // Logo: prefer print_logo for documents, fall back to regular logo
     $printLogoPath = $company->print_logo ?? $company->logo ?? null;
 
     $labels = $en ? [
@@ -54,6 +53,7 @@
         'footer_doc'     => 'Internal document — not a fiscal invoice',
         'generated'      => 'Generated',
         'print_btn'      => 'Print / Save PDF',
+        'close_btn'      => 'Close',
         'status'         => \App\Models\PurchaseOrder::STATUS,
     ] : [
         'doc_title'      => 'ORDEN DE COMPRA',
@@ -99,8 +99,9 @@
         'immediate'      => 'Pago inmediato',
         'footer_doc'     => 'Documento interno — no tiene validez fiscal',
         'generated'      => 'Generado el',
-        'status'         => \App\Models\PurchaseOrder::STATUS,
         'print_btn'      => 'Imprimir / Guardar PDF',
+        'close_btn'      => 'Cerrar',
+        'status'         => \App\Models\PurchaseOrder::STATUS,
     ];
 @endphp
 <!DOCTYPE html>
@@ -121,26 +122,19 @@
 
         .page { max-width: 210mm; margin: 0 auto; padding: 20px; background: #fff; }
 
-        .print-btn {
-            position: fixed; top: 16px; right: 16px;
-            background: #4f46e5; color: #fff; border: none;
-            padding: 8px 20px; border-radius: 8px; font-size: 13px; cursor: pointer; z-index: 100;
-        }
-        .print-btn:hover { background: #4338ca; }
-
         /* Header */
         .header {
             display: flex; align-items: flex-start; justify-content: space-between;
-            border-bottom: 2px solid #4f46e5; padding-bottom: 14px; margin-bottom: 14px;
+            border-bottom: 2px solid #ef4444; padding-bottom: 14px; margin-bottom: 14px;
         }
         .company-logo { height: 70px; width: auto; object-fit: contain; }
         .company-info { flex: 1; padding-left: 16px; }
         .company-name { font-size: 15px; font-weight: 700; color: #1e293b; }
         .company-sub  { font-size: 10px; color: #64748b; margin-top: 2px; }
         .doc-title-block { text-align: right; }
-        .doc-title  { font-size: 20px; font-weight: 700; color: #4f46e5; letter-spacing: 1px; }
+        .doc-title  { font-size: 20px; font-weight: 700; color: #ef4444; letter-spacing: 1px; }
         .doc-folio  { font-size: 13px; font-weight: 600; color: #374151; margin-top: 4px; }
-        .doc-status { display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 600; background: #ede9fe; color: #5b21b6; }
+        .doc-status { display: inline-block; margin-top: 4px; padding: 2px 10px; border-radius: 999px; font-size: 10px; font-weight: 600; background: #fee2e2; color: #991b1b; }
 
         /* Info grid */
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
@@ -167,12 +161,12 @@
         .address-text { color: #1e293b; line-height: 1.5; }
 
         /* Items table */
-        .items-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #64748b; margin-bottom: 6px; }
+        .items-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; margin-bottom: 6px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-        thead th { background: #4f46e5; color: #fff; font-size: 10px; font-weight: 600; padding: 6px 8px; text-align: left; }
+        thead th { background: #ef4444; color: #fff; font-size: 10px; font-weight: 600; padding: 6px 8px; text-align: left; }
         thead th.right  { text-align: right; }
         thead th.center { text-align: center; }
-        tbody tr:nth-child(even) { background: #f8fafc; }
+        tbody tr:nth-child(even) { background: #fafafa; }
         tbody td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; font-size: 10.5px; vertical-align: top; }
         tbody td.right  { text-align: right; }
         tbody td.center { text-align: center; }
@@ -182,7 +176,7 @@
         .totals-table { width: 240px; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; }
         .totals-row { display: flex; justify-content: space-between; padding: 5px 12px; font-size: 10.5px; }
         .totals-row:not(:last-child) { border-bottom: 1px solid #f1f5f9; }
-        .totals-row.grand { background: #4f46e5; color: #fff; font-size: 12px; font-weight: 700; }
+        .totals-row.grand { background: #ef4444; color: #fff; font-size: 12px; font-weight: 700; }
         .totals-value { font-weight: 600; font-variant-numeric: tabular-nums; }
 
         /* Notes */
@@ -190,7 +184,7 @@
         .notes-box-title { font-weight: 700; color: #94a3b8; font-size: 9px; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
 
         /* Authorizations */
-        .auth-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #64748b; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; }
+        .auth-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; }
         .auth-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 14px; }
         .auth-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 10px; text-align: center; }
         .auth-sig-img   { max-width: 100%; max-height: 60px; object-fit: contain; display: block; margin: 0 auto 6px; }
@@ -209,7 +203,17 @@
 </head>
 <body>
 
-<button class="print-btn no-print" onclick="window.print()">{{ $labels['print_btn'] }}</button>
+{{-- ── Botones (solo pantalla) ─────────────────────────────────── --}}
+<div class="no-print" style="text-align:right; padding:12px 20px;">
+    <button onclick="window.print()"
+        style="background:#ef4444;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+        {{ $labels['print_btn'] }}
+    </button>
+    <button onclick="window.close()"
+        style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
+        {{ $labels['close_btn'] }}
+    </button>
+</div>
 
 <div class="page">
 
@@ -219,7 +223,7 @@
             @if($printLogoPath)
                 <img src="{{ asset('storage/' . $printLogoPath) }}" alt="{{ $company->name }}" class="company-logo">
             @else
-                <div style="width:52px;height:52px;background:#ede9fe;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#4f46e5;">
+                <div style="width:52px;height:52px;background:#fee2e2;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#ef4444;">
                     {{ mb_strtoupper(mb_substr($company->name, 0, 1)) }}
                 </div>
             @endif
@@ -297,7 +301,7 @@
             <div class="info-box-title">{{ $labels['supplier_title'] }}</div>
             <div class="info-row"><span class="info-label">{{ $en ? 'Company' : 'Empresa' }}:</span><span class="info-value">{{ $supplier->name }}</span></div>
             @if($supplier->internal_code)
-            <div class="info-row"><span class="info-label">{{ $labels['vendor_code'] }}:</span><span class="info-value font-mono">{{ $supplier->internal_code }}</span></div>
+            <div class="info-row"><span class="info-label">{{ $labels['vendor_code'] }}:</span><span class="info-value">{{ $supplier->internal_code }}</span></div>
             @endif
             @if($supplier->rfc)
             <div class="info-row"><span class="info-label">RFC:</span><span class="info-value">{{ $supplier->rfc }}</span></div>

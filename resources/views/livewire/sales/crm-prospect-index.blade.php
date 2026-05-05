@@ -112,7 +112,7 @@
             </table>
         </div>
         @if($prospects->hasPages())
-            <div class="px-5 py-4 border-t border-gray-100">{{ $prospects->links() }}</div>
+            <div class="px-5 py-4 border-t border-gray-100">{{ $prospects->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 </div>

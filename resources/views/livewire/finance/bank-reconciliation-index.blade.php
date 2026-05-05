@@ -45,7 +45,7 @@
                 <div class="px-5 py-8 text-center text-gray-400 text-sm">Sin conciliaciones.</div>
                 @endforelse
                 @if($reconciliations->hasPages())
-                <div class="px-4 py-3 border-t border-gray-100">{{ $reconciliations->links() }}</div>
+                <div class="px-4 py-3 border-t border-gray-100">{{ $reconciliations->links('vendor.pagination.tailwind') }}</div>
                 @endif
             </div>
         </div>

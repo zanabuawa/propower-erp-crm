@@ -6,6 +6,7 @@ use App\Traits\BelongsToCompany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Warehouse extends Model
 {
@@ -76,5 +77,20 @@ class Warehouse extends Model
     public function stocks(): HasMany
     {
         return $this->hasMany(Stock::class);
+    }
+
+    public function layout(): HasOne
+    {
+        return $this->hasOne(WarehouseLayout::class);
+    }
+
+    public function spots(): HasMany
+    {
+        return $this->hasMany(WarehouseSpot::class);
+    }
+
+    public function hasLayout(): bool
+    {
+        return $this->layout()->exists();
     }
 }

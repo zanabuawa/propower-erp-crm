@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/existencias/almacen/imprimir', \App\Http\Controllers\Inventory\WarehouseStockPrintController::class)->name('inventory.warehouse-stock.print');
         Route::get('/inventario/categorias', \App\Livewire\Inventory\CategoryIndex::class)->name('inventory.categories.index');
         Route::get('/inventario/almacenes', \App\Livewire\Inventory\WarehouseIndex::class)->name('inventory.warehouses.index');
+        Route::get('/inventario/almacenes/{warehouse}/plano', \App\Livewire\Inventory\WarehouseLayoutEditor::class)->name('inventory.warehouses.layout');
         Route::get('/inventario/movimientos', \App\Livewire\Inventory\StockMovementIndex::class)->name('inventory.movements.index');
         Route::get('/inventario/lotes', \App\Livewire\Inventory\LotIndex::class)->name('inventory.lots.index');
         Route::get('/inventario/lotes/{lot}', \App\Livewire\Inventory\LotDetail::class)->name('inventory.lots.show');
@@ -66,6 +67,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/productos/{product}/editar', \App\Livewire\Inventory\ProductForm::class)->name('inventory.products.edit');
         Route::get('/inventario/categorias/{category}/editar', \App\Livewire\Inventory\CategoryForm::class)->name('inventory.categories.edit');
         Route::get('/inventario/almacenes/{warehouse}/editar', \App\Livewire\Inventory\WarehouseForm::class)->name('inventory.warehouses.edit');
+        Route::get('/inventario/almacenes/{warehouse}/ubicaciones', \App\Livewire\Inventory\WarehouseLocationAssignment::class)->name('inventory.warehouses.locations');
         Route::get('/inventario/movimientos/{stockMovement}', \App\Livewire\Inventory\StockMovementForm::class)->name('inventory.movements.show');
     });
     Route::middleware('can:adjust inventory')->get('/inventario/transferencias/crear', \App\Livewire\Inventory\InventoryTransferForm::class)->name('inventory.transfers.create');
@@ -96,6 +98,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:edit contacts')->get('/clientes/{customer}/editar', \App\Livewire\Customers\CustomerForm::class)->name('contacts.edit');
     Route::middleware('can:view contacts')->group(function () {
         Route::get('/clientes', \App\Livewire\Customers\CustomerIndex::class)->name('contacts.index');
+        Route::get('/clientes/imprimir', \App\Http\Controllers\Customers\CustomersReportPrintController::class)->name('contacts.report.print');
         Route::get('/clientes/{customer}', \App\Livewire\Customers\CustomerShow::class)->name('contacts.show');
     });
 
@@ -202,6 +205,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:view projects')->group(function () {
         Route::get('/proyectos', \App\Livewire\Projects\ProjectIndex::class)->name('projects.index');
         Route::get('/proyectos/analytics', \App\Livewire\Projects\ProjectsAnalytics::class)->name('projects.analytics');
+        Route::get('/proyectos/imprimir', \App\Http\Controllers\Projects\ProjectsReportPrintController::class)->name('projects.report.print');
         Route::get('/proyectos/{project}', \App\Livewire\Projects\ProjectShow::class)->name('projects.show');
         Route::get('/proyectos/{project}/gastos', \App\Livewire\Projects\ProjectExpenseIndex::class)->name('projects.expenses.index');
         Route::get('/proyectos/{project}/tablero', \App\Livewire\Projects\ProjectTaskBoard::class)->name('projects.board');
@@ -215,18 +219,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:edit projects')->get('/proyectos/{project}/editar', \App\Livewire\Projects\ProjectForm::class)->name('projects.edit');
 
     // ── Licitaciones ─────────────────────────────────────────────────────────
+    Route::middleware('can:view tenders')->get('/licitaciones', \App\Livewire\Tenders\TenderIndex::class)->name('tenders.index');
+    Route::middleware('can:view tenders')->get('/licitaciones/imprimir', \App\Http\Controllers\Tenders\TendersReportPrintController::class)->name('tenders.report.print');
+    Route::middleware('can:create tenders')->get('/licitaciones/crear', \App\Livewire\Tenders\TenderForm::class)->name('tenders.create');
+    Route::middleware('can:edit tenders')->get('/licitaciones/{tender}/editar', \App\Livewire\Tenders\TenderForm::class)->name('tenders.edit');
     Route::middleware('can:view tenders')->group(function () {
-        Route::get('/licitaciones', \App\Livewire\Tenders\TenderIndex::class)->name('tenders.index');
-        Route::get('/licitaciones/catalogo', \App\Livewire\Tenders\CatalogIndex::class)->name('tenders.catalog.index');
         Route::get('/licitaciones/{tender}', \App\Livewire\Tenders\TenderShow::class)->name('tenders.show');
         Route::get('/licitaciones/{tender}/cotizacion/crear', \App\Livewire\Tenders\QuotationForm::class)->name('tenders.quotations.create');
     });
-    Route::middleware('can:create tenders')->group(function () {
-        Route::get('/licitaciones/crear', \App\Livewire\Tenders\TenderForm::class)->name('tenders.create');
-        Route::get('/licitaciones/catalogo/crear', \App\Livewire\Tenders\CatalogItemForm::class)->name('tenders.catalog.create');
-        Route::get('/licitaciones/catalogo/{item}/editar', \App\Livewire\Tenders\CatalogItemForm::class)->name('tenders.catalog.edit');
-    });
-    Route::middleware('can:edit tenders')->get('/licitaciones/{tender}/editar', \App\Livewire\Tenders\TenderForm::class)->name('tenders.edit');
 
     // ── Control de Obras ─────────────────────────────────────────────────────
     Route::middleware('can:view tenders')->group(function () {
@@ -254,6 +254,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:view hr')->group(function () {
         Route::get('/rrhh/indicadores', \App\Livewire\HR\HrAnalytics::class)->name('hr.analytics');
         Route::get('/rrhh/empleados', \App\Livewire\HR\EmployeeIndex::class)->name('hr.employees.index');
+        Route::get('/rrhh/empleados/imprimir', \App\Http\Controllers\HR\EmployeesPrintController::class)->name('hr.employees.print');
         Route::get('/rrhh/empleados/{employee}', \App\Livewire\HR\EmployeeShow::class)->name('hr.employees.show');
         Route::get('/rrhh/prospectos', \App\Livewire\HR\ProspectIndex::class)->name('hr.prospects.index');
         Route::get('/rrhh/prospectos/agenda', \App\Livewire\HR\ProspectAgenda::class)->name('hr.prospects.agenda');
@@ -268,9 +269,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/rrhh/contratos/crear', \App\Livewire\HR\ContractForm::class)->name('hr.contracts.create');
         Route::get('/rrhh/contratos/{contract}/editar', \App\Livewire\HR\ContractForm::class)->name('hr.contracts.edit');
         Route::get('/rrhh/asistencias', \App\Livewire\HR\AttendanceIndex::class)->name('hr.attendances.index');
+        Route::get('/rrhh/asistencias/imprimir', \App\Http\Controllers\HR\AttendancePrintController::class)->name('hr.attendances.print');
         Route::get('/rrhh/asistencias/crear', \App\Livewire\HR\AttendanceForm::class)->name('hr.attendances.create');
         Route::get('/rrhh/asistencias/{attendance}/editar', \App\Livewire\HR\AttendanceForm::class)->name('hr.attendances.edit');
         Route::get('/rrhh/nominas', \App\Livewire\HR\PayrollIndex::class)->name('hr.payrolls.index');
+        Route::get('/rrhh/nominas/imprimir', \App\Http\Controllers\HR\PayrollsPrintController::class)->name('hr.payrolls.print');
         Route::get('/rrhh/nominas/{payroll}', \App\Livewire\HR\PayrollShow::class)->name('hr.payrolls.show');
         Route::get('/rrhh/permisos', \App\Livewire\HR\LeaveIndex::class)->name('hr.leaves.index');
         Route::get('/rrhh/permisos/crear', \App\Livewire\HR\LeaveForm::class)->name('hr.leaves.create');
@@ -304,8 +307,10 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:view finance')->group(function () {
         Route::get('/finanzas/cuentas', \App\Livewire\Finance\FinanceAccountIndex::class)->name('finance.accounts.index');
         Route::get('/finanzas/transacciones', \App\Livewire\Finance\FinanceTransactionIndex::class)->name('finance.transactions.index');
+        Route::get('/finanzas/transacciones/imprimir', \App\Http\Controllers\Finance\TransactionsPrintController::class)->name('finance.transactions.print');
         Route::get('/finanzas/presupuestos', \App\Livewire\Finance\FinanceBudgetIndex::class)->name('finance.budgets.index');
         Route::get('/finanzas/flujo-caja', \App\Livewire\Finance\FinanceCashflowIndex::class)->name('finance.cashflow.index');
+        Route::get('/finanzas/flujo-caja/imprimir', \App\Http\Controllers\Finance\CashflowPrintController::class)->name('finance.cashflow.print');
         Route::get('/finanzas/antigüedad-saldos', \App\Livewire\Finance\AccountsReceivableAging::class)->name('finance.aging.index');
         Route::get('/finanzas/antigüedad-cxp', \App\Livewire\Finance\AccountsPayableAging::class)->name('finance.ap-aging.index');
         Route::get('/finanzas/conciliacion-proveedores', \App\Livewire\Finance\SupplierPaymentReconciliation::class)->name('finance.ap-reconciliation.index');
@@ -330,6 +335,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/finanzas/transacciones/{transaction}/editar', \App\Livewire\Finance\FinanceTransactionForm::class)->name('finance.transactions.edit');
         Route::get('/finanzas/presupuestos/{budget}/editar', \App\Livewire\Finance\FinanceBudgetForm::class)->name('finance.budgets.edit');
         Route::get('/finanzas/flujo-caja/{cashflow}/editar', \App\Livewire\Finance\FinanceCashflowForm::class)->name('finance.cashflow.edit');
+
+        // Viáticos
+        Route::get('/finanzas/viaticos', \App\Livewire\Finance\TravelExpenseIndex::class)->name('finance.travel-expenses.index');
+        Route::get('/finanzas/viaticos/crear', \App\Livewire\Finance\TravelExpenseForm::class)->name('finance.travel-expenses.create');
+        Route::get('/finanzas/viaticos/{travel}/editar', \App\Livewire\Finance\TravelExpenseForm::class)->name('finance.travel-expenses.edit');
     });
 
 });

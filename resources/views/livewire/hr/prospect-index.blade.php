@@ -208,7 +208,7 @@
 
         @if($prospects->hasPages())
         <div class="px-4 py-3 border-t border-slate-100">
-            {{ $prospects->links() }}
+            {{ $prospects->links('vendor.pagination.tailwind') }}
         </div>
         @endif
     </div>

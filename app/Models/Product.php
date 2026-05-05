@@ -702,18 +702,20 @@ class Product extends Model
     {
         $purchase = (float) $this->purchase_price;
         $margin   = (float) $this->profit_margin;
-        return round($purchase * (1 + $margin / 100), 2);
+        $divisor  = 1 - $margin / 100;
+        return $divisor > 0 ? round($purchase / $divisor, 2) : 0.0;
     }
 
     /**
-     * Precio minimo de venta = precio_obtencion * (1 + gastos_operacion% / 100)
+     * Precio minimo de venta = costo / (1 - gastos_operacion% / 100)
      * El precio con descuento nunca puede bajar de aqui.
      */
     public function getMinSalePriceAttribute(): float
     {
         $purchase = (float) $this->purchase_price;
         $opCosts  = (float) $this->operational_costs;
-        return round($purchase * (1 + $opCosts / 100), 2);
+        $divisor  = 1 - $opCosts / 100;
+        return $divisor > 0 ? round($purchase / $divisor, 2) : 0.0;
     }
 
     /**

@@ -14,6 +14,13 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                <a href="{{ route('finance.transactions.print', request()->query()) }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg border border-slate-200 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Imprimir
+                </a>
                 @can('create finance')
                 <a wire:navigate href="{{ route('finance.transactions.create') }}"
                     class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
@@ -140,7 +147,7 @@
             </div>
             @if($transactions->hasPages())
                 <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30">
-                    {{ $transactions->links() }}
+                    {{ $transactions->links('vendor.pagination.tailwind') }}
                 </div>
             @endif
         </div>

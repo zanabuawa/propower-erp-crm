@@ -165,11 +165,13 @@
                                 <p class="text-xs text-gray-500">Unidad</p>
                                 <p class="text-xs text-gray-700 mt-1 font-medium">{{ $product->unitOfMeasure?->abbreviation ?? 'unidad' }}</p>
                             </div>
-                            @can('view prices')
+                            @can('view product cost')
                             <div class="bg-gray-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500">Precio compra</p>
                                 <p class="text-sm text-gray-700 mt-1">${{ number_format($product->purchase_price, 2) }}</p>
                             </div>
+                            @endcan
+                            @can('view prices')
                             <div class="bg-gray-50 rounded-lg p-2">
                                 <p class="text-xs text-gray-500">Precio venta</p>
                                 <p class="text-sm font-bold text-indigo-600 mt-1">${{ number_format($product->sale_price, 2) }}</p>
@@ -216,7 +218,7 @@
         {{-- Paginación móvil --}}
         @if($products->hasPages())
             <div class="mt-6">
-                {{ $products->links() }}
+                {{ $products->links('vendor.pagination.tailwind') }}
             </div>
         @endif
     </div>
@@ -230,8 +232,10 @@
                         <th class="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Nombre</th>
                         <th class="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">SKU</th>
                         <th class="text-left px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Tipo / Categoría</th>
-                        @can('view prices')
+                        @can('view product cost')
                         <th class="text-right px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Precio compra</th>
+                        @endcan
+                        @can('view prices')
                         <th class="text-right px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Precio venta</th>
                         @endcan
                         <th class="text-right px-6 py-4 text-xs font-semibold text-gray-600 uppercase tracking-wider">Stock</th>
@@ -302,10 +306,12 @@
                                     @endif
                                 </div>
                             </td>
-                            @can('view prices')
+                            @can('view product cost')
                             <td class="px-6 py-4 text-right">
                                 <span class="text-gray-700">${{ number_format($product->purchase_price, 2) }}</span>
                             </td>
+                            @endcan
+                            @can('view prices')
                             <td class="px-6 py-4 text-right">
                                 <span class="font-bold text-indigo-600">${{ number_format($product->sale_price, 2) }}</span>
                             </td>
@@ -364,7 +370,7 @@
 
         @if($products->hasPages())
             <div class="px-6 py-4 border-t border-gray-100">
-                {{ $products->links() }}
+                {{ $products->links('vendor.pagination.tailwind') }}
             </div>
         @endif
     </div>

@@ -29,7 +29,12 @@
                     class="w-full mt-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500">
                 @error('name') <p class="text-[10px] text-red-500 mt-1 ml-1">{{ $message }}</p> @enderror
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Descripción general</label>
+                <textarea wire:model="description" rows="2" placeholder="Alcance general de la licitación..."
+                    class="w-full mt-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm resize-none focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div>
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tipo *</label>
                     <select wire:model="type" class="w-full mt-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold">
@@ -43,6 +48,15 @@
                     <select wire:model="status" class="w-full mt-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold">
                         @foreach($statuses as $k => $v)
                             <option value="{{ $k }}">{{ $v }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sucursal</label>
+                    <select wire:model="branch_id" class="w-full mt-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
+                        <option value="">— Sin sucursal —</option>
+                        @foreach($branches as $b)
+                            <option value="{{ $b->id }}">{{ $b->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -117,18 +131,50 @@
         {{-- Partidas --}}
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
-                <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Partidas / Conceptos</h3>
+                <div>
+                    <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest">Partidas / Conceptos</h3>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Selecciona del catálogo o escribe manualmente</p>
+                </div>
                 <button type="button" wire:click="addItem"
                     class="inline-flex items-center gap-1.5 text-[10px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-wider">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Agregar partida
                 </button>
             </div>
+
+            {{-- Selector rápido de producto --}}
+            <div class="px-4 py-3 bg-indigo-50/50 border-b border-indigo-100">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-indigo-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                    <select id="productPicker" onchange="addProductRow(this)"
+                        class="flex-1 px-3 py-1.5 bg-white border border-indigo-200 rounded-xl text-xs text-slate-700 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/10">
+                        <option value="">— Buscar en catálogo de productos/servicios —</option>
+                        @foreach($products->groupBy(fn($p) => $p->category?->name ?? 'Sin categoría') as $cat => $prods)
+                            <optgroup label="{{ $cat }}">
+                                @foreach($prods as $p)
+                                    <option value="{{ $p->id }}"
+                                        data-name="{{ $p->name }}"
+                                        data-sku="{{ $p->sku ?? '' }}"
+                                        data-price="{{ $p->sale_price }}"
+                                        data-unit="{{ $p->unitOfMeasure?->abbreviation ?? '' }}"
+                                        data-category="{{ $p->category?->name ?? '' }}">
+                                        {{ $p->name }}
+                                        @if($p->sku) [{{ $p->sku }}] @endif
+                                        — ${{ number_format($p->sale_price, 2) }}
+                                        {{ $p->unitOfMeasure?->abbreviation ? '/ '.$p->unitOfMeasure->abbreviation : '' }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="bg-slate-50/50 border-b border-slate-100">
-                            <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase w-24">Código</th>
+                            <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase w-24">SKU</th>
                             <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase w-28">Categoría</th>
                             <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase">Descripción</th>
                             <th class="text-left px-3 py-2.5 text-[10px] font-black text-slate-400 uppercase w-16">Unidad</th>
@@ -140,28 +186,30 @@
                     </thead>
                     <tbody class="divide-y divide-slate-50">
                         @foreach($items as $i => $row)
-                            <tr class="hover:bg-slate-50/30">
+                            <tr class="hover:bg-slate-50/30 {{ $row['product_id'] ? 'bg-indigo-50/20' : '' }}">
                                 <td class="px-2 py-2">
                                     <input wire:model="items.{{ $i }}.code" type="text"
-                                        class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono">
+                                        class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
+                                        placeholder="SKU">
                                 </td>
                                 <td class="px-2 py-2">
                                     <input wire:model="items.{{ $i }}.category" type="text"
                                         class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
                                 </td>
                                 <td class="px-2 py-2">
-                                    <div class="flex gap-1">
-                                        <input wire:model="items.{{ $i }}.description" type="text" placeholder="Descripción..."
-                                            class="flex-1 px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                                        <select wire:model="items.{{ $i }}.catalog_item_id" wire:change="loadCatalogItem({{ $i }}, $event.target.value)"
-                                            class="px-2 py-1.5 bg-indigo-50 border border-indigo-200 rounded-lg text-[10px] text-indigo-600 font-bold">
-                                            <option value="">APU</option>
-                                            @foreach($catalogItems as $ci)
-                                                <option value="{{ $ci->id }}">{{ $ci->name }}</option>
-                                            @endforeach
-                                        </select>
+                                    <div class="space-y-1">
+                                        <input wire:model="items.{{ $i }}.description" type="text" placeholder="Descripción del concepto..."
+                                            class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                                        @if($row['product_id'])
+                                            <span class="inline-flex items-center gap-1 text-[9px] text-indigo-500 font-bold">
+                                                <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm1 11H9v-2h2v2zm0-4H9V7h2v2z"/></svg>
+                                                Del catálogo
+                                                <button type="button" wire:click="loadProduct({{ $i }}, null)"
+                                                    class="text-slate-400 hover:text-red-500 ml-1">✕</button>
+                                            </span>
+                                        @endif
+                                        @error("items.$i.description") <p class="text-[9px] text-red-500">{{ $message }}</p> @enderror
                                     </div>
-                                    @error("items.$i.description") <p class="text-[9px] text-red-500 mt-0.5">{{ $message }}</p> @enderror
                                 </td>
                                 <td class="px-2 py-2">
                                     <input wire:model="items.{{ $i }}.unit" type="text"
@@ -190,7 +238,7 @@
                     </tbody>
                     <tfoot class="bg-slate-50/50 border-t-2 border-slate-200">
                         <tr>
-                            <td colspan="6" class="px-4 py-3 text-right text-xs font-black text-slate-600 uppercase tracking-wider">Total</td>
+                            <td colspan="6" class="px-4 py-3 text-right text-xs font-black text-slate-600 uppercase tracking-wider">Total licitación</td>
                             <td class="px-3 py-3 text-right text-base font-black text-indigo-600">${{ number_format($this->total, 2) }}</td>
                             <td></td>
                         </tr>
@@ -200,3 +248,18 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function addProductRow(select) {
+    const opt = select.options[select.selectedIndex];
+    if (!opt.value) return;
+    const productId = parseInt(opt.value);
+    const currentCount = @this.items.length;
+    @this.call('addItem').then(() => {
+        @this.call('loadProduct', currentCount, productId);
+    });
+    select.value = '';
+}
+</script>
+@endpush

@@ -400,25 +400,20 @@ x-init="init()">
                 </x-sidebar-menu>
                 @endcanany
 
-                @can('manage tender catalog')
-                <x-sidebar-menu id="catalog" label="Catálogo APU" icon="catalog"
-                    :routes="['tenders.catalog.*']">
-                    <x-sidebar-subitem route="tenders.catalog.index" label="Conceptos y partidas" />
-                </x-sidebar-menu>
-                @endcan
+                {{-- Catálogo APU reemplazado por catálogo de productos --}}
 
                 @canany(['manage work permits', 'manage work reports', 'approve libranzas', 'view tenders'])
                 <x-sidebar-menu id="obras" label="Control de Obra" icon="obras"
-                    :routes="['tenders.permits.*','tenders.reports.*','tenders.photo-reports.*','tenders.libranzas.*']">
+                    :routes="['works.permits.index','works.reports.index','works.photo-reports.index','works.libranzas.index']">
                     @can('manage work permits')
-                    <x-sidebar-subitem route="tenders.permits.index" label="Permisos de trabajo" />
+                    <x-sidebar-subitem route="works.permits.index" label="Permisos de trabajo" />
                     @endcan
                     @can('manage work reports')
-                    <x-sidebar-subitem route="tenders.reports.index" label="Reportes semanales" />
-                    <x-sidebar-subitem route="tenders.photo-reports.index" label="Reportes fotográficos" />
+                    <x-sidebar-subitem route="works.reports.index" label="Reportes semanales" />
+                    <x-sidebar-subitem route="works.photo-reports.index" label="Reportes fotográficos" />
                     @endcan
                     @canany(['approve libranzas', 'view tenders'])
-                    <x-sidebar-subitem route="tenders.libranzas.index" label="Libranzas / Estimaciones" />
+                    <x-sidebar-subitem route="works.libranzas.index" label="Libranzas / Estimaciones" />
                     @endcanany
                 </x-sidebar-menu>
                 @endcanany
@@ -473,6 +468,7 @@ x-init="init()">
                     <x-sidebar-subitem route="finance.transactions.index" label="Transacciones" />
                     <x-sidebar-subitem route="finance.budgets.index" label="Presupuestos" />
                     <x-sidebar-subitem route="finance.cashflow.index" label="Flujo de caja" />
+                    <x-sidebar-subitem route="finance.travel-expenses.index" label="Viáticos" />
                     @endcan
                 </x-sidebar-menu>
                 @endcanany
@@ -631,5 +627,58 @@ x-init="init()">
 
 @livewireScripts
 @stack('scripts')
+
+{{-- ── Session-expired overlay (419) ──────────────────────────────────── --}}
+<div id="session-expired-overlay"
+     style="display:none; position:fixed; inset:0; z-index:9999;
+            background:rgba(15,17,23,0.75); backdrop-filter:blur(4px);
+            align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:1rem; padding:2rem 2.5rem; max-width:380px; width:90%;
+                box-shadow:0 25px 50px rgba(0,0,0,0.4); text-align:center;">
+        <div style="width:3rem;height:3rem;border-radius:50%;background:#FEF3C7;
+                    display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <svg style="width:1.5rem;height:1.5rem;color:#D97706;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:#0f172a;margin-bottom:.5rem;">
+            Sesión expirada
+        </h3>
+        <p style="font-size:.875rem;color:#64748b;margin-bottom:1.5rem;line-height:1.5;">
+            Tu sesión ha expirado después de un periodo de inactividad. Por favor inicia sesión para continuar.
+        </p>
+        <a id="session-expired-login-btn"
+           href="{{ route('login') }}"
+           style="display:inline-flex;align-items:center;gap:.5rem;padding:.625rem 1.5rem;
+                  background:#6366f1;color:#fff;border-radius:.625rem;font-size:.875rem;
+                  font-weight:600;text-decoration:none;transition:background .15s;">
+            <svg style="width:1rem;height:1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+            </svg>
+            Iniciar sesión
+        </a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.hook('commit', ({ succeed, fail }) => {
+            fail(({ status, preventDefault }) => {
+                if (status === 419) {
+                    preventDefault();
+                    const overlay = document.getElementById('session-expired-overlay');
+                    if (overlay) {
+                        // Store current URL so login can redirect back
+                        const btn = document.getElementById('session-expired-login-btn');
+                        if (btn) btn.href = '{{ route('login') }}?redirect=' + encodeURIComponent(window.location.pathname);
+                        overlay.style.display = 'flex';
+                    }
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

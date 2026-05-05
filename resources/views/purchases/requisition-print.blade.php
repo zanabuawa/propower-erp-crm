@@ -8,9 +8,9 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             font-size: 11px;
-            color: #1a1a1a;
+            color: #1a1a2e;
             background: #fff;
             padding: 0;
         }
@@ -27,15 +27,16 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #1e40af;
+            border-bottom: 2px solid #ef4444;
             padding-bottom: 10px;
             margin-bottom: 14px;
         }
         .header-logo img { max-height: 70px; max-width: 200px; object-fit: contain; }
-        .header-logo .company-name { font-size: 16px; font-weight: 700; color: #1e3a8a; }
+        .header-logo .logo-placeholder { width: 70px; height: 70px; background: #fee2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #ef4444; }
+        .header-logo .company-name { font-size: 16px; font-weight: 700; color: #1a1a2e; }
         .header-right { text-align: right; }
-        .header-right .doc-title { font-size: 18px; font-weight: 700; color: #1e3a8a; text-transform: uppercase; letter-spacing: 1px; }
-        .header-right .folio { font-size: 22px; font-weight: 800; color: #1e40af; }
+        .header-right .doc-title { font-size: 18px; font-weight: 700; color: #ef4444; text-transform: uppercase; letter-spacing: 1px; }
+        .header-right .folio { font-size: 22px; font-weight: 800; color: #dc2626; }
         .header-right .status-badge {
             display: inline-block;
             margin-top: 4px;
@@ -70,20 +71,20 @@
         .section-title {
             font-size: 10px;
             font-weight: 700;
-            color: #1e40af;
+            color: #ef4444;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            border-bottom: 1px solid #bfdbfe;
+            border-bottom: 1px solid #fecaca;
             padding-bottom: 4px;
             margin-bottom: 8px;
         }
 
         /* ── Table ── */
         table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-        thead tr { background: #1e40af; color: #fff; }
+        thead tr { background: #ef4444; color: #fff; }
         thead th { padding: 6px 8px; text-align: left; font-size: 9.5px; font-weight: 700; letter-spacing: 0.3px; }
         thead th.right { text-align: right; }
-        tbody tr:nth-child(even) { background: #f8fafc; }
+        tbody tr:nth-child(even) { background: #fafafa; }
         tbody td { padding: 5px 8px; font-size: 10.5px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
         tbody td.right { text-align: right; }
         tbody td.num { font-variant-numeric: tabular-nums; }
@@ -94,7 +95,7 @@
         .totals-table { width: 240px; }
         .totals-table tr td:first-child { color: #475569; font-size: 10px; }
         .totals-table tr td:last-child { text-align: right; font-size: 11px; font-weight: 600; }
-        .totals-table .total-row td { font-size: 13px; font-weight: 700; color: #1e40af; border-top: 2px solid #1e40af; padding-top: 5px; }
+        .totals-table .total-row td { font-size: 13px; font-weight: 700; color: #ef4444; border-top: 2px solid #ef4444; padding-top: 5px; }
 
         /* ── Justification ── */
         .justification-box {
@@ -176,8 +177,8 @@
             margin-top: 20px;
             display: flex;
             justify-content: space-between;
-            font-size: 8.5px;
-            color: #94a3b8;
+            font-size: 9px;
+            color: #9ca3af;
         }
 
         @media print {
@@ -189,17 +190,16 @@
 </head>
 <body>
 
-{{-- Print bar --}}
-<div class="no-print" style="background:#1e40af;color:#fff;padding:8px 20px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-family:Arial,sans-serif;">
-    <span>Requisición de compra — {{ $requisition->folio }}</span>
-    <div style="display:flex;gap:10px;">
-        <button onclick="window.print()"
-            style="background:#fff;color:#1e40af;border:none;padding:6px 16px;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;">
-            🖨 Imprimir / Guardar PDF
-        </button>
-        <a href="{{ url()->previous() }}"
-            style="color:#bfdbfe;text-decoration:none;padding:6px 12px;">← Regresar</a>
-    </div>
+{{-- ── Botones (solo pantalla) ─────────────────────────────────── --}}
+<div class="no-print" style="text-align:right; padding:12px 20px; background:#fff; border-bottom:1px solid #e5e7eb;">
+    <button onclick="window.print()"
+        style="background:#ef4444;color:#fff;border:none;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;">
+        Imprimir / Guardar PDF
+    </button>
+    <button onclick="window.close()"
+        style="background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
+        Cerrar
+    </button>
 </div>
 
 <div class="page">
@@ -208,13 +208,11 @@
     <div class="header">
         <div class="header-logo">
             @php $company = $requisition->company; @endphp
-            @if($company->print_logo ?? $company->logo ?? null)
-                <img src="{{ Storage::url($company->print_logo ?? $company->logo) }}" alt="{{ $company->name }}">
+            @php $logoPath = $company->print_logo ?? $company->logo ?? null; @endphp
+            @if($logoPath)
+                <img src="{{ asset('storage/' . $logoPath) }}" alt="{{ $company->name }}">
             @else
-                <div class="company-name">{{ $company->name }}</div>
-            @endif
-            @if($company->print_logo && $company->logo)
-                <div style="font-size:10px;color:#475569;margin-top:4px;">{{ $company->name }}</div>
+                <div class="logo-placeholder">{{ mb_strtoupper(mb_substr($company->name ?? 'E', 0, 1)) }}</div>
             @endif
         </div>
         <div class="header-right">
@@ -351,7 +349,6 @@
             </table>
         </div>
     @else
-        {{-- Solo total de la requisición --}}
         <div class="totals-block">
             <table class="totals-table">
                 <tr class="total-row">
@@ -409,7 +406,6 @@
         </div>
 
     @else
-        {{-- Espacio para firma física si no hay firmas digitales --}}
         <div class="signatures-section">
             <div class="section-title">Autorizaciones</div>
             <div class="requester-sig">
@@ -434,6 +430,7 @@
 
     {{-- ── FOOTER ── --}}
     <div class="footer">
+        <span>ProPower ERP • Módulo de Compras</span>
         <span>{{ $company->name }} — Documento interno</span>
         <span>Folio: {{ $requisition->folio }} &nbsp;|&nbsp; Generado: {{ now()->format('d/m/Y H:i') }}</span>
     </div>

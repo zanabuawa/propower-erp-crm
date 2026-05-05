@@ -335,8 +335,7 @@
         </div>
         @if($receipts->hasPages())
             <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 mt-1">
-                {{ $receipts->links() }}
+                {{ $receipts->links('vendor.pagination.tailwind') }}
             </div>
-        @endif
-    </div>
+        @endif    </div>
 </div>

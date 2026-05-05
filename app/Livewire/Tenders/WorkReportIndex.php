@@ -107,7 +107,7 @@ class WorkReportIndex extends Component
     public function render()
     {
         $companyId = auth()->user()->company_id;
-        $reports = WorkReport::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+        $reports = WorkReport::whereHas('project', fn($q) => $q->whereHas('branch', fn($bq) => $bq->where('company_id', $companyId)))
             ->when($this->search, fn($q) => $q->whereHas('project', fn($q2) => $q2->where('name', 'like', '%' . $this->search . '%')))
             ->with(['project', 'tender', 'createdBy'])
             ->latest('week_start')
@@ -115,7 +115,7 @@ class WorkReportIndex extends Component
 
         return view('livewire.tenders.work-report-index', [
             'reports'  => $reports,
-            'projects' => Project::where('company_id', $companyId)->orderBy('name')->get(),
+            'projects' => Project::whereHas('branch', fn($q) => $q->where('company_id', $companyId))->orderBy('name')->get(),
             'tenders'  => Tender::where('company_id', $companyId)->orderBy('name')->get(),
         ]);
     }

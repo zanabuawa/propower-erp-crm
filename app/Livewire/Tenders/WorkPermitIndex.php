@@ -108,7 +108,7 @@ class WorkPermitIndex extends Component
     public function render()
     {
         $companyId = auth()->user()->company_id;
-        $permits = WorkPermit::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+        $permits = WorkPermit::whereHas('project', fn($q) => $q->whereHas('branch', fn($bq) => $bq->where('company_id', $companyId)))
             ->when($this->search, fn($q) => $q->where('description', 'like', '%' . $this->search . '%'))
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->when($this->filterType,   fn($q) => $q->where('type', $this->filterType))
@@ -118,7 +118,7 @@ class WorkPermitIndex extends Component
 
         return view('livewire.tenders.work-permit-index', [
             'permits'  => $permits,
-            'projects' => Project::where('company_id', $companyId)->orderBy('name')->get(),
+            'projects' => Project::whereHas('branch', fn($q) => $q->where('company_id', $companyId))->orderBy('name')->get(),
             'tenders'  => Tender::where('company_id', $companyId)->orderBy('name')->get(),
             'users'    => User::where('company_id', $companyId)->orderBy('name')->get(),
             'types'    => WorkPermit::TYPES,

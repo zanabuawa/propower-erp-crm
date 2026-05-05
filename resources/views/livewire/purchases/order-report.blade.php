@@ -187,7 +187,7 @@
             </table>
         </div>
         <div class="px-5 py-3 border-t border-gray-100">
-            {{ $orders->links() }}
+            {{ $orders->links('vendor.pagination.tailwind') }}
         </div>
         @endif
     </div>

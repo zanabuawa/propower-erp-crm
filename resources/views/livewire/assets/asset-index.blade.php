@@ -122,7 +122,7 @@
             </table>
         </div>
         @if($assets->hasPages())
-            <div class="px-5 py-3 border-t border-gray-100">{{ $assets->links() }}</div>
+            <div class="px-5 py-3 border-t border-gray-100">{{ $assets->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 </div>

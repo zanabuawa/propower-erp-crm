@@ -99,7 +99,7 @@
             </table>
         </div>
         @if($notes->hasPages())
-        <div class="px-5 py-3 border-t border-gray-100">{{ $notes->links() }}</div>
+        <div class="px-5 py-3 border-t border-gray-100">{{ $notes->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 </div>

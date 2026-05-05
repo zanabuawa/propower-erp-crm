@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\DiscountApprovalNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -62,8 +63,16 @@ class DiscountApproval extends Model
             'responded_at'   => now(),
         ]);
 
-        // Marcar el modelo origen como aprobado
         $this->approvable?->update(['approval_status' => 'approved']);
+
+        $this->requester?->notify(new DiscountApprovalNotification(
+            type:          'approved',
+            folio:         $this->approvable?->folio ?? "#{$this->model_id}",
+            requestedPct:  (float) $this->requested_discount_pct,
+            maxAllowedPct: (float) $this->max_allowed_pct,
+            notes:         $notes,
+            approvalId:    $this->id,
+        ));
     }
 
     public function reject(int $approverId, ?string $notes = null): void
@@ -76,5 +85,14 @@ class DiscountApproval extends Model
         ]);
 
         $this->approvable?->update(['approval_status' => 'rejected']);
+
+        $this->requester?->notify(new DiscountApprovalNotification(
+            type:          'rejected',
+            folio:         $this->approvable?->folio ?? "#{$this->model_id}",
+            requestedPct:  (float) $this->requested_discount_pct,
+            maxAllowedPct: (float) $this->max_allowed_pct,
+            notes:         $notes,
+            approvalId:    $this->id,
+        ));
     }
 }

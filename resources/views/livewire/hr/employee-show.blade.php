@@ -80,6 +80,7 @@
             'payroll' => 'Nóminas',
             'movements' => 'Movimientos',
             'loans' => 'Préstamos/Bonos',
+            'viaticos' => 'Viáticos',
         ] as $tab => $label)
         <button wire:click="setTab('{{ $tab }}')"
                 class="px-3 py-1.5 text-sm rounded-lg transition-colors
@@ -95,9 +96,11 @@
         <div class="bg-white rounded-xl border border-slate-200 p-5">
             <h3 class="text-sm font-semibold text-slate-700 mb-4">Datos personales</h3>
             <dl class="space-y-3 text-sm">
+                @can('view employee sensitive data')
                 <div class="flex justify-between"><dt class="text-slate-500">CURP</dt><dd class="font-mono text-slate-700">{{ $employee->curp ?? '—' }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">RFC</dt><dd class="font-mono text-slate-700">{{ $employee->rfc ?? '—' }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">NSS</dt><dd class="font-mono text-slate-700">{{ $employee->nss ?? '—' }}</dd></div>
+                @endcan
                 <div class="flex justify-between"><dt class="text-slate-500">Nacimiento</dt><dd class="text-slate-700">{{ $employee->birth_date?->format('d/m/Y') ?? '—' }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">Domicilio</dt><dd class="text-slate-700 text-right max-w-[60%]">{{ collect([$employee->address, $employee->city, $employee->state, $employee->postal_code])->filter()->join(', ') ?: '—' }}</dd></div>
             </dl>
@@ -120,13 +123,16 @@
                     <dt class="text-slate-500">Jefe directo</dt>
                     <dd class="text-slate-700">{{ $employee->supervisor?->full_name ?? '—' }}</dd>
                 </div>
+                @can('view employee salary')
                 <div class="flex justify-between"><dt class="text-slate-500">Salario</dt><dd class="text-slate-700 font-medium">$ {{ number_format($employee->salary, 2) }} / {{ \App\Models\HrEmployee::SALARY_PERIODS[$employee->salary_period] ?? $employee->salary_period }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">Salario diario</dt><dd class="text-slate-700">$ {{ number_format($employee->daily_salary, 2) }}</dd></div>
+                <div class="flex justify-between"><dt class="text-slate-500">SDI (IMSS)</dt><dd class="text-slate-700">$ {{ number_format($employee->daily_salary_imss ?? 0, 2) }}</dd></div>
+                @endcan
                 <div class="flex justify-between"><dt class="text-slate-500">Turno</dt><dd class="text-slate-700">{{ \App\Models\HrEmployee::WORK_SHIFTS[$employee->work_shift] ?? '—' }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">Sucursal</dt><dd class="text-slate-700">{{ $employee->branch?->name ?? '—' }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">SDI (IMSS)</dt><dd class="text-slate-700">$ {{ number_format($employee->daily_salary_imss ?? 0, 2) }}</dd></div>
             </dl>
         </div>
+        @can('view employee sensitive data')
         <div class="bg-white rounded-xl border border-slate-200 p-5">
             <h3 class="text-sm font-semibold text-slate-700 mb-4">Datos bancarios</h3>
             <dl class="space-y-3 text-sm">
@@ -137,6 +143,7 @@
                 <div class="flex justify-between"><dt class="text-slate-500">INFONAVIT</dt><dd class="text-slate-700">{{ $employee->infonavit_credit ?? '—' }}</dd></div>
             </dl>
         </div>
+        @endcan
         <div class="bg-white rounded-xl border border-slate-200 p-5">
             <h3 class="text-sm font-semibold text-slate-700 mb-4">Contacto de emergencia</h3>
             <dl class="space-y-3 text-sm">
@@ -329,6 +336,7 @@
 
     {{-- Tab: Nóminas --}}
     @if($activeTab === 'payroll')
+    @can('view employee salary')
     <div class="bg-white rounded-xl border border-slate-200">
         <div class="p-4 border-b border-slate-100">
             <h3 class="text-sm font-semibold text-slate-700">Historial de nómina</h3>
@@ -350,6 +358,12 @@
             @endforelse
         </div>
     </div>
+    @else
+    <div class="bg-white rounded-xl border border-slate-200 p-8 text-center">
+        <svg class="w-8 h-8 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <p class="text-sm text-slate-400">No tienes permiso para ver información de nómina.</p>
+    </div>
+    @endcan
     @endif
 
     {{-- Tab: Educación --}}
@@ -641,6 +655,87 @@
     {{-- Tab: Préstamos y Bonos --}}
     @if($activeTab === 'loans')
     <livewire:h-r.employee-loan-bonus :employee="$employee" />
+    @endif
+
+    {{-- Tab: Viáticos --}}
+    @if($activeTab === 'viaticos')
+    @can('view employee travel')
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-slate-700">Historial de viáticos</h3>
+            <span class="text-xs text-slate-400">{{ $travelExpenses->count() }} registro(s)</span>
+        </div>
+        @if($travelExpenses->isEmpty())
+            <div class="py-12 text-center text-slate-400 text-sm">Sin viáticos registrados para este empleado.</div>
+        @else
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        <th class="px-5 py-3 text-left">Folio</th>
+                        <th class="px-5 py-3 text-left">Destino / Propósito</th>
+                        <th class="px-5 py-3 text-left">Fechas</th>
+                        <th class="px-5 py-3 text-right">Monto</th>
+                        <th class="px-5 py-3 text-center">Estado</th>
+                        <th class="px-5 py-3 text-center">Viaje confirmado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach($travelExpenses as $travel)
+                        @php $colors = \App\Models\TravelExpense::STATUS_COLORS[$travel->status] ?? 'bg-slate-100 text-slate-600 border-slate-200'; @endphp
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-5 py-3">
+                                <span class="font-mono font-bold text-slate-700">{{ $travel->folio }}</span>
+                                @if($travel->project)
+                                    <p class="text-[10px] text-indigo-500">{{ $travel->project->name }}</p>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3 max-w-[200px]">
+                                <p class="font-medium text-slate-700 truncate">{{ $travel->destination }}</p>
+                                <p class="text-[11px] text-slate-400 truncate">{{ $travel->purpose }}</p>
+                            </td>
+                            <td class="px-5 py-3 whitespace-nowrap text-slate-600">
+                                {{ $travel->departure_date->format('d/m/Y') }} → {{ $travel->return_date->format('d/m/Y') }}
+                            </td>
+                            <td class="px-5 py-3 text-right font-bold text-slate-800 whitespace-nowrap">
+                                ${{ number_format($travel->amount_approved, 2) }}
+                                <span class="text-[10px] text-slate-400 font-normal"> {{ $travel->currency }}</span>
+                            </td>
+                            <td class="px-5 py-3 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-xl text-[10px] font-bold border {{ $colors }}">
+                                    {{ \App\Models\TravelExpense::STATUSES[$travel->status] }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3 text-center">
+                                @if($travel->trip_confirmed)
+                                    <span class="inline-flex items-center gap-1 text-emerald-600 text-xs font-bold">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        {{ $travel->trip_confirmed_at?->format('d/m/Y') }}
+                                    </span>
+                                @elseif($travel->status === 'pagado')
+                                    @can('edit hr')
+                                    <button wire:click="confirmTrip({{ $travel->id }})" wire:confirm="¿Confirmar que el viaje se realizó?"
+                                        class="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-lg transition-colors border border-amber-200">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        Confirmar viaje
+                                    </button>
+                                    @else
+                                        <span class="text-amber-500 text-xs font-medium">Pendiente confirmación</span>
+                                    @endcan
+                                @else
+                                    <span class="text-slate-300 text-xs">—</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @endif
+    </div>
+    @else
+        <div class="p-6 bg-slate-50 rounded-xl border border-slate-200 text-sm text-slate-500">No tienes permiso para ver los viáticos del empleado.</div>
+    @endcan
     @endif
 
     <livewire:h-r.employee-expedient :employee="$employee" />

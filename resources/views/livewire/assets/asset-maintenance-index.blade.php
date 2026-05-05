@@ -113,7 +113,7 @@
                     @endforeach
                 </tbody>
             </table>
-            <div class="px-4 py-3 border-t border-gray-100">{{ $maintenances->links() }}</div>
+            <div class="px-4 py-3 border-t border-gray-100">{{ $maintenances->links('vendor.pagination.tailwind') }}</div>
         @endif
     </div>
 </div>

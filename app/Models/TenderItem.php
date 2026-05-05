@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class TenderItem extends Model
 {
     protected $fillable = [
-        'tender_id', 'catalog_item_id', 'code', 'category',
+        'tender_id', 'catalog_item_id', 'product_id', 'code', 'category',
         'description', 'unit', 'quantity', 'unit_price', 'total', 'sort_order',
     ];
 
@@ -26,5 +26,10 @@ class TenderItem extends Model
     public function catalogItem(): BelongsTo
     {
         return $this->belongsTo(TenderCatalogItem::class, 'catalog_item_id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class);
     }
 }

@@ -124,6 +124,16 @@
                                 </select>
                             </div>
                             <div class="space-y-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Licitación relacionada</label>
+                                <select wire:model="tender_id"
+                                    class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
+                                    <option value="">— Sin licitación —</option>
+                                    @foreach($tenders as $t)
+                                        <option value="{{ $t->id }}">{{ $t->folio }} — {{ $t->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="space-y-2 sm:col-span-2">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Partida presupuestal</label>
                                 <select wire:model="budget_id"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">

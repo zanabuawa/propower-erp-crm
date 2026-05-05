@@ -44,8 +44,8 @@ class InvoiceShow extends Component
         '04' => '04 - Operación nominativa relacionada en una factura global',
     ];
 
-    // Catálogos Facturama
-    const PAYMENT_FORM_MAP = [
+    // Mapeo de formas de pago SAT
+    const PAYMENT_FORM_SAT_MAP = [
         'cash'     => '01', // Efectivo
         'transfer' => '03', // Transferencia
         'card'     => '04', // Tarjeta de crédito
@@ -154,7 +154,7 @@ class InvoiceShow extends Component
         $cfdiPayload = [
             'type'           => 'I',
             'use'            => $customer->cfdi_use ?: 'G01', // uso CFDI: nivel raíz en FacturAPI v2
-            'payment_form'   => self::PAYMENT_FORM_MAP[$invoice->payment_method] ?? '99',
+            'payment_form'   => self::PAYMENT_FORM_SAT_MAP[$invoice->payment_method] ?? '99',
             'payment_method' => 'PUE',
             'currency'       => $invoice->currency,
             'folio_number'   => $folioNumber,

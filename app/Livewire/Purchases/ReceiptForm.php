@@ -216,7 +216,8 @@ class ReceiptForm extends Component
                         if ($product) {
                             $newPurchasePrice = (float) $item['purchase_price'];
                             $newOpCostPct     = (float) ($item['operational_cost'] ?? 0);
-                            $newSalePrice     = round($newPurchasePrice * (1 + $product->profit_margin / 100), 2);
+                            $marginDiv        = 1 - $product->profit_margin / 100;
+                            $newSalePrice     = $marginDiv > 0 ? round($newPurchasePrice / $marginDiv, 2) : 0;
 
                             $product->update([
                                 'purchase_price'    => $newPurchasePrice,

@@ -164,11 +164,18 @@ class FinanceDashboard extends Component
         }
 
         // ── Licitaciones y Obra ───────────────────────────────────────────
-        $libranzasPendientes = WorkLibranza::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+        // Obtener project IDs del company via branch
+        $projectIds = \DB::table('projects')
+            ->join('branches', 'projects.branch_id', '=', 'branches.id')
+            ->where('branches.company_id', $companyId)
+            ->whereNull('projects.deleted_at')
+            ->pluck('projects.id');
+
+        $libranzasPendientes = WorkLibranza::whereIn('project_id', $projectIds)
             ->whereIn('status', ['enviada', 'aprobada'])
             ->sum('amount');
 
-        $libranzasPagadasMes = WorkLibranza::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+        $libranzasPagadasMes = WorkLibranza::whereIn('project_id', $projectIds)
             ->where('status', 'pagada')
             ->whereBetween('updated_at', [$monthStart, $monthEnd])
             ->sum('amount');
@@ -177,7 +184,7 @@ class FinanceDashboard extends Component
             ->where('status', 'adjudicada')
             ->sum('awarded_amount');
 
-        $libranzasPendientesList = WorkLibranza::whereHas('project', fn($q) => $q->where('company_id', $companyId))
+        $libranzasPendientesList = WorkLibranza::whereIn('project_id', $projectIds)
             ->whereIn('status', ['enviada', 'aprobada'])
             ->with(['project:id,name', 'tender:id,folio'])
             ->orderBy('period_end')
