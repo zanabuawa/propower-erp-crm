@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ProPower Electroconstrucciones</title>
-  <meta name="description" content="ProPower Electroconstrucciones — Soluciones eléctricas industriales y comerciales de alto rendimiento." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="/landing/styles.css" />
-  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <title>ProPower Electroconstrucciones — Soluciones, calidad y garantía</title>
+  <meta name="description" content="Empresa 100% mexicana especializada en servicios electromecánicos industriales y comerciales. Industria, minería e ingeniería en Chihuahua." />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #0a0a0a; }
+    .pp-desktop { display: block; }
+    .pp-mobile  { display: none; }
+    @media (max-width: 720px) {
+      .pp-desktop { display: none; }
+      .pp-mobile  { display: block; }
+    }
+  </style>
+  @viteReactRefresh
+  @vite('resources/landing/index.jsx')
 </head>
-<body style="margin:0;padding:0;background:#0a0a0a;">
+<body>
   <div id="root"></div>
-  <script type="text/babel" src="/landing/sections.jsx" data-presets="react"></script>
-  <script type="text/babel" src="/landing/app.jsx" data-presets="react"></script>
 </body>
 </html>

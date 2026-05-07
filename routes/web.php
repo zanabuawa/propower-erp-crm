@@ -12,6 +12,12 @@ Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
+Route::get('/galeria', function () {
+    return view('gallery');
+})->name('gallery');
+
+Route::post('/contacto', [\App\Http\Controllers\Landing\ContactoController::class, 'send'])->name('landing.contacto');
+
 Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('/ejecutivo', \App\Livewire\Reports\ExecutiveDashboard::class)->middleware(['auth', 'verified'])->name('reports.executive');
 

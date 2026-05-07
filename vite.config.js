@@ -18,6 +18,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/landing/index.jsx',
+                'resources/gallery/index.jsx',
             ],
             refresh: true,
         }),
