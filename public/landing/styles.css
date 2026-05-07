@@ -1,164 +1,347 @@
 /* Fuentes */
-@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&family=Archivo:wght@400;500;600;700;800;900&family=Archivo+Narrow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-/* Reset */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Smooth scroll para navegacion entre secciones */
 html { scroll-behavior: smooth; }
-body { font-family: 'Figtree', -apple-system, sans-serif; background: #0a0a0a; }
-img { display: block; max-width: 100%; }
-button { font-family: inherit; }
-a { text-decoration: none; }
-input, textarea { font-family: inherit; }
-input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.28); }
-input:focus, textarea:focus { outline: none; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+section[id], div[id="inicio"] { scroll-margin-top: 24px; }
 
-/* Tokens */
-:root {
-  --pp-red:  #e52421;
-  --pp-dark: #0a0a0a;
+/* ================== PRELOADER ================== */
+#pp-preloader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0a0a0a;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 28px;
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+#pp-preloader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+#pp-preloader img {
+  width: clamp(180px, 32vw, 320px);
+  height: auto;
+  animation: ppPulse 1.6s ease-in-out infinite;
+}
+#pp-preloader .pp-bar {
+  width: clamp(160px, 22vw, 240px);
+  height: 2px; background: rgba(255,255,255,0.12); position: relative; overflow: hidden;
+}
+#pp-preloader .pp-bar::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--pp-red);
+  animation: ppLoad 1.2s ease-in-out infinite;
+}
+@keyframes ppPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.65; transform: scale(0.97); }
+}
+@keyframes ppLoad {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #pp-preloader img, #pp-preloader .pp-bar::after { animation: none; }
 }
 
-/* ── Scroll reveal ─────────────────────────────────────────────────────────── */
-.pp-reveal {
+/* ================== ANIMACIONES SCROLL ================== */
+/* Variantes de scroll-reveal */
+.reveal {
   opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 0.65s ease, transform 0.65s ease;
+  transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
-.pp-reveal.pp-visible {
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+.reveal-left {
+  opacity: 0; transform: translateX(-32px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-left.is-visible { opacity: 1; transform: translateX(0); }
+
+.reveal-right {
+  opacity: 0; transform: translateX(32px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-right.is-visible { opacity: 1; transform: translateX(0); }
+
+.reveal-zoom {
+  opacity: 0; transform: scale(0.94);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-zoom.is-visible { opacity: 1; transform: scale(1); }
+
+/* Stagger: hijos directos aparecen escalonados al activar el padre */
+.stagger > * {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.stagger.is-visible > * { opacity: 1; transform: translateY(0); }
+.stagger.is-visible > *:nth-child(1) { transition-delay: 0.05s; }
+.stagger.is-visible > *:nth-child(2) { transition-delay: 0.12s; }
+.stagger.is-visible > *:nth-child(3) { transition-delay: 0.19s; }
+.stagger.is-visible > *:nth-child(4) { transition-delay: 0.26s; }
+.stagger.is-visible > *:nth-child(5) { transition-delay: 0.33s; }
+.stagger.is-visible > *:nth-child(6) { transition-delay: 0.40s; }
+.stagger.is-visible > *:nth-child(7) { transition-delay: 0.47s; }
+.stagger.is-visible > *:nth-child(8) { transition-delay: 0.54s; }
+
+/* Hover sutil para tarjetas/links interactivos */
+.lift { transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s; }
+.lift:hover { transform: translateY(-4px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-left, .reveal-right, .reveal-zoom,
+  .stagger > * { opacity: 1; transform: none; transition: none; }
+  .lift:hover { transform: none; }
+}
+
+/* Logos en escala de grises -> color al hover (declarativo, no rompe el carrusel) */
+.brand-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.7;
+  transition: filter 0.35s ease, opacity 0.35s ease;
+}
+.brand-logo:hover {
+  filter: grayscale(0);
   opacity: 1;
-  transform: none;
+}
+/* Pausa el carrusel infinito al hover para que el usuario alcance el logo */
+.brand-marquee:hover .brand-track { animation-play-state: paused; }
+
+/* Shimmer skeleton para imagenes cargando */
+@keyframes ppShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* ── Cards (zoom imagen en hover vía CSS, sin JS) ──────────────────────────── */
-.pp-card { overflow: hidden; cursor: pointer; }
-.pp-card .pp-img {
-  transition: transform 0.55s ease;
-  will-change: transform;
+/* Tile de galeria: entra con fade + slide-up cuando entra al viewport */
+.gallery-tile {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
 }
-.pp-card:hover .pp-img { transform: scale(1.06); }
+.gallery-tile.is-visible { opacity: 1; transform: translateY(0); }
 
-/* Sector card: flecha desliza */
-.pp-sector-cta { transition: transform 0.3s ease; }
-.pp-card:hover .pp-sector-cta { transform: translateX(6px); }
+/* Stagger por columna -- los 4 primeros de cada columna entran escalonados */
+.gallery-tile:nth-child(1) { transition-delay: 0.00s; }
+.gallery-tile:nth-child(2) { transition-delay: 0.06s; }
+.gallery-tile:nth-child(3) { transition-delay: 0.12s; }
+.gallery-tile:nth-child(4) { transition-delay: 0.18s; }
 
-/* Icono del sector: borde rojo en hover */
-.pp-sector-icon {
-  transition: border-color 0.3s;
-  border: 1px solid rgba(255,255,255,0.35);
-}
-.pp-card:hover .pp-sector-icon { border-color: var(--pp-red); }
-
-/* ── Filas de servicios ────────────────────────────────────────────────────── */
-.pp-svc {
-  transition: background 0.22s ease;
-  cursor: pointer;
-}
-.pp-svc:hover { background: #0a0a0a !important; }
-.pp-svc .pp-svc-t,
-.pp-svc .pp-svc-d,
-.pp-svc .pp-svc-a { transition: color 0.22s ease, transform 0.22s ease; }
-.pp-svc:hover .pp-svc-t { color: #fff !important; }
-.pp-svc:hover .pp-svc-d { color: rgba(255,255,255,0.65) !important; }
-.pp-svc:hover .pp-svc-a { color: var(--pp-red) !important; transform: translateX(4px); }
-
-/* ── Botones ───────────────────────────────────────────────────────────────── */
-.pp-btn { transition: opacity 0.18s ease; cursor: pointer; border: none; }
-.pp-btn:hover { opacity: 0.82; }
-.pp-btn-filter {
-  transition: background 0.18s ease, color 0.18s ease;
-  cursor: pointer;
+@media (prefers-reduced-motion: reduce) {
+  .gallery-tile { opacity: 1; transform: none; transition: none; }
 }
 
-/* ── Links ─────────────────────────────────────────────────────────────────── */
-.pp-link { transition: color 0.18s ease; }
-.pp-link:hover { color: var(--pp-red) !important; }
-
-/* ── Nav links ─────────────────────────────────────────────────────────────── */
-.pp-nav-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: color 0.18s ease;
-}
-.pp-nav-btn:hover { color: var(--pp-red) !important; }
-
-/* ── WhatsApp float ────────────────────────────────────────────────────────── */
-.pp-wa {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  will-change: transform;
-}
-.pp-wa:hover {
-  transform: scale(1.12) !important;
-  box-shadow: 0 12px 32px rgba(37,211,102,0.7) !important;
-}
-
-/* ── Slider dots ───────────────────────────────────────────────────────────── */
-.pp-dot { transition: width 0.3s ease, background 0.3s ease; border: none; cursor: pointer; padding: 0; }
-
-/* ── Form inputs (underline style) ────────────────────────────────────────── */
-.pp-input {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  font-size: 17px;
-  padding: 16px 0;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.pp-input:focus { border-bottom-color: var(--pp-red); }
-.pp-input-m {
-  width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(255,255,255,0.15);
-  color: #fff;
-  font-size: 15px;
-  padding: 13px 0;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.pp-input-m:focus { border-bottom-color: var(--pp-red); }
-
-/* ── Mobile menu overlay ───────────────────────────────────────────────────── */
-.pp-menu-line {
-  width: 26px; height: 2px; background: #fff;
-  transition: transform 0.22s ease, opacity 0.22s ease;
+/* ================== MICRO-ANIMACIONES ================== */
+/* Logo del header: micro brillo + leve scale al hover */
+.pp-logo-link {
   display: block;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), filter 0.4s ease;
+}
+.pp-logo-link:hover {
+  transform: scale(1.04);
+  filter: drop-shadow(0 0 12px rgba(220, 38, 38, 0.45));
 }
 
-/* ── Splash screen ─────────────────────────────────────────────────────────── */
-@keyframes pp-ring {
-  0%   { transform: scale(0.85); opacity: 0.55; }
-  100% { transform: scale(2.8);  opacity: 0; }
+/* Links del nav: subrayado animado */
+.pp-nav-link {
+  position: relative;
+  text-decoration: none;
+  transition: color 0.25s ease;
 }
-@keyframes pp-logo-pulse {
-  0%, 100% { transform: scale(1);    opacity: 1; }
-  50%       { transform: scale(1.07); opacity: 0.85; }
-}
-.pp-ring {
+.pp-nav-link::after {
+  content: '';
   position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid var(--pp-red);
-  width: 160px;
-  height: 160px;
-  animation: pp-ring 2.2s ease-out infinite;
-  will-change: transform, opacity;
+  left: 0; right: 0; bottom: -22px;
+  height: 2px;
+  background: var(--pp-red);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.pp-logo-pulse {
-  animation: pp-logo-pulse 1.8s ease-in-out infinite;
-  will-change: transform, opacity;
+.pp-nav-link:hover::after,
+.pp-nav-link.is-active::after { transform: scaleX(1); }
+.pp-nav-link.is-active { color: var(--pp-red); }
+
+/* Botones CTA: efecto fill desde la izquierda */
+.pp-cta {
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s ease, border-color 0.3s ease;
+  isolation: isolate;
+}
+.pp-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--pp-red);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: -1;
+}
+.pp-cta:hover::before { transform: scaleX(1); }
+.pp-cta:hover { color: #fff; border-color: var(--pp-red); }
+
+/* Cards de servicios y proyectos: lift + sombra */
+.pp-card {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+}
+.pp-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.4);
 }
 
-/* ── Footer links ──────────────────────────────────────────────────────────── */
-.pp-footer-btn {
-  background: none; border: none; cursor: pointer; padding: 0;
-  font-size: 14px; text-align: left; display: block;
-  color: rgba(255,255,255,0.85);
-  transition: color 0.18s;
-  font-family: 'Figtree', sans-serif;
-  margin-bottom: 10px;
+/* Imagenes de proyectos: zoom suave */
+.pp-zoom { overflow: hidden; }
+.pp-zoom img { transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+.pp-zoom:hover img { transform: scale(1.06); }
+
+/* Whatsapp flotante: latido suave para llamar la atencion */
+.pp-whatsapp {
+  animation: ppWhatsappPulse 2.4s ease-in-out infinite;
 }
-.pp-footer-btn:hover { color: var(--pp-red); }
+.pp-whatsapp:hover { animation-play-state: paused; transform: scale(1.08); }
+@keyframes ppWhatsappPulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(37, 211, 102, 0.35), 0 0 0 0 rgba(37, 211, 102, 0.4); }
+  50%      { box-shadow: 0 8px 24px rgba(37, 211, 102, 0.45), 0 0 0 14px rgba(37, 211, 102, 0); }
+}
+
+/* Inputs del formulario: focus con borde rojo animado */
+.pp-input {
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+.pp-input:focus {
+  outline: none;
+  border-color: var(--pp-red) !important;
+  background: rgba(220, 38, 38, 0.04);
+}
+
+/* Counter (numeros del hero): tabular para no saltar al animar */
+.pp-counter { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pp-logo-link:hover, .pp-card:hover, .pp-zoom:hover img, .pp-whatsapp:hover { transform: none; }
+  .pp-whatsapp { animation: none; }
+  .pp-cta::before { display: none; }
+  .pp-nav-link::after { transition: none; }
+}
+
+/* Tokens base — derivados del repo (rojo ProPower + paleta Tailwind del tailwind.config.js) */
+:root {
+  --pp-red: #dc2626;       /* red-600, usado en btn-danger */
+  --pp-red-dark: #991b1b;  /* red-800 */
+  --pp-red-bright: #ef4444;
+  --pp-ink: #0f172a;       /* slate-900 */
+  --pp-ink-2: #1e293b;
+  --pp-gray: #64748b;
+  --pp-line: #e2e8f0;
+  --pp-bg: #f8fafc;
+  --pp-amber: #f59e0b;
+  --pp-yellow-hi: #fbbf24;
+}
+
+/* Placeholder rayado para fotos no disponibles */
+.pp-photo {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      #2a2a2a 0 2px,
+      transparent 2px 12px
+    ),
+    linear-gradient(180deg, #1a1a1a, #0a0a0a);
+  color: #6b7280;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+.pp-photo::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border: 1px dashed rgba(255,255,255,0.12);
+  pointer-events: none;
+}
+.pp-photo > span {
+  position: relative;
+  z-index: 1;
+  background: rgba(10,10,10,0.7);
+  padding: 4px 8px;
+  border-radius: 2px;
+}
+
+.pp-photo--light {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      #d4d4d4 0 2px,
+      transparent 2px 12px
+    ),
+    linear-gradient(180deg, #f5f5f4, #e7e5e4);
+  color: #78716c;
+}
+
+/* Logo placeholder estilo tipográfico ProPower */
+.pp-logo {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 0.85;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+}
+.pp-logo .pp-logo-pro { color: inherit; }
+.pp-logo .pp-logo-power { color: var(--pp-red); }
+.pp-logo .pp-logo-dot {
+  display: inline-block;
+  width: 0.22em;
+  height: 0.22em;
+  background: var(--pp-red);
+  border-radius: 50%;
+  margin-left: 0.1em;
+  transform: translateY(-0.05em);
+}
+
+/* Utilities */
+.pp-frame {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 2px;
+}
+.pp-frame-dark { background: #0a0a0a; color: #fff; }
+
+/* scrollbar hide inside artboards */
+.pp-frame *::-webkit-scrollbar { display: none; }
+.pp-frame * { scrollbar-width: none; }
+
+/* Carruseles infinitos */
+@keyframes scrollX {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes scrollXReverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+/* Eyebrow labels — texto rojo pequeño con peso fuerte para que se lea sobre cualquier fondo */
+.pp-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700 !important;
+  color: var(--pp-red) !important;
+  text-transform: uppercase;
+}
