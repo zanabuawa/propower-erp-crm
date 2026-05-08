@@ -231,18 +231,28 @@ section[id], div[id="inicio"] { scroll-margin-top: 24px; }
   .pp-nav-link::after { transition: none; }
 }
 
+/* Hero height — sube en 2K/4K, se mantiene ajustado en HD */
+.pp-hero-height { height: clamp(520px, 80vh, 860px); }
+@media (min-width: 2560px) {
+  .pp-hero-height { height: clamp(860px, 48vw, 1200px); }
+}
+
 /* Tokens base — derivados del repo (rojo ProPower + paleta Tailwind del tailwind.config.js) */
 :root {
-  --pp-red: #dc2626;       /* red-600, usado en btn-danger */
-  --pp-red-dark: #991b1b;  /* red-800 */
+  --pp-red: #dc2626;
+  --pp-red-dark: #991b1b;
   --pp-red-bright: #ef4444;
-  --pp-ink: #0f172a;       /* slate-900 */
+  --pp-ink: #0f172a;
   --pp-ink-2: #1e293b;
   --pp-gray: #64748b;
   --pp-line: #e2e8f0;
   --pp-bg: #f8fafc;
   --pp-amber: #f59e0b;
   --pp-yellow-hi: #fbbf24;
+
+  /* Responsive layout tokens — centra contenido a ≤1800 px, min padding siempre visible */
+  --pp-h-pad: max(clamp(24px, 3vw, 60px), calc((100% - 1800px) / 2));
+  --pp-v-pad: clamp(64px, 6.25vw, 180px);
 }
 
 /* Placeholder rayado para fotos no disponibles */

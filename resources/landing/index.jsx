@@ -28,6 +28,36 @@ const App = () => {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
+  // Counter animation: parse numeric prefix, animate to target, keep suffix
+  useEffect(() => {
+    if (!preloaderGone) return;
+    const els = document.querySelectorAll('.pp-counter[data-counter]');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        const raw = e.target.dataset.counter ?? '';
+        const num = parseFloat(raw);
+        if (isNaN(num)) return;
+        const suffix = raw.replace(/[\d.]/g, '');
+        const duration = 1400;
+        const start = performance.now();
+        const step = (now) => {
+          const p = Math.min((now - start) / duration, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          const display = Number.isInteger(num)
+            ? Math.round(eased * num)
+            : (eased * num).toFixed(1);
+          e.target.textContent = display + suffix;
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      });
+    }, { threshold: 0.3 });
+    els.forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, [preloaderGone, isMobile]);
+
   // Scroll reveal: observe all .reveal* and .stagger elements
   useEffect(() => {
     const sel = '.reveal, .reveal-left, .reveal-right, .reveal-zoom, .stagger';

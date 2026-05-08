@@ -19,7 +19,7 @@ return new class extends Migration
 
             // Forma del almacén: array de {col, row} que forman el polígono cerrado
             // Ejemplo: [{col:0,row:0},{col:10,row:0},{col:10,row:5},{col:0,row:5}]
-            $table->json('polygon_points')->default('[]');
+            $table->json('polygon_points')->nullable();
 
             // Apariencia
             $table->string('background_color', 7)->default('#F1F5F9');

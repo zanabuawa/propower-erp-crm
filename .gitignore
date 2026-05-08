@@ -28,3 +28,5 @@ Thumbs.db
 .env.testing
 debug-env.php
 test-mail.php
+*.zip
+/storage/app/livewire-tmp/

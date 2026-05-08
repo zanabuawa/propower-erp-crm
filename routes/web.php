@@ -19,6 +19,8 @@ Route::get('/galeria', function () {
 Route::post('/contacto', [\App\Http\Controllers\Landing\ContactoController::class, 'send'])->name('landing.contacto');
 
 Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/admin/landing', \App\Livewire\Landing\LandingEditor::class)->middleware(['auth'])->name('landing.editor');
+Route::get('/admin/galeria', \App\Livewire\Landing\GalleryEditor::class)->middleware(['auth'])->name('gallery.editor');
 Route::get('/ejecutivo', \App\Livewire\Reports\ExecutiveDashboard::class)->middleware(['auth', 'verified'])->name('reports.executive');
 
 Route::middleware('auth')->group(function () {

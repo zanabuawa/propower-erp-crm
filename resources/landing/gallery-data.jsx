@@ -1,12 +1,17 @@
-// Catálogo real de proyectos de la galería ProPower
-const PROJECT_CATEGORIES = [
+const _GD = (typeof window !== 'undefined' && window.__GALLERY_DATA__ && window.__GALLERY_DATA__.categories?.length)
+  ? window.__GALLERY_DATA__
+  : null;
+
+const r = (n) => Array.from({ length: n }, (_, i) => i + 1);
+
+const STATIC_CATEGORIES = [
   {
     id: 'baja-tension',
     title: 'Baja Tensión',
     short: 'Baja Tensión',
     sector: 'Industria',
     desc: 'Instalaciones eléctricas en baja tensión para naves industriales y comerciales.',
-    images: [1, 10, 15, 20, 25, 30, 35, 40].map(n => `/assets/img/Galeria/Baja-Tension/${n}.webp`),
+    images: r(42).map(n => `/assets/img/Galeria/Baja-Tension/${n}.webp`),
   },
   {
     id: 'media-tension',
@@ -14,7 +19,7 @@ const PROJECT_CATEGORIES = [
     short: 'Media Tensión',
     sector: 'Industria',
     desc: 'Subestaciones, líneas y acometidas de media tensión.',
-    images: [1, 10, 15, 20, 25, 30, 35, 42].map(n => `/assets/img/Galeria/Media-Tension/${n}.webp`),
+    images: r(54).map(n => `/assets/img/Galeria/Media-Tension/${n}.webp`),
   },
   {
     id: 'pruebas-electricas',
@@ -22,7 +27,7 @@ const PROJECT_CATEGORIES = [
     short: 'Pruebas',
     sector: 'Mantenimiento',
     desc: 'Pruebas a equipo eléctrico: aislamiento, rigidez, continuidad y puesta a tierra.',
-    images: [1, 2, 3, 4, 5].map(n => `/assets/img/Galeria/Pruebas Electricas/${n}.webp`),
+    images: r(5).map(n => `/assets/img/Galeria/Pruebas Electricas/${n}.webp`),
   },
   {
     id: 'habilitacion',
@@ -30,7 +35,7 @@ const PROJECT_CATEGORIES = [
     short: 'Habilitación',
     sector: 'Industria',
     desc: 'Habilitación de instalaciones eléctricas para nuevos espacios industriales.',
-    images: [1, 2, 3, 4].map(n => `/assets/img/Galeria/Habilitacion electrica/${n}.webp`),
+    images: r(4).map(n => `/assets/img/Galeria/Habilitacion electrica/${n}.webp`),
   },
   {
     id: 'tableros',
@@ -38,7 +43,7 @@ const PROJECT_CATEGORIES = [
     short: 'Tableros',
     sector: 'Mantenimiento',
     desc: 'Modernización y mejora de tableros existentes para cumplir con norma actual.',
-    images: [1, 2, 3, 4, 5].map(n => `/assets/img/Galeria/Mejora de tableros electricos existentes/${n}.webp`),
+    images: r(7).map(n => `/assets/img/Galeria/Mejora de tableros electricos existentes/${n}.webp`),
   },
   {
     id: 'control',
@@ -46,7 +51,7 @@ const PROJECT_CATEGORIES = [
     short: 'Control',
     sector: 'Ingeniería',
     desc: 'Actualizaciones de sistemas de control para plantas energéticas.',
-    images: [1, 2, 3, 4, 5].map(n => `/assets/img/Galeria/Actualizaciones de control para planta energetica/${n}.webp`),
+    images: r(6).map(n => `/assets/img/Galeria/Actualizaciones de control para planta energetica/${n}.webp`),
   },
   {
     id: 'rodillo',
@@ -54,7 +59,7 @@ const PROJECT_CATEGORIES = [
     short: 'Roladora',
     sector: 'Industria',
     desc: 'Desmontaje y reparación de rodillo de roladora industrial.',
-    images: [1, 2, 3, 4].map(n => `/assets/img/Galeria/Desmontaje y reparacionde de rodillo de roladora/${n}.webp`),
+    images: r(5).map(n => `/assets/img/Galeria/Desmontaje y reparacionde de rodillo de roladora/${n}.webp`),
   },
   {
     id: 'molino',
@@ -62,7 +67,7 @@ const PROJECT_CATEGORIES = [
     short: 'Molino',
     sector: 'Industria',
     desc: 'Trabajos de laminado en estructura de molino industrial.',
-    images: [1, 2, 3, 4].map(n => `/assets/img/Galeria/Laminado de estructura de molino/${n}.webp`),
+    images: r(4).map(n => `/assets/img/Galeria/Laminado de estructura de molino/${n}.webp`),
   },
   {
     id: 'iluminacion',
@@ -70,7 +75,7 @@ const PROJECT_CATEGORIES = [
     short: 'Iluminación',
     sector: 'Mantenimiento',
     desc: 'Reemplazo de láminas translúcidas y actualización de iluminación LED industrial.',
-    images: [1, 4, 8, 11, 13].map(n => `/assets/img/Galeria/Remplazo de laminas translucidas y actualizacion de iluminacion led/${n}.webp`),
+    images: r(19).map(n => `/assets/img/Galeria/Remplazo de laminas translucidas y actualizacion de iluminacion led/${n}.webp`),
   },
   {
     id: 'venta',
@@ -78,9 +83,11 @@ const PROJECT_CATEGORIES = [
     short: 'Equipo',
     sector: 'Comercial',
     desc: 'Venta y distribución de equipo y material eléctrico industrial.',
-    images: [1, 5, 10, 16].map(n => `/assets/img/Galeria/Venta de equipo y material electrico/${n}.webp`),
+    images: r(16).map(n => `/assets/img/Galeria/Venta de equipo y material electrico/${n}.webp`),
   },
 ];
+
+const PROJECT_CATEGORIES = _GD ? _GD.categories : STATIC_CATEGORIES;
 
 const ALL_GALLERY_IMAGES = (() => {
   const out = [];

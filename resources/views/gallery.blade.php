@@ -11,6 +11,9 @@
   </style>
   @viteReactRefresh
   @vite('resources/gallery/index.jsx')
+  <script>
+    window.__GALLERY_DATA__ = @json(\App\Models\LandingSetting::getSection('gallery_page'));
+  </script>
 </head>
 <body>
   <div id="root"></div>

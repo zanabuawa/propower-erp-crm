@@ -1,9 +1,11 @@
 import React from 'react';
 
+const _D = (typeof window !== 'undefined' && window.__LANDING_DATA__) ? window.__LANDING_DATA__ : {};
+
 const LOGO_RED = '/assets/img/LOGO ELECTROCONSTRUCCIONES/PNG/propower_Mesa de trabajo 1 red.png';
 const LOGO_H_RED = '/assets/img/LOGO ELECTROCONSTRUCCIONES/PNG/propower_Mesa de trabajo 1h red.png';
 
-const HERO_IMGS = [
+const HERO_IMGS = _D.hero?.images ?? [
   '/assets/img/hero/hero-background.webp',
   '/assets/img/Carrousel/pexels-1920-1.jpg',
   '/assets/img/Carrousel/pexels-1920-2.jpg',
@@ -169,12 +171,12 @@ const Nav = ({ mobile = false, active = 'Inicio' }) => {
   return (
     <div style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '20px 56px', background: '#0a0a0a',
+      padding: '20px var(--pp-h-pad)', background: '#0a0a0a',
       borderBottom: '1px solid rgba(255,255,255,0.08)',
       color: '#fff',
     }}>
       <a href="#inicio" className="pp-logo-link">
-        <img src={LOGO_H_RED} alt="ProPower" style={{ height: 72, display: 'block' }} />
+        <img src={LOGO_H_RED} alt="ProPower" style={{ height: 'clamp(52px, 3.75vw, 88px)', display: 'block' }} />
       </a>
       <div style={{ display: 'flex', gap: 40, fontSize: 14, fontWeight: 500, letterSpacing: '0.02em' }}>
         {links.map(({ l, href }) => (
@@ -201,7 +203,7 @@ const HeroDesktop = () => {
   return (
   <div id="inicio" style={{ width: '100%', background: '#0a0a0a', color: '#fff', fontFamily: 'Figtree, sans-serif' }}>
     <Nav active="Inicio" />
-    <div style={{ position: 'relative', height: 'clamp(460px, 72vh, 640px)', overflow: 'hidden' }}>
+    <div className="pp-hero-height" style={{ position: 'relative', overflow: 'hidden' }}>
       {HERO_IMGS.map((src, i) => (
         <img key={src} src={src} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: i === idx ? 1 : 0, transition: 'opacity 1.2s ease-in-out' }} />
       ))}
@@ -209,14 +211,14 @@ const HeroDesktop = () => {
         position: 'absolute', inset: 0,
         background: 'linear-gradient(90deg, rgba(10,10,10,0.94) 0%, rgba(10,10,10,0.75) 45%, rgba(10,10,10,0.3) 80%, rgba(10,10,10,0.55) 100%)',
       }} />
-      <div style={{ position: 'relative', padding: '64px 56px', maxWidth: 860 }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 24 }}>
+      <div style={{ position: 'relative', padding: 'clamp(36px, 3.3vw, 76px) var(--pp-h-pad) clamp(32px, 3vw, 60px)', maxWidth: 'clamp(700px, 45vw, 1000px)' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, fontSize: 'clamp(10px, 0.65vw, 14px)', fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 24 }}>
           <span style={{ width: 28, height: 1, background: 'var(--pp-red)' }} />
-          ProPower Electroconstrucciones · desde 2018
+          {_D.hero?.eyebrow ?? 'ProPower Electroconstrucciones · desde 2018'}
         </div>
         <h1 style={{
           fontFamily: 'Archivo, sans-serif', fontWeight: 900,
-          fontSize: 96, lineHeight: 0.92, letterSpacing: '-0.04em',
+          fontSize: 'clamp(56px, 5vw, 140px)', lineHeight: 0.92, letterSpacing: '-0.04em',
           margin: 0, textTransform: 'uppercase',
         }}>
           Soluciones,<br/>
@@ -224,35 +226,35 @@ const HeroDesktop = () => {
           <span style={{ color: 'var(--pp-red)' }}>garantía.</span>
         </h1>
         <div style={{ display: 'flex', gap: 0, marginTop: 48, border: '1px solid rgba(255,255,255,0.15)' }}>
-          {[
-            { n: '8+', l: 'Años operando' },
-            { n: '200+', l: 'Proyectos entregados' },
-            { n: '2', l: 'Sucursales en CHIH' },
-            { n: '100%', l: 'Capital mexicano' },
-          ].map((s, i) => (
-            <div key={s.l} style={{ flex: 1, padding: '16px 20px', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
-              <div className="pp-counter" data-counter={s.n} style={{ fontFamily: 'Archivo, sans-serif', fontSize: 30, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>{s.n}</div>
-              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: 2 }}>{s.l}</div>
+          {(_D.hero?.stats ?? [
+            { value: '8+', label: 'Años operando' },
+            { value: '200+', label: 'Proyectos entregados' },
+            { value: '2', label: 'Sucursales en CHIH' },
+            { value: '100%', label: 'Capital mexicano' },
+          ]).map((s, i) => (
+            <div key={s.label} style={{ flex: 1, padding: 'clamp(12px, 1.2vw, 24px) clamp(14px, 1.4vw, 28px)', borderRight: i < 3 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
+              <div className="pp-counter" data-counter={s.value} style={{ fontFamily: 'Archivo, sans-serif', fontSize: 'clamp(20px, 1.6vw, 46px)', fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>{'0' + s.value.replace(/[\d.]/g, '')}</div>
+              <div style={{ fontSize: 'clamp(9px, 0.6vw, 13px)', color: 'rgba(255,255,255,0.55)', textTransform: 'uppercase', letterSpacing: '0.12em', marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 20, marginTop: 32, alignItems: 'center' }}>
-          <a href="#contacto" className="pp-cta" style={{ padding: '16px 30px', background: 'var(--pp-red)', color: '#fff', fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-block', border: '1px solid var(--pp-red)' }}>
+          <a href="#contacto" className="pp-cta" style={{ padding: 'clamp(12px, 1vw, 20px) clamp(20px, 2vw, 36px)', background: 'var(--pp-red)', color: '#fff', fontSize: 'clamp(12px, 0.75vw, 16px)', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-block', border: '1px solid var(--pp-red)' }}>
             Contáctanos →
           </a>
-          <a href="#nosotros" style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' }}>
+          <a href="#nosotros" style={{ fontSize: 'clamp(11px, 0.7vw, 15px)', color: 'rgba(255,255,255,0.7)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', textDecoration: 'none' }}>
             ↓ Conoce nuestro proceso
           </a>
         </div>
-      </div>
-      <div style={{ position: 'absolute', bottom: 28, left: 56, right: 56, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {HERO_IMGS.map((_, i) => (
-            <div key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 36 : 10, height: 3, background: i === idx ? 'var(--pp-red)' : 'rgba(255,255,255,0.35)', transition: 'all 0.3s', cursor: 'pointer' }} />
-          ))}
-        </div>
-        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          {String(idx + 1).padStart(2, '0')} / {String(HERO_IMGS.length).padStart(2, '0')}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 28 }}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {HERO_IMGS.map((_, i) => (
+              <div key={i} onClick={() => setIdx(i)} style={{ width: i === idx ? 36 : 10, height: 3, background: i === idx ? 'var(--pp-red)' : 'rgba(255,255,255,0.35)', transition: 'all 0.3s', cursor: 'pointer' }} />
+            ))}
+          </div>
+          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'rgba(255,255,255,0.5)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            {String(idx + 1).padStart(2, '0')} / {String(HERO_IMGS.length).padStart(2, '0')}
+          </div>
         </div>
       </div>
     </div>
@@ -311,13 +313,13 @@ const IconPick = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="non
 const IconCompass = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z" /></svg>;
 
 const OfertaDesktop = () => (
-  <section style={{ padding: '120px 56px', background: '#fff' }}>
+  <section style={{ padding: 'var(--pp-v-pad) var(--pp-h-pad)', background: '#fff' }}>
     <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56 }}>
       <div>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 16 }}>
+        <div style={{ fontSize: 'clamp(10px, 0.65vw, 14px)', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 16 }}>
           Nuestra oferta
         </div>
-        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 56, lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
+        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 'clamp(32px, 2.9vw, 80px)', lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
           Tres sectores.<br/>Una sola exigencia.
         </h2>
       </div>
@@ -331,7 +333,7 @@ const OfertaDesktop = () => (
         { img: '/assets/img/Inicio/pexels-hannu-iso-oja-3301403-4946889.jpg', t: 'Minería', d: 'Explora nuestra oferta diseñada especialmente para la minería.', Icon: IconPick, tags: ['Subestaciones móviles', 'Bombeo', 'Cable G/GGC'] },
         { img: '/assets/img/Inicio/pexels-freek-wolsink-508219-34207359.jpg', t: 'Ingeniería', d: 'Descubre nuestras soluciones de ingeniería personalizadas para optimizar tu proyecto.', Icon: IconCompass, tags: ['Proyecto llave', 'Supervisión'] },
       ].map((c, i) => (
-        <div key={c.t} style={{ position: 'relative', height: 'clamp(320px, 42vh, 460px)', overflow: 'hidden', cursor: 'pointer' }}>
+        <div key={c.t} style={{ position: 'relative', height: 'clamp(320px, 30vw, 600px)', overflow: 'hidden', cursor: 'pointer' }}>
           <img src={c.img} alt={c.t} loading="lazy" decoding="async" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(10,10,10,0.15) 0%, rgba(10,10,10,0.88) 70%)' }} />
           <div style={{ position: 'absolute', top: 24, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -343,8 +345,8 @@ const OfertaDesktop = () => (
             </div>
           </div>
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '28px', color: '#fff' }}>
-            <h3 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 36, margin: 0, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{c.t}</h3>
-            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.85)', marginTop: 10, lineHeight: 1.5 }}>{c.d}</p>
+            <h3 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 'clamp(22px, 1.9vw, 48px)', margin: 0, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{c.t}</h3>
+            <p style={{ fontSize: 'clamp(13px, 0.8vw, 18px)', color: 'rgba(255,255,255,0.85)', marginTop: 10, lineHeight: 1.5 }}>{c.d}</p>
             <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
               {c.tags.map(t => (
                 <span key={t} style={{ fontSize: 11, padding: '4px 10px', border: '1px solid rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'JetBrains Mono, monospace' }}>{t}</span>
@@ -362,13 +364,13 @@ const OfertaDesktop = () => (
 
 // ==================== NOSOTROS ====================
 const NosotrosDesktop = () => (
-  <section id="nosotros" style={{ padding: '120px 56px', background: '#0a0a0a', color: '#fff' }}>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 80 }}>
+  <section id="nosotros" style={{ padding: 'var(--pp-v-pad) var(--pp-h-pad)', background: '#0a0a0a', color: '#fff' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 'clamp(40px, 5vw, 120px)' }}>
       <div className="reveal-left">
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 20 }}>
+        <div style={{ fontSize: 'clamp(10px, 0.65vw, 14px)', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 20 }}>
           ¿Quiénes somos?
         </div>
-        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 64, lineHeight: 0.98, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
+        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 'clamp(38px, 3.3vw, 100px)', lineHeight: 0.98, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
           100%<br/>mexicana.<br/><span style={{ color: 'var(--pp-red)' }}>Siempre a la</span><br/>vanguardia.
         </h2>
         <div style={{ marginTop: 40, fontFamily: 'Archivo Narrow, sans-serif', fontSize: 18, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, letterSpacing: '0.02em' }}>
@@ -376,7 +378,7 @@ const NosotrosDesktop = () => (
         </div>
       </div>
       <div className="reveal-right">
-        <p style={{ fontSize: 19, lineHeight: 1.65, color: 'rgba(255,255,255,0.85)', margin: 0 }}>
+        <p style={{ fontSize: 'clamp(15px, 1vw, 22px)', lineHeight: 1.65, color: 'rgba(255,255,255,0.85)', margin: 0 }}>
           <strong style={{ color: '#fff' }}>ProPower Electroconstrucciones</strong> es una empresa 100% mexicana
           especializada en servicios electromecánicos industriales y comerciales.
         </p>
@@ -386,9 +388,9 @@ const NosotrosDesktop = () => (
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0, marginTop: 48, border: '1px solid rgba(255,255,255,0.15)' }}>
           {[
-            { t: 'Misión', d: 'Entregar soluciones electromecánicas con garantía y seguridad, superando las expectativas de cada cliente.' },
-            { t: 'Visión', d: 'Ser el contratista de referencia en el norte de México en electroconstrucciones industriales.' },
-            { t: 'Valores', d: 'Compromiso, responsabilidad y honestidad en cada obra y en cada relación.' },
+            { t: 'Misión', d: _D.nosotros?.mision ?? 'Entregar soluciones electromecánicas con garantía y seguridad, superando las expectativas de cada cliente.' },
+            { t: 'Visión', d: _D.nosotros?.vision ?? 'Ser el contratista de referencia en el norte de México en electroconstrucciones industriales.' },
+            { t: 'Valores', d: _D.nosotros?.valores ?? 'Compromiso, responsabilidad y honestidad en cada obra y en cada relación.' },
           ].map((m, i) => (
             <div key={m.t} style={{ padding: '24px 22px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 14 }}>0{i+1} · {m.t}</div>
@@ -407,7 +409,7 @@ const NosotrosDesktop = () => (
 );
 
 // ==================== SERVICIOS ====================
-const SERVICES_INDUSTRIA = [
+const SERVICES_INDUSTRIA = (_D.servicios?.industria ?? [
   { img: '/assets/img/Servicios/instalaciones-electricas.webp', t: 'Instalaciones eléctricas en baja y media tensión' },
   { img: '/assets/img/Servicios/b.webp', t: 'Implementación y ejecución de programas de mantenimientos' },
   { img: '/assets/img/Servicios/c.webp', t: 'Cálculo e instalación de sistemas de iluminación' },
@@ -425,8 +427,8 @@ const SERVICES_INDUSTRIA = [
   { img: '/assets/img/Servicios/ñ.webp', t: 'Venta de equipo y material eléctrico' },
   { img: '/assets/img/Servicios/o.webp', t: 'Pruebas de termografía y ultrasonido' },
   { img: '/assets/img/Servicios/p.webp', t: 'Dictámenes eléctricos (NOM-001-SEDE-2012)' },
-];
-const SERVICES_MINERIA = [
+]).filter(s => s.on_landing !== false);
+const SERVICES_MINERIA = (_D.servicios?.mineria ?? [
   { img: '/assets/img/Servicios/q.webp', t: 'Líneas de baja y media tensión' },
   { img: '/assets/img/Servicios/r.webp', t: 'Venta e instalación de transformadores' },
   { img: '/assets/img/Servicios/s.webp', t: 'Subestaciones móviles para interior mina 4.16 y 13.8 KV' },
@@ -437,18 +439,18 @@ const SERVICES_MINERIA = [
   { img: '/assets/img/Servicios/x.webp', t: 'Venta de cable tipo G y GGC' },
   { img: '/assets/img/Servicios/y.webp', t: 'Venta de arrancadores suaves, variadores de frecuencia, etc.' },
   { img: '/assets/img/Servicios/z.webp', t: 'Venta y reparación de ventiladores tipo Zitron' },
-];
-const SERVICES_INGENIERIA = [
+]).filter(s => s.on_landing !== false);
+const SERVICES_INGENIERIA = (_D.servicios?.ingenieria ?? [
   { img: '/assets/img/Servicios/aa.webp', t: 'Diseño y planos', items: ['Diseño CAD', 'Diagramas eléctricos', 'Layout', 'Planos de control', 'Programación'] },
   { img: '/assets/img/Servicios/bb.webp', t: 'Análisis y mediciones', items: ['Calidad de la energía', 'Resistencia de puesta a tierra', 'Resistividad del terreno'] },
   { img: '/assets/img/Servicios/cc.webp', t: 'Cálculo y dictámenes', items: ['Memorias de cálculo', 'Cálculo de iluminación', 'Tierra y pararrayos', 'Dictámenes eléctricos'] },
-];
+]).filter(s => s.on_landing !== false);
 
 const ServiceCard = ({ s, i }) => {
   const [hover, setHover] = React.useState(false);
   return (
     <a href="#contacto" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{
-      position: 'relative', display: 'block', height: 'clamp(200px, 22vw, 280px)', overflow: 'hidden',
+      position: 'relative', display: 'block', height: 'clamp(200px, 15vw, 360px)', overflow: 'hidden',
       background: '#0a0a0a', textDecoration: 'none',
     }}>
       <img src={s.img} alt={s.t} loading="lazy" style={{
@@ -486,24 +488,19 @@ const ServiciosDesktop = () => {
   ];
   const data = tab === 'industria' ? SERVICES_INDUSTRIA : tab === 'mineria' ? SERVICES_MINERIA : SERVICES_INGENIERIA;
   return (
-    <section id="servicios" style={{ padding: '120px 56px', background: '#fff' }}>
-      <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48 }}>
-        <div>
-          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 16 }}>Servicios</div>
-          <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 56, lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
-            30 servicios.<br/>Tres especialidades.
-          </h2>
-        </div>
-        <p style={{ fontSize: 15, color: '#57534e', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
-          Desde la planeación eléctrica hasta la puesta en marcha, cubrimos cada etapa de tu obra con personal certificado.
-        </p>
+    <section id="servicios" style={{ padding: 'var(--pp-v-pad) var(--pp-h-pad)', background: '#fff' }}>
+      <div className="reveal" style={{ marginBottom: 48 }}>
+        <div style={{ fontSize: 'clamp(10px, 0.65vw, 14px)', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 16 }}>Servicios</div>
+        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 'clamp(32px, 2.9vw, 80px)', lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
+          30 servicios.<br/>Tres especialidades.
+        </h2>
       </div>
       <div style={{ display: 'flex', gap: 0, marginBottom: 32, borderBottom: '1px solid #e7e5e4' }}>
         {tabs.map(tb => (
           <button key={tb.id} onClick={() => setTab(tb.id)} style={{
-            padding: '18px 28px', background: 'transparent', border: 'none',
+            padding: 'clamp(12px, 1vw, 22px) clamp(16px, 1.5vw, 32px)', background: 'transparent', border: 'none',
             borderBottom: tab === tb.id ? '3px solid var(--pp-red)' : '3px solid transparent',
-            cursor: 'pointer', fontFamily: 'Archivo, sans-serif', fontSize: 18, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'Archivo, sans-serif', fontSize: 'clamp(14px, 0.95vw, 22px)', fontWeight: 700,
             textTransform: 'uppercase', letterSpacing: '0.04em',
             color: tab === tb.id ? '#0a0a0a' : '#a8a29e',
             display: 'flex', alignItems: 'center', gap: 10, transition: 'all 0.2s',
@@ -523,7 +520,7 @@ const ServiciosDesktop = () => {
         <div className="brand-marquee" style={{ overflow: 'hidden', position: 'relative', maskImage: 'linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)' }}>
           <div className="brand-track" style={{ display: 'flex', gap: 0, animation: 'scrollX 60s linear infinite', width: 'max-content' }}>
             {[...BRAND_LOGOS, ...BRAND_LOGOS].map((src, i) => (
-              <div key={i} style={{ flex: '0 0 auto', width: 180, height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 22, borderRight: '1px solid #e7e5e4' }}>
+              <div key={i} style={{ flex: '0 0 auto', width: 'clamp(120px, 9.4vw, 220px)', height: 'clamp(72px, 5.7vw, 132px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(12px, 1.1vw, 26px)', borderRight: '1px solid #e7e5e4' }}>
                 <img src={src} alt="" className="brand-logo" />
               </div>
             ))}
@@ -537,7 +534,7 @@ const ServiciosDesktop = () => {
         <div className="brand-marquee" style={{ overflow: 'hidden', position: 'relative', maskImage: 'linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)', WebkitMaskImage: 'linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent)' }}>
           <div className="brand-track" style={{ display: 'flex', gap: 0, animation: 'scrollXReverse 80s linear infinite', width: 'max-content' }}>
             {[...CLIENT_LOGOS, ...CLIENT_LOGOS].map((src, i) => (
-              <div key={i} style={{ flex: '0 0 auto', width: 180, height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 22, borderRight: '1px solid #e7e5e4' }}>
+              <div key={i} style={{ flex: '0 0 auto', width: 'clamp(120px, 9.4vw, 220px)', height: 'clamp(72px, 5.7vw, 132px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(12px, 1.1vw, 26px)', borderRight: '1px solid #e7e5e4' }}>
                 <img src={src} alt="" className="brand-logo" />
               </div>
             ))}
@@ -549,71 +546,55 @@ const ServiciosDesktop = () => {
 };
 
 // ==================== GALERÍA ====================
-const PROJECTS = [
-  { img: '/assets/img/Galeria/Media-Tension/25.webp', t: 'Subestación industrial', loc: 'Chihuahua, CHIH', year: '2024', cat: 'Media tensión' },
-  { img: '/assets/img/Galeria/Baja-Tension/30.webp', t: 'Nave de manufactura', loc: 'Delicias, CHIH', year: '2024', cat: 'Baja tensión' },
-  { img: '/assets/img/Galeria/Mejora de tableros electricos existentes/2.webp', t: 'Tableros eléctricos', loc: 'Sierra, CHIH', year: '2023', cat: 'Tableros' },
-  { img: '/assets/img/Galeria/Actualizaciones de control para planta energetica/1.webp', t: 'Control de planta', loc: 'Chihuahua, CHIH', year: '2023', cat: 'Control' },
-  { img: '/assets/img/Galeria/Pruebas Electricas/3.webp', t: 'Pruebas eléctricas', loc: 'Parque Industrial', year: '2023', cat: 'Pruebas' },
-  { img: '/assets/img/Galeria/Remplazo de laminas translucidas y actualizacion de iluminacion led/11.webp', t: 'Iluminación LED industrial', loc: 'Nave 12, CHIH', year: '2022', cat: 'Iluminación' },
-  { img: '/assets/img/Galeria/Laminado de estructura de molino/1.webp', t: 'Estructura de molino', loc: 'Proyecto industrial', year: '2022', cat: 'Estructural' },
+const SECTORS = ['Industria', 'Minería', 'Ingeniería'];
+
+const ITEMS = _D.galeria?.items ?? [
+  { img: '/assets/img/Galeria/Media-Tension/25.webp',   sector: 'Industria' },
+  { img: '/assets/img/Galeria/Baja-Tension/30.webp',    sector: 'Industria' },
+  { img: '/assets/img/Galeria/Mejora de tableros electricos existentes/2.webp', sector: 'Industria' },
+  { img: '/assets/img/Galeria/Actualizaciones de control para planta energetica/1.webp', sector: 'Ingeniería' },
+  { img: '/assets/img/Galeria/Pruebas Electricas/3.webp', sector: 'Ingeniería' },
+  { img: '/assets/img/Galeria/Remplazo de laminas translucidas y actualizacion de iluminacion led/11.webp', sector: 'Minería' },
+  { img: '/assets/img/Galeria/Laminado de estructura de molino/1.webp', sector: 'Minería' },
 ];
 
-const GaleriaDesktop = () => (
-  <section id="galeria" style={{ padding: '120px 56px', background: '#fafaf9' }}>
+const GaleriaDesktop = () => {
+  const [filter, setFilter] = React.useState('Todos');
+  const filters = ['Todos', ...SECTORS];
+  const shown = (filter === 'Todos' ? ITEMS : ITEMS.filter(p => p.sector === filter)).slice(0, 7);
+
+  return (
+  <section id="galeria" style={{ padding: 'var(--pp-v-pad) var(--pp-h-pad)', background: '#fafaf9' }}>
     <div className="reveal" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 56 }}>
       <div>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 16 }}>Galería</div>
-        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 56, lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
+        <div style={{ fontSize: 'clamp(10px, 0.65vw, 14px)', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 16 }}>Galería</div>
+        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 'clamp(32px, 2.9vw, 80px)', lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
           Obras que<br/>hablan por sí solas.
         </h2>
       </div>
       <div style={{ display: 'flex', gap: 8, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-        {['Todos', 'Industria', 'Minería', 'Ingeniería'].map((f, i) => (
-          <span key={f} style={{ padding: '8px 14px', border: '1px solid #0a0a0a', background: i === 0 ? '#0a0a0a' : 'transparent', color: i === 0 ? '#fff' : '#0a0a0a' }}>{f}</span>
+        {filters.map(f => (
+          <button key={f} onClick={() => setFilter(f)} style={{ padding: '8px 14px', border: '1px solid #0a0a0a', background: filter === f ? '#0a0a0a' : 'transparent', color: filter === f ? '#fff' : '#0a0a0a', cursor: 'pointer', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.12em', transition: 'all 0.2s' }}>{f}</button>
         ))}
       </div>
     </div>
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gridTemplateRows: 'repeat(3, 240px)', gap: 12 }}>
-      <div style={{ gridColumn: '1 / 2', gridRow: '1 / 3', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
-        <img src={PROJECTS[0].img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(10,10,10,0.88) 100%)' }} />
+    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gridTemplateRows: 'repeat(3, clamp(180px, 12.5vw, 360px))', gap: 12 }}>
+      <div style={{ gridColumn: '1 / 2', gridRow: '1 / 3', position: 'relative', overflow: 'hidden' }}>
+        {shown[0]?.img && <img src={shown[0].img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
         <div style={{ position: 'absolute', top: 20, left: 20, fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#fff', padding: '5px 10px', background: 'var(--pp-red)' }}>
-          Proyecto destacado
-        </div>
-        <div style={{ position: 'absolute', bottom: 28, left: 28, right: 28, color: '#fff' }}>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>
-            {PROJECTS[0].cat} · {PROJECTS[0].year}
-          </div>
-          <h3 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 36, margin: 0, letterSpacing: '-0.02em', textTransform: 'uppercase' }}>{PROJECTS[0].t}</h3>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', marginTop: 6 }}>{PROJECTS[0].loc}</div>
+          {shown[0]?.sector}
         </div>
       </div>
-      {PROJECTS.slice(1, 5).map((p) => (
-        <div key={p.t} style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
+      {shown.slice(1, 5).map((p, i) => (
+        <div key={i} style={{ position: 'relative', overflow: 'hidden' }}>
           <img src={p.img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(10,10,10,0.85) 100%)' }} />
-          <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, color: '#fff' }}>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 4 }}>{p.cat} · {p.year}</div>
-            <h4 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 700, fontSize: 18, margin: 0, letterSpacing: '-0.01em', textTransform: 'uppercase', lineHeight: 1.1 }}>{p.t}</h4>
-          </div>
         </div>
       ))}
-      <div style={{ gridColumn: '1 / 3', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
-        <img src={PROJECTS[5].img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.2) 60%)' }} />
-        <div style={{ position: 'absolute', bottom: 20, left: 24, color: '#fff' }}>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 4 }}>{PROJECTS[5].cat} · {PROJECTS[5].year}</div>
-          <h4 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 700, fontSize: 22, margin: 0, letterSpacing: '-0.01em', textTransform: 'uppercase' }}>{PROJECTS[5].t}</h4>
-        </div>
+      <div style={{ gridColumn: '1 / 3', position: 'relative', overflow: 'hidden' }}>
+        {shown[5]?.img && <img src={shown[5].img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
       </div>
-      <div style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer' }}>
-        <img src={PROJECTS[6].img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(10,10,10,0.85) 100%)' }} />
-        <div style={{ position: 'absolute', bottom: 16, left: 16, right: 16, color: '#fff' }}>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 4 }}>{PROJECTS[6].cat}</div>
-          <h4 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 700, fontSize: 18, margin: 0, letterSpacing: '-0.01em', textTransform: 'uppercase', lineHeight: 1.1 }}>{PROJECTS[6].t}</h4>
-        </div>
+      <div style={{ position: 'relative', overflow: 'hidden' }}>
+        {shown[6]?.img && <img src={shown[6].img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />}
       </div>
     </div>
     <div style={{ display: 'flex', justifyContent: 'center', marginTop: 48 }}>
@@ -622,7 +603,8 @@ const GaleriaDesktop = () => (
       </a>
     </div>
   </section>
-);
+  );
+};
 
 // ==================== CONTACTO ====================
 const ContactoDesktop = () => {
@@ -652,10 +634,10 @@ const ContactoDesktop = () => {
 
   return (
   <section id="contacto" style={{ background: '#0a0a0a', color: '#fff' }}>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-      <div className="reveal-left" style={{ padding: '100px 56px', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+    <div style={{ maxWidth: 1800, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+      <div className="reveal-left" style={{ padding: 'clamp(56px, 5.2vw, 160px) clamp(28px, 3.5vw, 80px)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 20 }}>Contacto</div>
-        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 52, lineHeight: 0.98, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
+        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 'clamp(32px, 2.7vw, 76px)', lineHeight: 0.98, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
           Cuéntanos tu<br/><span style={{ color: 'var(--pp-red)' }}>proyecto.</span>
         </h2>
         <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.65)', marginTop: 18, marginBottom: 40, lineHeight: 1.6, maxWidth: 440 }}>
@@ -701,13 +683,13 @@ const ContactoDesktop = () => {
         </form>
         )}
       </div>
-      <div className="reveal-right" style={{ padding: '100px 56px' }}>
+      <div className="reveal-right" style={{ padding: 'clamp(56px, 5.2vw, 160px) clamp(28px, 3.5vw, 80px)' }}>
         <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>Contacto directo</div>
         <div style={{ display: 'grid', gap: 20, marginBottom: 48 }}>
           {[
-            { k: 'Teléfono', v: '614 166 6340' },
-            { k: 'Correo', v: 'contacto@propower.mx' },
-            { k: 'Horario', v: 'Lun–Vie · 9:00–18:00' },
+            { k: 'Teléfono', v: _D.contacto?.phone ?? '614 166 6340' },
+            { k: 'Correo', v: _D.contacto?.email ?? 'contacto@propower.mx' },
+            { k: 'Horario', v: _D.contacto?.hours ?? 'Lun–Vie · 9:00–18:00' },
           ].map(x => (
             <div key={x.k} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: 14 }}>
               <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)' }}>{x.k}</div>
@@ -717,18 +699,18 @@ const ContactoDesktop = () => {
         </div>
         <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>Sucursales</div>
         <div style={{ display: 'grid', gap: 20 }}>
-          {[
-            { t: 'Sucursal Chihuahua', sub: '', emb: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6537.871959268932!2d-106.12901740537757!3d28.70382956590884!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86ea438974075dc5%3A0xb8c2426f69011cbb!2sProPower%20Electroconstrucciones!5e0!3m2!1ses-419!2smx!4v1763958506976!5m2!1ses-419!2smx' },
-            { t: 'Sucursal Delicias', sub: '', emb: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d8259.094005874922!2d-105.45656117616318!3d28.183644407838823!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86eb159b6256c213%3A0x3aa93cc16e2a0b9!2sPropower%20Electroconstrucciones!5e0!3m2!1ses-419!2smx!4v1763958405258!5m2!1ses-419!2smx' },
-          ].map(s => (
-            <div key={s.t} style={{ border: '1px solid rgba(255,255,255,0.15)' }}>
+          {(_D.contacto?.sucursales ?? [
+            { title: 'Sucursal Chihuahua', embed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d6537.871959268932!2d-106.12901740537757!3d28.70382956590884!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86ea438974075dc5%3A0xb8c2426f69011cbb!2sProPower%20Electroconstrucciones!5e0!3m2!1ses-419!2smx!4v1763958506976!5m2!1ses-419!2smx' },
+            { title: 'Sucursal Delicias', embed: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d8259.094005874922!2d-105.45656117616318!3d28.183644407838823!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86eb159b6256c213%3A0x3aa93cc16e2a0b9!2sPropower%20Electroconstrucciones!5e0!3m2!1ses-419!2smx!4v1763958405258!5m2!1ses-419!2smx' },
+          ]).map(s => (
+            <div key={s.title} style={{ border: '1px solid rgba(255,255,255,0.15)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
                 <div>
-                  <div style={{ fontFamily: 'Archivo, sans-serif', fontSize: 18, fontWeight: 700, textTransform: 'uppercase' }}>{s.t}</div>
+                  <div style={{ fontFamily: 'Archivo, sans-serif', fontSize: 18, fontWeight: 700, textTransform: 'uppercase' }}>{s.title}</div>
                 </div>
                 <div style={{ color: 'var(--pp-red)', fontSize: 12, fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Ver ruta →</div>
               </div>
-              <iframe src={s.emb} width="100%" height="200" style={{ border: 0, display: 'block', filter: 'grayscale(1) invert(0.92) contrast(0.95)' }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+              <iframe src={s.embed} width="100%" height="200" style={{ border: 0, display: 'block', filter: 'grayscale(1) invert(0.92) contrast(0.95)' }} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
             </div>
           ))}
         </div>
@@ -740,14 +722,14 @@ const ContactoDesktop = () => {
 
 // ==================== FOOTER ====================
 const Footer = () => (
-  <footer style={{ background: '#000', color: '#fff', padding: '80px 56px 32px' }}>
+  <footer style={{ background: '#000', color: '#fff', padding: 'clamp(48px, 4.2vw, 120px) var(--pp-h-pad) 32px' }}>
     <div style={{ borderBottom: '1px solid rgba(255,255,255,0.15)', paddingBottom: 40, marginBottom: 40 }}>
-      <img src={LOGO_H_RED} alt="ProPower" style={{ height: 140, display: 'block', marginBottom: 8 }} />
+      <img src={LOGO_H_RED} alt="ProPower" style={{ height: 'clamp(72px, 7.3vw, 160px)', display: 'block', marginBottom: 8 }} />
     </div>
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 60, paddingBottom: 48 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 'clamp(28px, 3.5vw, 80px)', paddingBottom: 48 }}>
       <div>
         <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, maxWidth: 320 }}>
-          Empresa 100% mexicana especializada en servicios electromecánicos industriales y comerciales desde 2018.
+          {_D.footer?.description ?? 'Empresa 100% mexicana especializada en servicios electromecánicos industriales y comerciales desde 2018.'}
         </div>
       </div>
       {[
@@ -762,14 +744,14 @@ const Footer = () => (
       ))}
     </div>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
-      <div>© 2026 ProPower Electroconstrucciones — Todos los derechos reservados.</div>
+      <div>{_D.footer?.copyright ?? '© 2026 ProPower Electroconstrucciones — Todos los derechos reservados.'}</div>
       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
         <a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Aviso de Privacidad</a>
         <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.15)' }} />
-        <a href="https://wa.me/526141666340" target="_blank" rel="noopener" aria-label="WhatsApp" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>
+        <a href={_D.footer?.whatsapp ?? 'https://wa.me/526141666340'} target="_blank" rel="noopener" aria-label="WhatsApp" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
         </a>
-        <a href="https://www.facebook.com/ProPowerMX" target="_blank" rel="noopener" aria-label="Facebook" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>
+        <a href={_D.footer?.facebook ?? 'https://www.facebook.com/ProPowerMX'} target="_blank" rel="noopener" aria-label="Facebook" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
         </a>
         <a href="https://www.instagram.com/propowermx/" target="_blank" rel="noopener" aria-label="Instagram" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>
@@ -855,14 +837,10 @@ const GaleriaMobile = () => (
     <div className="reveal" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 12 }}>Galería</div>
     <h2 className="reveal" style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 30, lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>Obras que hablan por sí solas.</h2>
     <div style={{ display: 'grid', gap: 10, marginTop: 24 }}>
-      {PROJECTS.slice(0, 4).map((p, i) => (
-        <div key={p.t} style={{ position: 'relative', height: i === 0 ? 240 : 160, overflow: 'hidden' }}>
+      {ITEMS.slice(0, 4).map((p, i) => (
+        <div key={i} style={{ position: 'relative', height: i === 0 ? 240 : 160, overflow: 'hidden' }}>
           <img src={p.img} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(10,10,10,0.9) 100%)' }} />
-          <div style={{ position: 'absolute', bottom: 12, left: 14, right: 14, color: '#fff' }}>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.7)', marginBottom: 4 }}>{p.cat} · {p.year}</div>
-            <h4 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 700, fontSize: i === 0 ? 22 : 15, margin: 0, textTransform: 'uppercase' }}>{p.t}</h4>
-          </div>
+          <div style={{ position: 'absolute', top: 12, left: 14, fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#fff', background: 'var(--pp-red)', padding: '3px 8px' }}>{p.sector}</div>
         </div>
       ))}
     </div>
@@ -937,8 +915,8 @@ const ContactoMobile = () => {
 
     <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
       <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', marginBottom: 14 }}>Contacto directo</div>
-      <div style={{ fontFamily: 'Archivo, sans-serif', fontSize: 22, fontWeight: 700 }}>614 166 6340</div>
-      <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>contacto@propower.mx</div>
+      <div style={{ fontFamily: 'Archivo, sans-serif', fontSize: 22, fontWeight: 700 }}>{_D.contacto?.phone ?? '614 166 6340'}</div>
+      <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', marginTop: 4 }}>{_D.contacto?.email ?? 'contacto@propower.mx'}</div>
     </div>
   </section>
   );
@@ -948,10 +926,10 @@ const FooterMobile = () => (
   <footer style={{ background: '#000', color: '#fff', padding: '40px 20px 24px' }}>
     <img src={LOGO_H_RED} alt="ProPower" style={{ height: 60, display: 'block' }} />
     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 20, lineHeight: 1.6 }}>
-      614 166 6340 · contacto@propower.mx<br/>Chihuahua · Delicias, CHIH
+      {_D.contacto?.phone ?? '614 166 6340'} · {_D.contacto?.email ?? 'contacto@propower.mx'}<br/>Chihuahua · Delicias, CHIH
     </div>
     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 24, paddingTop: 18, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
-      © 2026 ProPower · 100% mexicana desde 2018
+      {_D.footer?.copyright ?? '© 2026 ProPower · 100% mexicana desde 2018'}
     </div>
   </footer>
 );
