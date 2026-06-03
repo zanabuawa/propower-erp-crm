@@ -101,8 +101,19 @@
                 <div class="flex justify-between"><dt class="text-slate-500">RFC</dt><dd class="font-mono text-slate-700">{{ $employee->rfc ?? '—' }}</dd></div>
                 <div class="flex justify-between"><dt class="text-slate-500">NSS</dt><dd class="font-mono text-slate-700">{{ $employee->nss ?? '—' }}</dd></div>
                 @endcan
-                <div class="flex justify-between"><dt class="text-slate-500">Nacimiento</dt><dd class="text-slate-700">{{ $employee->birth_date?->format('d/m/Y') ?? '—' }}</dd></div>
-                <div class="flex justify-between"><dt class="text-slate-500">Domicilio</dt><dd class="text-slate-700 text-right max-w-[60%]">{{ collect([$employee->address, $employee->city, $employee->state, $employee->postal_code])->filter()->join(', ') ?: '—' }}</dd></div>
+                <div class="flex justify-between">
+                    <dt class="text-slate-500">Nacimiento</dt>
+                    <dd class="text-slate-700 flex items-center gap-2">
+                        {{ $employee->birth_date?->format('d/m/Y') ?? '—' }}
+                        @if($employee->notify_birthday)
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-pink-50 text-pink-600 text-[10px] font-bold uppercase tracking-wider border border-pink-100" title="Recordatorio de cumpleaños activado">
+                                <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9V9a2 2 0 00-2-2H8a2 2 0 00-2 2v3h12z"/></svg>
+                                Recordar
+                            </span>
+                        @endif
+                    </dd>
+                </div>
+                <div class="flex justify-between"><dt class="text-slate-500">Domicilio</dt><dd class="text-slate-700 text-right max-w-[60%]">{{ collect([$employee->address, $employee->city, $employee->state, $employee->country, $employee->postal_code])->filter()->join(', ') ?: '—' }}</dd></div>
             </dl>
         </div>
         <div class="bg-white rounded-xl border border-slate-200 p-5">
@@ -648,6 +659,85 @@
                     Cancelar
                 </button>
             </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Tab: Historial Evaluaciones Técnicas --}}
+    @if($activeTab === 'evaluations_history')
+    <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-slate-700">Historial de Evaluaciones Técnicas</h3>
+        </div>
+        <div class="divide-y divide-slate-100">
+            @forelse($employee->evaluations as $process)
+            <div class="p-5">
+                <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase {{ $process->status === 'completed' ? 'bg-emerald-100 text-emerald-700' : ($process->status === 'active' ? 'bg-indigo-100 text-indigo-700' : 'bg-rose-100 text-rose-700') }}">
+                                {{ $process->status === 'active' ? 'En Curso' : ($process->status === 'completed' ? 'Finalizado' : 'Inactivo') }}
+                            </span>
+                            <span class="text-xs text-slate-400 font-medium">Iniciado el {{ $process->created_at->format('d/m/Y') }}</span>
+                        </div>
+                        <h4 class="text-base font-bold text-slate-800">Ruta de Evaluación Técnica</h4>
+                        <p class="text-xs text-slate-500 mt-1">Progreso: {{ $process->stages->where('status', 'completed')->count() }} de {{ $process->total_stages }} etapas completadas</p>
+                    </div>
+                    <a href="{{ route('hr.evaluations.manage', $process) }}" wire:navigate
+                       class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-xs font-bold transition-all shadow-sm">
+                        Gestionar Ruta
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+
+                {{-- Línea de tiempo de etapas --}}
+                <div class="space-y-3 mt-4">
+                    @foreach($process->stages->sortBy('order') as $stage)
+                        <div class="flex items-start gap-4">
+                            <div class="flex flex-col items-center pt-1">
+                                <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 {{ $stage->status === 'completed' ? 'bg-emerald-500' : ($stage->status === 'failed' ? 'bg-rose-500' : 'bg-slate-200') }}"></div>
+                                @if(!$loop->last)
+                                    <div class="w-px flex-1 bg-slate-100 mt-1 min-h-[20px]"></div>
+                                @endif
+                            </div>
+                            <div class="flex-1 pb-2">
+                                <div class="flex items-center justify-between gap-4">
+                                    <h5 class="text-xs font-bold {{ $stage->status === 'completed' ? 'text-slate-800' : 'text-slate-500' }}">{{ $stage->name }}</h5>
+                                    <span class="text-[9px] font-black uppercase {{ $stage->status === 'completed' ? 'text-emerald-600' : ($stage->status === 'failed' ? 'text-rose-600' : 'text-slate-400') }}">
+                                        {{ $stage->status === 'completed' ? 'Aprobada' : ($stage->status === 'failed' ? 'Reprobada' : 'Pendiente') }}
+                                    </span>
+                                </div>
+                                
+                                @if($stage->prospectTests->isNotEmpty())
+                                    <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        @foreach($stage->prospectTests as $test)
+                                            <div class="px-3 py-2 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
+                                                <div class="min-w-0">
+                                                    <p class="text-[10px] font-bold text-slate-700 truncate">{{ $test->template?->name ?? 'Examen' }}</p>
+                                                    <p class="text-[9px] text-slate-400 uppercase mt-0.5">Mejor Score: <span class="font-black text-indigo-600">{{ (int)$test->score }}%</span></p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-black uppercase {{ in_array($test->status, ['completed', 'graded', 'pending_review', 'partially_graded']) ? 'bg-emerald-50 text-emerald-600' : ($test->status === 'failed' ? 'bg-rose-50 text-rose-600' : 'bg-white border border-slate-100 text-slate-400') }}">
+                                                        {{ $test->status === 'failed' ? 'Reprobado' : ($test->status === 'pending' ? 'Pdte' : 'Ok') }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @empty
+            <div class="px-4 py-12 text-center">
+                <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                </div>
+                <p class="text-sm font-medium text-slate-400 italic">No hay historial de evaluaciones técnicas para este empleado.</p>
+            </div>
+            @endforelse
         </div>
     </div>
     @endif

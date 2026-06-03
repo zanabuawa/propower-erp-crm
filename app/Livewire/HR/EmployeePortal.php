@@ -3,8 +3,9 @@
 namespace App\Livewire\HR;
 
 use App\Models\HrAttendance;
-use App\Models\HrEmployee;
 use App\Models\HrAttendanceLocation;
+use App\Models\HrEmployee;
+use App\Models\HrEvaluationProcess;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -24,6 +25,8 @@ class EmployeePortal extends Component
     public string $geoStatus       = 'idle'; // idle | loading | located | denied | error
     public bool   $locationValid   = false;
     public ?float $currentDistance = null;
+    public ?float $locationAccuracy = null;
+    public ?float $allowedDistance = null;
     public ?HrAttendanceLocation $detectedZone = null;
 
     public function mount()
@@ -50,10 +53,11 @@ class EmployeePortal extends Component
     }
 
     // Métodos para geolocalización
-    public function setCoordinates(float $lat, float $lng): void
+    public function setCoordinates(float $lat, float $lng, ?float $accuracy = null): void
     {
         $this->latitude   = $lat;
         $this->longitude  = $lng;
+        $this->locationAccuracy = $accuracy;
         $this->geoStatus  = 'located';
 
         if (!$this->employee) return;
@@ -62,6 +66,7 @@ class EmployeePortal extends Component
         $zones = HrAttendanceLocation::where('company_id', $companyId)->where('is_active', true)->get();
         
         $this->currentDistance = null;
+        $this->allowedDistance = null;
         $closest = null;
 
         foreach ($zones as $zone) {
@@ -72,8 +77,19 @@ class EmployeePortal extends Component
             }
         }
 
-        $this->detectedZone  = ($closest && $this->currentDistance <= $closest->radius_meters) ? $closest : null;
+        $tolerance = $this->gpsTolerance();
+        $this->allowedDistance = $closest ? ($closest->radius_meters + $tolerance) : null;
+        $this->detectedZone  = ($closest && $this->currentDistance <= $this->allowedDistance) ? $closest : null;
         $this->locationValid = $this->detectedZone !== null;
+    }
+
+    private function gpsTolerance(): float
+    {
+        if ($this->locationAccuracy === null) {
+            return 0;
+        }
+
+        return min(max($this->locationAccuracy, 0), 100);
     }
 
     public function geoDenied() { $this->geoStatus = 'denied'; }
@@ -130,6 +146,39 @@ class EmployeePortal extends Component
         return $time->greaterThan($limit) ? 'late' : 'present';
     }
 
+    public function embedVideoUrl(string $url): ?string
+    {
+        $host = parse_url($url, PHP_URL_HOST) ?: '';
+        $path = trim(parse_url($url, PHP_URL_PATH) ?: '', '/');
+        $query = [];
+        parse_str(parse_url($url, PHP_URL_QUERY) ?: '', $query);
+        $videoId = null;
+
+        if (str_contains($host, 'youtu.be')) {
+            $videoId = explode('/', $path)[0] ?? null;
+        }
+
+        if (! $videoId && str_contains($host, 'youtube.com')) {
+            $videoId = $query['v'] ?? null;
+
+            if (! $videoId && preg_match('~(?:embed|shorts|live)/([^/?&]+)~', $path, $matches)) {
+                $videoId = $matches[1];
+            }
+        }
+
+        if ($videoId) {
+            $videoId = preg_replace('/[^A-Za-z0-9_-]/', '', $videoId);
+
+            return $videoId ? "https://www.youtube-nocookie.com/embed/{$videoId}?rel=0&modestbranding=1" : null;
+        }
+
+        if (str_contains($host, 'vimeo.com') && preg_match('/(\d+)/', $path, $matches)) {
+            return "https://player.vimeo.com/video/{$matches[1]}";
+        }
+
+        return null;
+    }
+
     public function render()
     {
         $recentAttendances = $this->employee 
@@ -139,6 +188,65 @@ class EmployeePortal extends Component
                 ->get()
             : collect();
 
-        return view('livewire.hr.employee-portal', compact('recentAttendances'));
+        $evaluationProcesses = $this->employee
+            ? HrEvaluationProcess::with([
+                'stages.prospectTests.template',
+                'stages.prospectTests.attempts',
+            ])
+                ->where(function ($query) {
+                    $query->where('hr_employee_id', $this->employee->id)
+                        ->orWhereHas('prospect', fn ($prospectQuery) => $prospectQuery->where('employee_id', $this->employee->id));
+                })
+                ->whereIn('status', ['active', 'completed'])
+                ->latest()
+                ->get()
+            : collect();
+
+        $evaluationSummary = $evaluationProcesses
+            ->map(function (HrEvaluationProcess $process) {
+                $stages = $process->stages->map(function ($stage) use ($process) {
+                    $tests = $stage->prospectTests->map(function ($test) use ($stage, $process) {
+                        $inReview = in_array($test->status, ['pending_review', 'partially_graded'], true);
+                        $completed = in_array($test->status, ['completed', 'graded'], true);
+                        $withoutAttempts = $test->attempts_count >= $test->max_attempts;
+                        $canStart = $process->status === 'active'
+                            && $stage->order === $process->current_stage_index
+                            && $stage->isAvailable()
+                            && ! $inReview
+                            && ! $completed
+                            && ! $withoutAttempts;
+
+                        return [
+                            'model' => $test,
+                            'in_review' => $inReview,
+                            'completed' => $completed,
+                            'without_attempts' => $withoutAttempts,
+                            'can_start' => $canStart,
+                        ];
+                    })->values();
+
+                    return [
+                        'model' => $stage,
+                        'is_current' => $process->status === 'active' && $stage->order === $process->current_stage_index,
+                        'is_available' => $stage->isAvailable(),
+                        'is_completed' => $process->status === 'completed' || $stage->status === 'completed' || $stage->order < $process->current_stage_index,
+                        'tests' => $tests,
+                    ];
+                })->values();
+
+                $pendingTestsCount = $process->status === 'active'
+                    ? $stages->sum(fn ($stage) => $stage['tests']->where('completed', false)->count())
+                    : 0;
+
+                return [
+                    'process' => $process,
+                    'stages' => $stages,
+                    'pending_tests_count' => $pendingTestsCount,
+                    'is_completed' => $process->status === 'completed',
+                ];
+            })
+            ->values();
+
+        return view('livewire.hr.employee-portal', compact('recentAttendances', 'evaluationSummary'));
     }
 }

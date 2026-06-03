@@ -105,13 +105,35 @@
                                 class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10">
                         </div>
 
+                        {{-- Descuento Global --}}
                         <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Desc. Global %</label>
+                            @php
+                                $gCap     = $this->maxGlobalDiscountCap;
+                                $gVal     = (float) $global_discount;
+                                $gOverCap = $gCap < 100 && $gVal > $gCap;
+                                $gNearCap = $gCap < 100 && !$gOverCap && $gVal >= ($gCap * 0.8);
+                            @endphp
+                            <div class="flex items-center justify-between">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Desc. Global %</label>
+                                @if($gCap < 100)
+                                    <span class="text-[9px] font-black uppercase tracking-wider {{ $gOverCap ? 'text-rose-500' : 'text-amber-500' }}">
+                                        Máx. sin autorizar: {{ number_format($gCap, 1) }}%
+                                    </span>
+                                @endif
+                            </div>
                             <div class="relative">
                                 <input wire:model.live="global_discount" type="number" step="0.01" min="0" max="100"
-                                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-black text-rose-600 focus:ring-4 focus:ring-rose-500/10 text-right">
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-rose-300 font-bold">%</span>
+                                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-black focus:ring-4 text-right
+                                        {{ $gOverCap ? 'text-rose-600 focus:ring-rose-500/20 ring-2 ring-rose-300' : ($gNearCap ? 'text-amber-600 focus:ring-amber-500/10' : 'text-rose-600 focus:ring-rose-500/10') }}">
+                                <span class="absolute left-4 top-1/2 -translate-y-1/2 font-bold {{ $gOverCap ? 'text-rose-400' : 'text-rose-300' }}">%</span>
                             </div>
+                            @if($gOverCap)
+                                <p class="text-[9px] text-rose-500 font-black uppercase tracking-wider flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    Excede el límite — se solicitará autorización
+                                </p>
+                            @endif
+                            @error('global_discount') <p class="text-[10px] text-rose-500 font-bold mt-1">{{ $message }}</p> @enderror
                         </div>
 
                         {{-- Notas --}}
@@ -138,7 +160,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <livewire:shared.product-picker />
+                            <livewire:shared.product-picker :multi-select="true" />
                         </div>
                     </div>
 
@@ -255,7 +277,7 @@
                                 </div>
                             @endif
                             <div class="flex items-center gap-10">
-                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">IVA Trasladado (16%):</span>
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">IVA Trasladado:</span>
                                 <span class="text-sm font-bold text-slate-700">${{ number_format($this->tax, 2) }}</span>
                             </div>
                             <div class="flex items-center gap-10 pt-6 border-t border-slate-200 mt-2">
@@ -277,4 +299,35 @@
             </div>
         </form>
     </div>
+
+    {{-- ── MODAL: AUTORIZACIÓN ─────────────────────────────────────────── --}}
+    @if($needsApproval)
+    <div class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="$set('needsApproval', false)"></div>
+        <div class="relative bg-white rounded-[2.5rem] shadow-2xl p-10 w-full max-w-md mx-auto border border-slate-200 animate-in zoom-in-95">
+            <div class="w-16 h-16 rounded-3xl bg-rose-50 flex items-center justify-center text-rose-500 mb-6 mx-auto">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            </div>
+            <h3 class="text-2xl font-black text-slate-800 text-center tracking-tight mb-2">Precio Crítico</h3>
+            <p class="text-sm text-slate-500 text-center font-medium leading-relaxed mb-6">
+                El descuento solicitado excede el margen permitido (máx. <strong>{{ number_format($exceedingMaxPct, 1) }}%</strong>). Se requiere justificación para enviar a revisión.
+            </p>
+            <div class="space-y-6">
+                <textarea wire:model="approvalNotes" rows="3" placeholder="Justifica este precio especial..."
+                    class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-medium text-slate-700 focus:ring-4 focus:ring-rose-500/10 resize-none transition-all"></textarea>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <button wire:click="$set('needsApproval', false)"
+                        class="py-4 bg-slate-50 text-slate-500 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-slate-100 transition-all">
+                        Volver
+                    </button>
+                    <button wire:click="save(true)"
+                        class="py-4 bg-rose-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-lg shadow-rose-500/25 hover:bg-rose-700 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                        Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

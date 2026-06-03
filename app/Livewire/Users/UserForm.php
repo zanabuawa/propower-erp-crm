@@ -40,7 +40,7 @@ class UserForm extends Component
             $this->email      = $this->user->email;
             $this->company_id = $this->user->company_id;
             $this->branch_id  = $this->user->branch_id;
-            $this->is_active  = $this->user->is_active;
+            $this->is_active  = (bool) $this->user->is_active;
             $this->role       = $this->user->roles->first()?->name ?? '';
 
             // Load direct permissions (extras beyond role)
@@ -101,7 +101,7 @@ class UserForm extends Component
     public function getRolePermissionsProperty(): array
     {
         if (!$this->role) return [];
-        $role = Role::findByName($this->role);
+        $role = Role::where('name', $this->role)->first();
         return $role ? $role->permissions->pluck('name')->toArray() : [];
     }
 
@@ -116,10 +116,19 @@ class UserForm extends Component
         foreach (RolesAndPermissionsSeeder::$modules as $module => $label) {
             $permissions = [];
 
+            foreach (RolesAndPermissionsSeeder::$sectionPermissions[$module] ?? [] as $permName => $actionLabel) {
+                $permissions[] = [
+                    'name'        => $permName,
+                    'actionLabel' => $actionLabel,
+                    'type'        => 'section',
+                ];
+            }
+
             foreach (RolesAndPermissionsSeeder::$actions as $action => $actionLabel) {
                 $permissions[] = [
                     'name'        => "{$action} {$module}",
                     'actionLabel' => $actionLabel,
+                    'type'        => 'crud',
                 ];
             }
 
@@ -127,6 +136,7 @@ class UserForm extends Component
                 $permissions[] = [
                     'name'        => $permName,
                     'actionLabel' => $actionLabel,
+                    'type'        => 'extra',
                 ];
             }
 
@@ -136,10 +146,18 @@ class UserForm extends Component
         // Standalone groups: only granular permissions, no CRUD base (e.g. dashboard)
         foreach (RolesAndPermissionsSeeder::$standaloneGroups as $module => $label) {
             $permissions = [];
+            foreach (RolesAndPermissionsSeeder::$sectionPermissions[$module] ?? [] as $permName => $actionLabel) {
+                $permissions[] = [
+                    'name'        => $permName,
+                    'actionLabel' => $actionLabel,
+                    'type'        => 'section',
+                ];
+            }
             foreach (RolesAndPermissionsSeeder::$extraPermissions[$module] ?? [] as $permName => $actionLabel) {
                 $permissions[] = [
                     'name'        => $permName,
                     'actionLabel' => $actionLabel,
+                    'type'        => 'extra',
                 ];
             }
             if (!empty($permissions)) {

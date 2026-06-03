@@ -285,7 +285,9 @@
                                 </tr>
                                 @if($invoice->discount_amount > 0)
                                     <tr class="bg-gray-50">
-                                        <td colspan="5" class="px-5 py-2 text-xs text-gray-500 text-right hidden sm:table-cell">Descuento:</td>
+                                        <td colspan="5" class="px-5 py-2 text-xs text-gray-500 text-right hidden sm:table-cell">
+                                            Descuento{{ $invoice->global_discount_pct > 0 ? ' (global '.number_format($invoice->global_discount_pct,1).'%)' : '' }}:
+                                        </td>
                                         <td colspan="2" class="px-5 py-2 text-xs text-gray-500 text-right sm:hidden">Descuento:</td>
                                         <td class="px-5 py-2 text-sm font-medium text-red-600">-${{ number_format($invoice->discount_amount, 2) }}</td>
                                     </tr>

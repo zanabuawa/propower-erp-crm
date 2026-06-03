@@ -68,7 +68,10 @@
                     @forelse($cards as $opp)
                         <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-shadow">
                             <div class="flex items-start justify-between gap-2 mb-2">
-                                <p class="text-sm font-medium text-gray-900 leading-snug">{{ $opp->title }}</p>
+                                <a wire:navigate href="{{ route('sales.crm.opportunities.show', $opp) }}"
+                                    class="text-sm font-medium text-gray-900 leading-snug hover:text-indigo-700 transition">
+                                    {{ $opp->title }}
+                                </a>
                                 <a wire:navigate href="{{ route('sales.crm.opportunities.edit', $opp) }}" class="text-gray-400 hover:text-gray-600 shrink-0">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 2.828L11.828 15.828a4 4 0 01-2.828 1.172H7v-2a4 4 0 011.172-2.828z"/></svg>
                                 </a>

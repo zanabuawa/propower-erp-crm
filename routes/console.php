@@ -20,5 +20,8 @@ Schedule::command('notify:incomplete-products')->weeklyOn(1, '09:00');
 // Recordatorios de entrevistas RRHH — cada 10 minutos
 Schedule::command('hr:send-interview-reminders')->everyTenMinutes();
 
+// Cumpleaños de empleados — diariamente a las 8:30 AM
+Schedule::command('hr:check-birthdays')->dailyAt('08:30');
+
 // Depreciación mensual de activos — el día 1 de cada mes a las 2 AM
 Schedule::command('assets:depreciate --fiscal')->monthlyOn(1, '02:00');

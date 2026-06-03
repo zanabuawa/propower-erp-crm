@@ -54,16 +54,68 @@
                             @error('name') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">{{ $message }}</p> @enderror
                         </div>
 
+                        <div class="space-y-3"
+                            wire:ignore
+                            x-data="attendanceZoneMap({
+                                lat: @entangle('latitude').live,
+                                lng: @entangle('longitude').live,
+                                radius: @entangle('radius_meters').live
+                            })">
+                            <div class="flex items-center justify-between gap-3">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Seleccionar en mapa</label>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" x-on:click="useCurrentLocation" x-bind:disabled="locating || calibrating"
+                                        class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 disabled:opacity-60 transition-colors">
+                                        <span x-show="!locating">Usar mi GPS</span>
+                                        <span x-show="locating">Localizando...</span>
+                                    </button>
+                                    <button type="button" x-on:click="calibrateCurrentLocation" x-bind:disabled="locating || calibrating"
+                                        class="px-3 py-1.5 rounded-xl border border-indigo-100 bg-indigo-50 text-[10px] font-black uppercase tracking-wider text-indigo-600 hover:bg-indigo-100 disabled:opacity-60 transition-colors">
+                                        <span x-show="!calibrating">Calibrar</span>
+                                        <span x-show="calibrating">Calibrando...</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <div class="flex gap-2">
+                                    <input type="text" x-model="searchQuery" x-on:keydown.enter.prevent="searchAddress"
+                                        placeholder="Buscar direccion, colonia, ciudad..."
+                                        class="min-w-0 flex-1 px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm">
+                                    <button type="button" x-on:click="searchAddress" x-bind:disabled="searching"
+                                        class="px-4 py-3 rounded-2xl bg-indigo-600 text-white text-xs font-black uppercase tracking-wider hover:bg-indigo-700 disabled:opacity-60 transition-colors">
+                                        <span x-show="!searching">Buscar</span>
+                                        <span x-show="searching">...</span>
+                                    </button>
+                                </div>
+
+                                <div x-show="searchResults.length" x-cloak
+                                    class="absolute z-[1000] mt-2 w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/70">
+                                    <template x-for="result in searchResults" :key="result.place_id">
+                                        <button type="button" x-on:click="selectSearchResult(result)"
+                                            class="block w-full px-4 py-3 text-left text-sm font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 transition-colors">
+                                            <span x-text="result.display_name"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            <div x-ref="map" class="h-[360px] rounded-3xl border border-slate-200 overflow-hidden bg-slate-100"></div>
+                            <p x-show="locationMessage" x-cloak
+                                class="text-[10px] font-bold uppercase tracking-wider ml-1"
+                                x-bind:class="locationMessageType === 'error' ? 'text-red-500' : 'text-indigo-500'"
+                                x-text="locationMessage"></p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-1">Haz clic en el mapa o arrastra el marcador para definir la zona.</p>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Latitud *</label>
-                                <input wire:model="latitude" type="text" placeholder="19.4326"
+                                <input wire:model.live="latitude" type="text" placeholder="19.4326"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 font-mono text-sm font-bold">
                                 @error('latitude') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">{{ $message }}</p> @enderror
                             </div>
                             <div class="space-y-2">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Longitud *</label>
-                                <input wire:model="longitude" type="text" placeholder="-99.1332"
+                                <input wire:model.live="longitude" type="text" placeholder="-99.1332"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 font-mono text-sm font-bold">
                                 @error('longitude') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">{{ $message }}</p> @enderror
                             </div>
@@ -133,4 +185,269 @@
             </div>
         </form>
     </div>
+
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
+    <script>
+        function attendanceZoneMap(bindings) {
+            return {
+                map: null,
+                marker: null,
+                circle: null,
+                lat: bindings.lat,
+                lng: bindings.lng,
+                radius: bindings.radius,
+                searchQuery: '',
+                searching: false,
+                searchResults: [],
+                locating: false,
+                calibrating: false,
+                locationMessage: '',
+                locationMessageType: 'info',
+                defaultLat: 28.1906,
+                defaultLng: -105.4706,
+                init() {
+                    this.loadLeaflet().then(() => this.initMap());
+                },
+                loadLeaflet() {
+                    return new Promise((resolve) => {
+                        if (window.L) {
+                            resolve();
+                            return;
+                        }
+
+                        const cssHref = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                        if (!document.querySelector(`link[href='${cssHref}']`)) {
+                            const link = document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.href = cssHref;
+                            document.head.appendChild(link);
+                        }
+
+                        const existingScript = document.querySelector('script[data-leaflet]');
+                        if (existingScript) {
+                            existingScript.addEventListener('load', resolve, { once: true });
+                            return;
+                        }
+
+                        const script = document.createElement('script');
+                        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                        script.dataset.leaflet = 'true';
+                        script.onload = resolve;
+                        document.head.appendChild(script);
+                    });
+                },
+                initMap() {
+                    const startLat = parseFloat(this.lat) || this.defaultLat;
+                    const startLng = parseFloat(this.lng) || this.defaultLng;
+                    const startRadius = parseInt(this.radius || 100, 10);
+
+                    this.map = L.map(this.$refs.map).setView([startLat, startLng], this.lat && this.lng ? 16 : 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(this.map);
+
+                    this.marker = L.marker([startLat, startLng], { draggable: true }).addTo(this.map);
+                    this.circle = L.circle([startLat, startLng], {
+                        radius: startRadius,
+                        color: '#4f46e5',
+                        weight: 2,
+                        fillColor: '#6366f1',
+                        fillOpacity: 0.16
+                    }).addTo(this.map);
+
+                    this.map.on('click', (event) => this.setPoint(event.latlng.lat, event.latlng.lng, true));
+                    this.marker.on('dragend', () => {
+                        const point = this.marker.getLatLng();
+                        this.setPoint(point.lat, point.lng, true);
+                    });
+
+                    this.$watch('radius', (value) => {
+                        if (this.circle) this.circle.setRadius(parseInt(value || 100, 10));
+                    });
+                    this.$watch('lat', () => this.syncFromInputs());
+                    this.$watch('lng', () => this.syncFromInputs());
+
+                    setTimeout(() => this.map.invalidateSize(), 250);
+                },
+                setPoint(lat, lng, center = false) {
+                    const cleanLat = Number(lat).toFixed(6);
+                    const cleanLng = Number(lng).toFixed(6);
+                    this.lat = cleanLat;
+                    this.lng = cleanLng;
+                    this.marker.setLatLng([cleanLat, cleanLng]);
+                    this.circle.setLatLng([cleanLat, cleanLng]);
+                    if (center) this.map.panTo([cleanLat, cleanLng]);
+                },
+                syncFromInputs() {
+                    const nextLat = parseFloat(this.lat);
+                    const nextLng = parseFloat(this.lng);
+                    if (!this.map || Number.isNaN(nextLat) || Number.isNaN(nextLng)) return;
+
+                    this.marker.setLatLng([nextLat, nextLng]);
+                    this.circle.setLatLng([nextLat, nextLng]);
+                    this.map.panTo([nextLat, nextLng]);
+                },
+                useCurrentLocation() {
+                    if (!navigator.geolocation) {
+                        this.locationMessage = 'Tu navegador no permite geolocalizacion.';
+                        this.locationMessageType = 'error';
+                        return;
+                    }
+
+                    this.locating = true;
+                    this.locationMessage = 'Buscando tu ubicacion actual...';
+                    this.locationMessageType = 'info';
+
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        this.setPoint(lat, lng, true);
+                        this.map.setZoom(17);
+                        this.locationMessage = 'Ubicacion detectada. Ajusta el radio si necesitas ampliar la zona.';
+                        this.locationMessageType = 'info';
+                        this.reverseGeocode(lat, lng);
+                        this.locating = false;
+                    }, () => {
+                        this.locating = false;
+                        this.locationMessage = 'No se pudo obtener tu ubicacion. Revisa permisos de GPS del navegador.';
+                        this.locationMessageType = 'error';
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 12000,
+                        maximumAge: 0
+                    });
+                },
+                getCurrentPosition() {
+                    return new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 15000,
+                            maximumAge: 0
+                        });
+                    });
+                },
+                wait(milliseconds) {
+                    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+                },
+                async calibrateCurrentLocation() {
+                    if (!navigator.geolocation) {
+                        this.locationMessage = 'Tu navegador no permite geolocalizacion.';
+                        this.locationMessageType = 'error';
+                        return;
+                    }
+
+                    this.calibrating = true;
+                    this.locationMessageType = 'info';
+                    const samples = [];
+
+                    try {
+                        for (let index = 1; index <= 6; index++) {
+                            this.locationMessage = `Calibrando GPS ${index}/6. Permanece quieto en la zona...`;
+                            const position = await this.getCurrentPosition();
+                            samples.push({
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                                accuracy: position.coords.accuracy || 999
+                            });
+
+                            if (index < 6) {
+                                await this.wait(900);
+                            }
+                        }
+
+                        const bestSamples = samples
+                            .sort((a, b) => a.accuracy - b.accuracy)
+                            .slice(0, 3);
+                        const totalWeight = bestSamples.reduce((sum, item) => sum + (1 / Math.max(item.accuracy, 1)), 0);
+                        const lat = bestSamples.reduce((sum, item) => sum + item.lat * (1 / Math.max(item.accuracy, 1)), 0) / totalWeight;
+                        const lng = bestSamples.reduce((sum, item) => sum + item.lng * (1 / Math.max(item.accuracy, 1)), 0) / totalWeight;
+                        const bestAccuracy = bestSamples[0]?.accuracy || null;
+
+                        this.setPoint(lat, lng, true);
+                        this.map.setZoom(18);
+                        this.reverseGeocode(lat, lng);
+                        this.locationMessage = bestAccuracy
+                            ? `GPS calibrado con precision aprox. de ${bestAccuracy.toFixed(1)} m. Guarda la zona si el pin esta correcto.`
+                            : 'GPS calibrado. Guarda la zona si el pin esta correcto.';
+                    } catch (error) {
+                        this.locationMessage = 'No se pudo calibrar el GPS. Revisa permisos, señal y vuelve a intentarlo.';
+                        this.locationMessageType = 'error';
+                    } finally {
+                        this.calibrating = false;
+                    }
+                },
+                async reverseGeocode(lat, lng) {
+                    try {
+                        const params = new URLSearchParams({
+                            format: 'json',
+                            lat: Number(lat).toFixed(6),
+                            lon: Number(lng).toFixed(6),
+                            zoom: '18',
+                            addressdetails: '1'
+                        });
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`);
+
+                        if (!response.ok) return;
+
+                        const result = await response.json();
+                        const displayName = result.display_name || '';
+                        if (!displayName) return;
+
+                        this.searchQuery = displayName;
+
+                        if (this.$wire) {
+                            this.$wire.set('address', displayName);
+                        }
+                    } catch (error) {
+                        // La zona queda definida aunque no se pueda resolver la direccion.
+                    }
+                },
+                async searchAddress() {
+                    const query = this.searchQuery.trim();
+                    if (!query) {
+                        this.searchResults = [];
+                        return;
+                    }
+
+                    this.searching = true;
+
+                    try {
+                        const params = new URLSearchParams({
+                            format: 'json',
+                            limit: '5',
+                            addressdetails: '1',
+                            q: query
+                        });
+                        const response = await fetch(`https://nominatim.openstreetmap.org/search?${params.toString()}`);
+
+                        if (!response.ok) {
+                            this.searchResults = [];
+                            return;
+                        }
+
+                        this.searchResults = await response.json();
+                    } catch (error) {
+                        this.searchResults = [];
+                    } finally {
+                        this.searching = false;
+                    }
+                },
+                selectSearchResult(result) {
+                    this.searchResults = [];
+                    this.searchQuery = result.display_name || '';
+                    this.setPoint(parseFloat(result.lat), parseFloat(result.lon), true);
+                    this.map.setZoom(17);
+
+                    if (this.$wire) {
+                        this.$wire.set('address', this.searchQuery);
+                    }
+                }
+            };
+        }
+    </script>
 </div>

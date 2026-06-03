@@ -227,7 +227,7 @@
                         </div>
                     </div>
                     <div class="p-6 lg:p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-slate-600">{{ $type === 'service' ? 'Costo base *' : 'Precio de compra *' }}</label>
                                 <div class="relative group">
@@ -238,18 +238,7 @@
                                 @error('purchase_price') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-slate-600">Gastos de operación *</label>
-                                <div class="relative">
-                                    <input wire:model.live="operational_costs" type="number" step="0.1" min="0" max="99"
-                                        class="w-full bg-slate-50 border-none rounded-xl px-4 py-3 text-lg font-bold text-slate-800 focus:ring-2 focus:ring-amber-500/20">
-                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">%</span>
-                                </div>
-                                <p class="text-[9px] text-slate-400">Precio mínimo: <span class="font-bold text-amber-600">${{ number_format($this->minSalePrice, 2) }}</span></p>
-                                @error('operational_costs') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
-                            </div>
-
-                            <div class="space-y-2">
+<div class="space-y-2">
                                 <label class="text-xs font-bold text-slate-600">Margen de utilidad *</label>
                                 <div class="relative">
                                     <input wire:model.live="profit_margin" type="number" step="0.1"

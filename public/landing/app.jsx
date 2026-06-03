@@ -1,14 +1,20 @@
 const App = () => {
-  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+  const getSize = () => {
+    const w = window.innerWidth;
+    if (w < 768) return 'mobile';
+    if (w < 1100) return 'tablet';
+    return 'desktop';
+  };
+  const [size, setSize] = React.useState(getSize());
   React.useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth < 768);
+    const handler = () => setSize(getSize());
     window.addEventListener('resize', handler);
     return () => window.removeEventListener('resize', handler);
   }, []);
   return (
     <div style={{ position: 'relative' }}>
       <SplashScreen />
-      {isMobile ? (
+      {size === 'mobile' ? (
         <>
           <HeroMobile />
           <NosotrosMobile />
@@ -21,7 +27,7 @@ const App = () => {
         <>
           <HeroDesktop />
           <OfertaDesktop />
-          <NosotrosDesktop />
+          <NosotrosDesktop size={size} />
           <ServiciosDesktop />
           <GaleriaDesktop />
           <ContactoDesktop />

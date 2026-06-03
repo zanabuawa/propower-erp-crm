@@ -15,15 +15,17 @@ class SaleInvoice extends Model
     protected $fillable = [
         'company_id', 'sale_order_id', 'customer_id', 'created_by',
         'folio', 'cfdi_uuid', 'facturapi_id', 'cfdi_xml', 'cfdi_pdf', 'type', 'currency',
-        'status', 'payment_method', 'subtotal', 'discount_amount', 'ieps', 'tax',
+        'status', 'approval_status', 'approval_id',
+        'payment_method', 'subtotal', 'global_discount_pct', 'discount_amount', 'ieps', 'tax',
         'total', 'paid_amount', 'notes', 'issued_at', 'due_at',
         'reminder_sent_at', 'reminder_count',
     ];
 
     protected $casts = [
-        'subtotal'        => 'decimal:2',
-        'discount_amount' => 'decimal:2',
-        'ieps'            => 'decimal:2',
+        'subtotal'            => 'decimal:2',
+        'global_discount_pct' => 'decimal:4',
+        'discount_amount'     => 'decimal:2',
+        'ieps'                => 'decimal:2',
         'tax'             => 'decimal:2',
         'total'           => 'decimal:2',
         'paid_amount'     => 'decimal:2',

@@ -1,4 +1,4 @@
-<div class="max-w-5xl space-y-5">
+<div class="space-y-5">
 
     {{-- ── HEADER ───────────────────────────────────────────────────────────── --}}
     <div class="flex items-start justify-between gap-3">

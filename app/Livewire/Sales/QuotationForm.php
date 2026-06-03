@@ -10,6 +10,7 @@ use App\Models\SaleQuotation;
 use App\Models\User;
 use App\Notifications\DiscountApprovalNotification;
 use Illuminate\Support\Facades\DB;
+use App\Traits\HandlesDiscountTier;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\On;
@@ -17,6 +18,8 @@ use Livewire\Attributes\On;
 #[Layout('layouts.app')]
 class QuotationForm extends Component
 {
+    use HandlesDiscountTier;
+
     public ?int $customer_id = null;
     public ?int $price_list_id = null;
     public string $currency = 'MXN';
@@ -36,18 +39,16 @@ class QuotationForm extends Component
     private static function blankItem(): array
     {
         return [
-            'product_id'         => null,
-            'description'        => '',
-            'quantity'           => 1,
-            'unit_price'         => 0,
-            'discount_pct'       => 0,
-            'tax_rate'           => 16,
-            'ieps_rate'          => 0,
-            'unit'               => '',
-            'notes'              => '',
-            'min_sale_price'     => 0,
-            'max_discount_pct'   => 100,
-            'global_discount_cap'=> 100,
+            'product_id'       => null,
+            'description'      => '',
+            'quantity'         => 1,
+            'unit_price'       => 0,
+            'discount_pct'     => 0,
+            'tax_rate'         => 16,
+            'unit'             => '',
+            'notes'            => '',
+            'min_sale_price'   => 0,
+            'max_discount_pct' => 100,
         ];
     }
 
@@ -87,6 +88,14 @@ class QuotationForm extends Component
         $this->addProduct($productId);
     }
 
+    #[On('products-picked')]
+    public function productsPicked(array $productIds): void
+    {
+        foreach ($productIds as $productId) {
+            $this->addProduct((int) $productId);
+        }
+    }
+
     public function addProduct(int $productId): void
     {
         $product = Product::find($productId);
@@ -100,28 +109,23 @@ class QuotationForm extends Component
             if ($listPrice) $price = $listPrice;
         }
 
-        $cost             = (float) $product->purchase_price;
-        $opDiv            = 1 - (float)$product->operational_costs / 100;
-        $minSalePrice     = $opDiv > 0 ? round($cost / $opDiv, 2) : 0;
-        $maxDiscountPct   = $price > 0
-            ? round(max(0, ($price - $minSalePrice) / $price * 100), 4)
-            : 0;
-        // Cap global = (margen_utilidad + gastos_op) / 2
-        $globalDiscountCap = round(((float)$product->profit_margin + (float)$product->operational_costs) / 2, 4);
+        $fields = $this->resolveItemDiscountFields(
+            $price,
+            (float) $product->purchase_price,
+            (float) $product->operational_costs
+        );
 
         $this->items[] = [
-            'product_id'          => $product->id,
-            'description'         => $product->name,
-            'quantity'            => 1,
-            'unit_price'          => $price,
-            'discount_pct'        => 0,
-            'tax_rate'            => 16,
-            'ieps_rate'           => (float) $product->ieps_rate,
-            'unit'                => $product->unitOfMeasure?->abbreviation ?? '',
-            'notes'               => '',
-            'min_sale_price'      => $minSalePrice,
-            'max_discount_pct'    => $maxDiscountPct,
-            'global_discount_cap' => $globalDiscountCap,
+            'product_id'       => $product->id,
+            'description'      => $product->name,
+            'quantity'         => 1,
+            'unit_price'       => $price,
+            'discount_pct'     => 0,
+            'tax_rate'         => 16,
+            'unit'             => $product->unitOfMeasure?->abbreviation ?? '',
+            'notes'            => '',
+            'min_sale_price'   => $fields['min_sale_price'],
+            'max_discount_pct' => $fields['max_discount_pct'],
         ];
 
         $this->productSearch  = '';
@@ -160,43 +164,26 @@ class QuotationForm extends Component
 
     public function getDiscountProperty(): float
     {
-        $itemDiscount = collect($this->items)->sum(
-            fn($i) =>
+        $itemDiscount = collect($this->items)->sum(fn($i) =>
             ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (($i['discount_pct'] ?? 0) / 100)
         );
-        $globalDiscount = $this->subtotal * ((float) $this->global_discount / 100);
+        // Descuento global aplicado sobre el neto post-descuento de línea
+        $netSubtotal    = $this->subtotal - $itemDiscount;
+        $globalDiscount = $netSubtotal * ((float) $this->global_discount / 100);
         return $itemDiscount + $globalDiscount;
-    }
-
-    public function getIepsProperty(): float
-    {
-        return collect($this->items)->sum(function ($i) {
-            $base = ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (1 - ($i['discount_pct'] ?? 0) / 100);
-            return $base * (($i['ieps_rate'] ?? 0) / 100);
-        });
     }
 
     public function getTaxProperty(): float
     {
-        // IVA se calcula sobre (base + IEPS)
         return collect($this->items)->sum(function ($i) {
             $base = ($i['quantity'] ?? 0) * ($i['unit_price'] ?? 0) * (1 - ($i['discount_pct'] ?? 0) / 100);
-            $ieps = $base * (($i['ieps_rate'] ?? 0) / 100);
-            return ($base + $ieps) * (($i['tax_rate'] ?? 0) / 100);
+            return $base * (($i['tax_rate'] ?? 0) / 100);
         });
     }
 
     public function getTotalProperty(): float
     {
-        return $this->subtotal - $this->discount + $this->ieps + $this->tax;
-    }
-
-    /** Cap del descuento global sin autorización = mínimo de (margen+gastos_op)/2 entre todos los ítems. */
-    public function getMaxGlobalDiscountCapProperty(): float
-    {
-        if (empty($this->items)) return 100;
-        $caps = collect($this->items)->pluck('global_discount_cap')->filter(fn($v) => $v < 100);
-        return $caps->isEmpty() ? 100 : (float) $caps->min();
+        return $this->subtotal - $this->discount + $this->tax;
     }
 
     public string $approvalNotes  = '';
@@ -216,54 +203,17 @@ class QuotationForm extends Component
             'items.*.unit_price'    => 'required|numeric|min:0',
             'items.*.discount_pct'  => 'required|numeric|min:0|max:100',
             'items.*.tax_rate'      => 'required|numeric|min:0|max:100',
-            'items.*.ieps_rate'     => 'required|numeric|min:0|max:100',
         ];
-    }
-
-    /**
-     * Verifica límites de descuento.
-     * Retorna ['exceeds'=>bool, 'requested'=>float, 'max_allowed'=>float]
-     */
-    private function checkDiscountLimits(): array
-    {
-        $globalDisc = (float) $this->global_discount;
-        $globalCap  = $this->maxGlobalDiscountCap;
-
-        // 1. Descuento global supera el cap permitido sin autorización
-        if ($globalDisc > $globalCap) {
-            $this->exceedingMaxPct = $globalCap;
-            return ['exceeds' => true, 'requested' => $globalDisc, 'max_allowed' => $globalCap];
-        }
-
-        foreach ($this->items as $item) {
-            $minPrice  = (float) ($item['min_sale_price'] ?? 0);
-            $unitPrice = (float) ($item['unit_price'] ?? 0);
-            $discPct   = (float) ($item['discount_pct'] ?? 0);
-            $maxPct    = (float) ($item['max_discount_pct'] ?? 100);
-
-            // 2. Descuento por línea excede su máximo individual
-            if ($discPct > $maxPct) {
-                $this->exceedingMaxPct = $maxPct;
-                return ['exceeds' => true, 'requested' => $discPct, 'max_allowed' => $maxPct];
-            }
-
-            // 3. Precio efectivo combinado (línea + global) cae por debajo del precio mínimo
-            if ($unitPrice > 0 && $minPrice > 0) {
-                $effectivePrice = $unitPrice * (1 - $discPct / 100) * (1 - $globalDisc / 100);
-                if ($effectivePrice < $minPrice) {
-                    $effectivePct = round((1 - (1 - $discPct / 100) * (1 - $globalDisc / 100)) * 100, 2);
-                    $this->exceedingMaxPct = $maxPct;
-                    return ['exceeds' => true, 'requested' => $effectivePct, 'max_allowed' => $maxPct];
-                }
-            }
-        }
-
-        return ['exceeds' => false, 'requested' => 0.0, 'max_allowed' => 0.0];
     }
 
     public function save(bool $forceApproval = false): void
     {
         $this->validate();
+
+        if ($this->isAbsoluteFloorBreached()) {
+            $this->addError('global_discount', 'El descuento excede el precio mínimo permitido (costo + gastos operativos). No es posible guardar.');
+            return;
+        }
 
         $limitCheck   = $this->checkDiscountLimits();
         $exceedsLimit = $limitCheck['exceeds'];
@@ -290,11 +240,11 @@ class QuotationForm extends Component
                 'currency'        => $this->currency,
                 'status'          => 'draft',
                 'approval_status' => $exceedsLimit ? 'pending' : null,
-                'subtotal'        => $this->subtotal,
-                'discount_amount' => $this->discount,
-                'ieps'            => $this->ieps,
-                'tax'             => $this->tax,
-                'total'           => $this->total,
+                'subtotal'            => $this->subtotal,
+                'global_discount_pct' => (float) $this->global_discount,
+                'discount_amount'     => $this->discount,
+                'tax'                 => $this->tax,
+                'total'               => $this->total,
                 'valid_days'      => $this->valid_days,
                 'valid_until'     => now()->addDays((int) $this->valid_days),
                 'notes'           => $this->notes,
@@ -305,8 +255,7 @@ class QuotationForm extends Component
                 $base    = $item['quantity'] * $item['unit_price'];
                 $discAmt = $base * ($item['discount_pct'] / 100);
                 $baseNet = $base - $discAmt;
-                $iepsAmt = $baseNet * ($item['ieps_rate'] / 100);
-                $taxAmt  = ($baseNet + $iepsAmt) * ($item['tax_rate'] / 100);
+                $taxAmt  = $baseNet * ($item['tax_rate'] / 100);
 
                 $quotation->items()->create([
                     'product_id'      => $item['product_id'],
@@ -315,10 +264,8 @@ class QuotationForm extends Component
                     'unit_price'      => $item['unit_price'],
                     'discount_pct'    => $item['discount_pct'],
                     'discount_amount' => $discAmt,
-                    'ieps_rate'       => $item['ieps_rate'],
-                    'ieps_amount'     => $iepsAmt,
                     'tax_rate'        => $item['tax_rate'],
-                    'subtotal'        => $baseNet + $iepsAmt + $taxAmt,
+                    'subtotal'        => $baseNet + $taxAmt,
                     'unit'            => $item['unit'] ?: null,
                     'notes'           => $item['notes'] ?: null,
                 ]);

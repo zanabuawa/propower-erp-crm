@@ -64,6 +64,14 @@ class PriceListForm extends Component
             ->toArray();
     }
 
+    #[On('products-picked')]
+    public function productsPicked(array $productIds): void
+    {
+        foreach ($productIds as $productId) {
+            $this->addProduct((int) $productId);
+        }
+    }
+
     #[On('product-picked')]
     public function addProduct(int $productId): void
     {

@@ -63,4 +63,9 @@ class HrJobOpening extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUSES[$this->status] ?? $this->status;
+    }
 }

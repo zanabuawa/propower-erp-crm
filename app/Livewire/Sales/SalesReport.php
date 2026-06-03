@@ -45,7 +45,7 @@ class SalesReport extends Component
         if ($this->sortBy === $column) {
             $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
         } else {
-            $this->sortBy = $column;
+            $this->sortBy  = $column;
             $this->sortDir = 'desc';
         }
         $this->resetPage();
@@ -77,12 +77,9 @@ class SalesReport extends Component
         return auth()->user()->company_id;
     }
 
-    #[Computed]
-    public function rows()
+    // Rows are resolved in render() — NOT as #[Computed] — to ensure pagination works correctly.
+    private function resolveRows(string $from, string $to)
     {
-        $from = $this->dateFrom . ' 00:00:00';
-        $to   = $this->dateTo   . ' 23:59:59';
-
         return match ($this->reportType) {
             'invoices'   => $this->invoiceRows($from, $to),
             'orders'     => $this->orderRows($from, $to),
@@ -164,9 +161,8 @@ class SalesReport extends Component
     private function productRows(string $from, string $to)
     {
         $sortMap = [
-            'total'    => 'total_revenue',
-            'qty'      => 'total_qty',
-            'customer' => 'description',
+            'total' => 'total_revenue',
+            'qty'   => 'total_qty',
         ];
         $col = $sortMap[$this->sortBy] ?? 'total_revenue';
 
@@ -207,31 +203,35 @@ class SalesReport extends Component
             return ['total_revenue' => (float)$sub->total_revenue, 'total_qty' => (float)$sub->total_qty];
         }
 
-        $model = match($this->reportType) {
-            'invoices'   => SaleInvoice::where('sale_invoices.company_id', $this->cid())
-                                ->whereBetween('sale_invoices.issued_at', [$from, $to])
-                                ->when($this->status, fn($q) => $q->where('status', $this->status))
-                                ->when($this->customerId, fn($q) => $q->where('customer_id', $this->customerId))
-                                ->when($this->vendorId, fn($q) => $q->where('created_by', $this->vendorId)),
-            'orders'     => SaleOrder::where('sale_orders.company_id', $this->cid())
-                                ->whereBetween('sale_orders.created_at', [$from, $to])
-                                ->when($this->status, fn($q) => $q->where('status', $this->status))
-                                ->when($this->customerId, fn($q) => $q->where('customer_id', $this->customerId))
-                                ->when($this->vendorId, fn($q) => $q->where('created_by', $this->vendorId)),
-            'quotations' => SaleQuotation::where('sale_quotations.company_id', $this->cid())
-                                ->whereBetween('sale_quotations.created_at', [$from, $to])
-                                ->when($this->status, fn($q) => $q->where('status', $this->status))
-                                ->when($this->customerId, fn($q) => $q->where('customer_id', $this->customerId))
-                                ->when($this->vendorId, fn($q) => $q->where('created_by', $this->vendorId)),
+        $query = match($this->reportType) {
+            'invoices' => SaleInvoice::where('company_id', $this->cid())
+                ->whereNotIn('status', ['cancelled'])
+                ->whereBetween('issued_at', [$from, $to])
+                ->when($this->status,     fn($q) => $q->where('status', $this->status))
+                ->when($this->customerId, fn($q) => $q->where('customer_id', $this->customerId))
+                ->when($this->vendorId,   fn($q) => $q->where('created_by', $this->vendorId))
+                ->selectRaw('count(*) as qty, coalesce(sum(total),0) as total, coalesce(sum(discount_amount),0) as discount, coalesce(sum(tax),0) as tax'),
+            'orders' => SaleOrder::where('company_id', $this->cid())
+                ->whereNotIn('status', ['cancelled'])
+                ->whereBetween('created_at', [$from, $to])
+                ->when($this->status,     fn($q) => $q->where('status', $this->status))
+                ->when($this->customerId, fn($q) => $q->where('customer_id', $this->customerId))
+                ->when($this->vendorId,   fn($q) => $q->where('created_by', $this->vendorId))
+                ->selectRaw('count(*) as qty, coalesce(sum(total),0) as total, coalesce(sum(discount_amount),0) as discount, coalesce(sum(tax),0) as tax'),
+            'quotations' => SaleQuotation::where('company_id', $this->cid())
+                ->whereBetween('created_at', [$from, $to])
+                ->when($this->status,     fn($q) => $q->where('status', $this->status))
+                ->when($this->customerId, fn($q) => $q->where('customer_id', $this->customerId))
+                ->when($this->vendorId,   fn($q) => $q->where('created_by', $this->vendorId))
+                ->selectRaw('count(*) as qty, coalesce(sum(total),0) as total, coalesce(sum(discount_amount),0) as discount, coalesce(sum(tax),0) as tax'),
             default => null,
         };
 
-        if (!$model) return [];
+        if (!$query) return [];
 
-        $agg = $model->selectRaw('count(*) as qty, coalesce(sum(total),0) as total, coalesce(sum(discount_amount),0) as discount, coalesce(sum(tax),0) as tax')->first();
-
+        $agg = $query->first();
         return [
-            'qty'      => (int)$agg->qty,
+            'qty'      => (int)  $agg->qty,
             'total'    => (float)$agg->total,
             'discount' => (float)$agg->discount,
             'tax'      => (float)$agg->tax,
@@ -240,16 +240,21 @@ class SalesReport extends Component
 
     public function render()
     {
+        $from = $this->dateFrom . ' 00:00:00';
+        $to   = $this->dateTo   . ' 23:59:59';
+
+        $rows = $this->resolveRows($from, $to);
+
         $customers = Customer::where('company_id', $this->cid())->orderBy('name')->get(['id','name']);
         $vendors   = User::where('company_id', $this->cid())->orderBy('name')->get(['id','name']);
 
         $statusOptions = match($this->reportType) {
-            'invoices'   => \App\Models\SaleInvoice::STATUS,
-            'orders'     => \App\Models\SaleOrder::STATUS,
-            'quotations' => \App\Models\SaleQuotation::STATUS,
+            'invoices'   => SaleInvoice::STATUS,
+            'orders'     => SaleOrder::STATUS,
+            'quotations' => SaleQuotation::STATUS,
             default      => [],
         };
 
-        return view('livewire.sales.sales-report', compact('customers', 'vendors', 'statusOptions'));
+        return view('livewire.sales.sales-report', compact('customers', 'vendors', 'statusOptions', 'rows'));
     }
 }

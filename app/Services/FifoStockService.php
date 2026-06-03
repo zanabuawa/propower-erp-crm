@@ -222,6 +222,127 @@ class FifoStockService
         return [$qty, 0.0];
     }
 
+    // ── Lotes: transferencia entre almacenes ────────────────────────────────────
+
+    /**
+     * Mueve lotes PEPS de un almacén origen a uno destino preservando toda la
+     * información del lote original. Si el número de lote ya existe en destino
+     * se le agrega sufijo "T" (o "T1", "T2"...) para indicar que proviene de
+     * una transferencia y evitar colisiones.
+     *
+     * @param string $movementTypeOut  Tipo kardex para la salida  (p.ej. 'transfer_out')
+     * @param string $movementTypeIn   Tipo kardex para la entrada (p.ej. 'transfer_in')
+     */
+    public function moveLotsBetweenWarehouses(
+        int        $companyId,
+        int        $productId,
+        int        $originWarehouseId,
+        int        $destinationWarehouseId,
+        float      $quantity,
+        string     $reference        = '',
+        string     $movementTypeOut  = 'transfer_out',
+        string     $movementTypeIn   = 'transfer_in',
+        string     $notes            = '',
+        ?\DateTime $movedAt          = null
+    ): void {
+        $allocations = $this->suggestAllocations($productId, $originWarehouseId, $quantity);
+
+        if (empty($allocations)) {
+            return;
+        }
+
+        $this->consumeLots(
+            allocations:    $allocations,
+            unitSalePrice:  0,
+            movementType:   $movementTypeOut,
+            reference:      $reference,
+            companyId:      $companyId,
+            warehouseId:    $originWarehouseId,
+            movedAt:        $movedAt ?? now(),
+            notes:          $notes,
+        );
+
+        foreach ($allocations as $alloc) {
+            $qty = (float) ($alloc['quantity'] ?? 0);
+            if ($qty <= 0) continue;
+
+            $sourceLot = ProductLot::find($alloc['lot_id']);
+            $unitCost  = (float) ($alloc['unit_cost'] ?? ($sourceLot?->unit_cost ?? 0));
+
+            $lotNumber = $this->resolveTransferLotNumber(
+                $alloc['lot_number'],
+                $companyId,
+                $destinationWarehouseId
+            );
+            $barcode = ProductLot::generateBarcode($companyId, $productId);
+
+            $newLot = ProductLot::create([
+                'company_id'       => $companyId,
+                'product_id'       => $productId,
+                'warehouse_id'     => $destinationWarehouseId,
+                'lot_number'       => $lotNumber,
+                'barcode'          => $barcode,
+                'initial_quantity' => $qty,
+                'quantity'         => $qty,
+                'unit_cost'        => $unitCost,
+                'entry_date'       => today(),
+                'expiry_date'      => $sourceLot?->expiry_date,
+                'reference'        => $reference ?: null,
+                'status'           => 'active',
+                'notes'            => $notes ?: null,
+            ]);
+
+            [$balanceQty, $balanceVal] = $this->currentBalance($productId, $destinationWarehouseId);
+
+            $this->recordKardex(
+                companyId:    $companyId,
+                productId:    $productId,
+                lotId:        $newLot->id,
+                warehouseId:  $destinationWarehouseId,
+                movementType: $movementTypeIn,
+                direction:    'in',
+                quantity:     $qty,
+                unitCost:     $unitCost,
+                unitPrice:    null,
+                reference:    $reference,
+                lotNumber:    $lotNumber,
+                balanceQty:   $balanceQty,
+                balanceVal:   $balanceVal,
+                notes:        $notes,
+                movedAt:      $movedAt ?? now(),
+            );
+        }
+    }
+
+    /**
+     * Resuelve el número de lote para destino evitando colisiones.
+     * Primero intenta el número original; si existe, agrega "T",
+     * y si también existe, prueba "T1", "T2", etc.
+     */
+    private function resolveTransferLotNumber(
+        string $baseLotNumber,
+        int    $companyId,
+        int    $warehouseId
+    ): string {
+        $exists = fn(string $n) => ProductLot::where('company_id', $companyId)
+            ->where('warehouse_id', $warehouseId)
+            ->where('lot_number', $n)
+            ->exists();
+
+        // Lotes por transferencia siempre llevan sufijo T
+        $candidate = $baseLotNumber . 'T';
+        if (!$exists($candidate)) {
+            return $candidate;
+        }
+
+        $i = 1;
+        while ($exists($baseLotNumber . 'T' . $i)) {
+            $i++;
+        }
+
+        return $baseLotNumber . 'T' . $i;
+    }
+
     // ── Interno: crear asiento en kardex ─────────────────────────────────────
 
     private function recordKardex(

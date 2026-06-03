@@ -156,7 +156,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <livewire:shared.product-picker />
+                            <livewire:shared.product-picker :multi-select="true" />
                         </div>
                     </div>
 
@@ -200,7 +200,6 @@
                                         <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24 text-center">Cant.</th>
                                         <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-32">Precio Unit.</th>
                                         <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-24 text-center">Desc %</th>
-                                        <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-20 text-center">IEPS</th>
                                         <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-20 text-center">IVA</th>
                                         <th class="px-5 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest w-32 text-right">Subtotal</th>
                                         <th class="w-12"></th>
@@ -212,7 +211,6 @@
                                             $unitPrice    = (float)($item['unit_price'] ?? 0);
                                             $qty          = (float)($item['quantity'] ?? 0);
                                             $discPct      = (float)($item['discount_pct'] ?? 0);
-                                            $iepsPct      = (float)($item['ieps_rate'] ?? 0);
                                             $taxPct       = (float)($item['tax_rate'] ?? 0);
                                             $minPrice     = (float)($item['min_sale_price'] ?? 0);
                                             $maxDiscPct   = (float)($item['max_discount_pct'] ?? 100);
@@ -225,9 +223,8 @@
                                             $base    = $qty * $unitPrice;
                                             $disc    = $base * ($discPct / 100);
                                             $baseNet = $base - $disc;
-                                            $ieps    = $baseNet * ($iepsPct / 100);
-                                            $tax     = ($baseNet + $ieps) * ($taxPct / 100);
-                                            $lineTotal = $baseNet + $ieps + $tax;
+                                            $tax     = $baseNet * ($taxPct / 100);
+                                            $lineTotal = $baseNet + $tax;
                                         @endphp
                                         <tr class="{{ $discExceeded ? "bg-rose-50/50" : "hover:bg-slate-50/50" }} transition-colors">
                                             <td class="px-5 py-3">
@@ -269,11 +266,6 @@
                                                 </div>
                                             </td>
                                             <td class="px-5 py-3 text-center">
-                                                <input wire:model.live="items.{{ $index }}.ieps_rate" type="number" step="0.01" min="0" max="100"
-                                                    class="w-10 border-none focus:ring-0 p-0 text-[10px] font-black text-center text-orange-600 bg-transparent placeholder-slate-200"
-                                                    placeholder="0">
-                                            </td>
-                                            <td class="px-5 py-3 text-center">
                                                 <div class="flex items-center justify-center gap-0.5">
                                                     <input wire:model.live="items.{{ $index }}.tax_rate" type="number" step="0.01" min="0"
                                                         class="w-10 border-none focus:ring-0 p-0 text-[10px] font-black text-center text-slate-600 bg-transparent">
@@ -307,12 +299,6 @@
                                 <div class="flex items-center gap-10">
                                     <span class="text-[11px] font-bold text-rose-400 uppercase tracking-widest">Descuento:</span>
                                     <span class="text-sm font-black text-rose-600">- ${{ number_format($this->discount, 2) }}</span>
-                                </div>
-                            @endif
-                            @if($this->ieps > 0)
-                                <div class="flex items-center gap-10">
-                                    <span class="text-[11px] font-bold text-orange-400 uppercase tracking-widest">IEPS:</span>
-                                    <span class="text-sm font-bold text-orange-600">+ ${{ number_format($this->ieps, 2) }}</span>
                                 </div>
                             @endif
                             <div class="flex items-center gap-10">

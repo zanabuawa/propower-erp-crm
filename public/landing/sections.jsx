@@ -255,53 +255,66 @@ const OfertaDesktop = () => (
 );
 
 // ==================== NOSOTROS ====================
-const NosotrosDesktop = () => (
-  <section id="nosotros" style={{ padding: '120px 56px', background: '#0a0a0a', color: '#fff' }}>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 80 }}>
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: 20 }}>
-          ¿Quiénes somos?
-        </div>
-        <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: 64, lineHeight: 0.98, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
-          100%<br/>mexicana.<br/><span style={{ color: 'var(--pp-red)' }}>Siempre a la</span><br/>vanguardia.
-        </h2>
-        <div style={{ marginTop: 40, fontFamily: 'Archivo Narrow, sans-serif', fontSize: 18, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, letterSpacing: '0.02em' }}>
-          Desde 2018 · Chihuahua · México
-        </div>
-      </div>
-      <div>
-        <p style={{ fontSize: 19, lineHeight: 1.65, color: 'rgba(255,255,255,0.85)', margin: 0 }}>
-          <strong style={{ color: '#fff' }}>ProPower Electroconstrucciones</strong> es una empresa 100% mexicana
-          especializada en servicios electromecánicos industriales y comerciales.
-        </p>
-        <p style={{ fontSize: 17, lineHeight: 1.65, color: 'rgba(255,255,255,0.7)', marginTop: 22 }}>
-          Nuestro equipo, ambicioso y con un fuerte espíritu de trabajo, se mantiene siempre a la vanguardia,
-          con el objetivo de ofrecer a nuestros clientes seguridad y calidad en cada proyecto.
-        </p>
+const MVV = [
+  { t: 'Misión', d: 'Ser la mejor opción en electroconstrucciones del segmento comercial e industrial, ofreciendo servicios profesionales de mantenimiento, instalación e integración de proyectos apegados estrictamente a los estándares y normas de calidad de nuestros clientes, comprometidos con la calidad e inmersos en un proceso de mejora continua.' },
+  { t: 'Visión', d: 'Ser líderes en la venta de material y equipo eléctrico, así como en la prestación de servicios profesionales de mantenimiento, instalación e integración de proyectos en el ámbito comercial e industrial en la región norte del país.' },
+];
 
-        {/* Misión / Visión / Valores */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0, marginTop: 48, border: '1px solid rgba(255,255,255,0.15)' }}>
-          {[
-            { t: 'Misión', d: 'Entregar soluciones electromecánicas con garantía y seguridad, superando las expectativas de cada cliente.' },
-            { t: 'Visión', d: 'Ser el contratista de referencia en el norte de México en electroconstrucciones industriales.' },
-            { t: 'Valores', d: 'Compromiso, responsabilidad y honestidad en cada obra y en cada relación.' },
-          ].map((m, i) => (
-            <div key={m.t} style={{ padding: '24px 22px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 14 }}>0{i+1} · {m.t}</div>
-              <p style={{ fontSize: 14, lineHeight: 1.55, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
+const NosotrosDesktop = ({ size = 'desktop' }) => {
+  const isTablet = size === 'tablet';
+  return (
+    <section id="nosotros" style={{ padding: isTablet ? '80px 40px' : '120px 56px', background: '#0a0a0a', color: '#fff' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1.2fr', gap: isTablet ? 40 : 80 }}>
+        {/* Columna izquierda: título */}
+        <div style={{ display: isTablet ? 'flex' : 'block', alignItems: isTablet ? 'flex-end' : undefined, justifyContent: isTablet ? 'space-between' : undefined, flexWrap: 'wrap', gap: 24 }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', color: 'var(--pp-red)', fontFamily: 'JetBrains Mono, monospace', marginBottom: isTablet ? 14 : 20 }}>
+              ¿Quiénes somos?
             </div>
-          ))}
+            <h2 style={{ fontFamily: 'Archivo, sans-serif', fontWeight: 800, fontSize: isTablet ? 44 : 64, lineHeight: 0.98, letterSpacing: '-0.03em', margin: 0, textTransform: 'uppercase' }}>
+              100%<br/>mexicana.<br/><span style={{ color: 'var(--pp-red)' }}>Siempre a la</span><br/>vanguardia.
+            </h2>
+          </div>
+          <div style={{ marginTop: isTablet ? 0 : 40, fontFamily: 'Archivo Narrow, sans-serif', fontSize: isTablet ? 15 : 18, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, letterSpacing: '0.02em' }}>
+            Desde 2018 · Chihuahua · México
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 28, marginTop: 40, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.18em', color: 'rgba(255,255,255,0.5)' }}>
-          <span style={{ color: 'var(--pp-red)' }}>✦ Compromiso</span>
-          <span style={{ color: 'var(--pp-red)' }}>✦ Responsabilidad</span>
-          <span style={{ color: 'var(--pp-red)' }}>✦ Honestidad</span>
+        {/* Columna derecha: descripción + misión/visión */}
+        <div>
+          <p style={{ fontSize: isTablet ? 16 : 19, lineHeight: 1.65, color: 'rgba(255,255,255,0.85)', margin: 0 }}>
+            <strong style={{ color: '#fff' }}>ProPower Electroconstrucciones</strong> es una empresa 100% mexicana
+            especializada en servicios electromecánicos industriales y comerciales.
+          </p>
+          <p style={{ fontSize: isTablet ? 14 : 17, lineHeight: 1.65, color: 'rgba(255,255,255,0.7)', marginTop: 18 }}>
+            Nuestro equipo, ambicioso y con un fuerte espíritu de trabajo, se mantiene siempre a la vanguardia,
+            con el objetivo de ofrecer a nuestros clientes seguridad y calidad en cada proyecto.
+          </p>
+
+          {/* Misión / Visión */}
+          <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: 0, marginTop: isTablet ? 28 : 40, border: '1px solid rgba(255,255,255,0.15)' }}>
+            {MVV.map((m, i) => (
+              <div key={m.t} style={{
+                padding: isTablet ? '18px 16px' : '22px 20px',
+                borderRight: !isTablet && i < 1 ? '1px solid rgba(255,255,255,0.15)' : 'none',
+                borderBottom: isTablet && i < 1 ? '1px solid rgba(255,255,255,0.15)' : 'none',
+              }}>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 8 }}>0{i+1} · {m.t}</div>
+                <p style={{ fontSize: isTablet ? 12 : 12.5, lineHeight: 1.6, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: isTablet ? 16 : 28, marginTop: isTablet ? 24 : 40, flexWrap: 'wrap', fontFamily: 'JetBrains Mono, monospace', fontSize: isTablet ? 10 : 12, textTransform: 'uppercase', letterSpacing: '0.18em' }}>
+            <span style={{ color: 'var(--pp-red)' }}>✦ Compromiso</span>
+            <span style={{ color: 'var(--pp-red)' }}>✦ Responsabilidad</span>
+            <span style={{ color: 'var(--pp-red)' }}>✦ Honestidad</span>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 // ==================== SERVICIOS ====================
 const SERVICES_INDUSTRIA = [
@@ -674,7 +687,14 @@ const Footer = () => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
       <div>© 2026 ProPower Electroconstrucciones — Todos los derechos reservados.</div>
       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-        <a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Aviso de Privacidad</a>
+        <a
+          href="/aviso-de-privacidad"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 9, minHeight: 34, padding: '0 14px', border: '1px solid rgba(255,255,255,0.16)', borderBottomColor: 'rgba(200,30,30,0.8)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.78)', fontFamily: 'JetBrains Mono, monospace', fontSize: 10.5, letterSpacing: '0.1em', textDecoration: 'none', textTransform: 'uppercase', transition: 'color 0.2s ease, border-color 0.2s ease, background 0.2s ease' }}
+          onMouseOver={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(200,30,30,0.75)'; e.currentTarget.style.background = 'rgba(200,30,30,0.08)'; }}
+          onMouseOut={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.78)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'; e.currentTarget.style.borderBottomColor = 'rgba(200,30,30,0.8)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+        >
+          Aviso de Privacidad <span style={{ color: 'var(--pp-red)', fontSize: 12 }}>→</span>
+        </a>
         <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.15)' }} />
         <a href="https://wa.me/526141666340" target="_blank" rel="noopener" aria-label="WhatsApp" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
@@ -700,13 +720,13 @@ const NosotrosMobile = () => (
     </p>
     <div style={{ display: 'grid', gap: 0, marginTop: 24, border: '1px solid rgba(255,255,255,0.15)' }}>
       {[
-        { t: 'Misión', d: 'Entregar soluciones con garantía y seguridad.' },
-        { t: 'Visión', d: 'Ser el contratista de referencia en el norte de México.' },
+        { t: 'Misión', d: 'Ser la mejor opción en electroconstrucciones del segmento comercial e industrial, ofreciendo servicios profesionales de mantenimiento, instalación e integración de proyectos apegados estrictamente a los estándares y normas de calidad de nuestros clientes, comprometidos con la calidad e inmersos en un proceso de mejora continua.' },
+        { t: 'Visión', d: 'Ser líderes en la venta de material y equipo eléctrico, así como en la prestación de servicios profesionales de mantenimiento, instalación e integración de proyectos en el ámbito comercial e industrial en la región norte del país.' },
         { t: 'Valores', d: 'Compromiso, responsabilidad y honestidad.' },
       ].map((m, i) => (
         <div key={m.t} style={{ padding: '16px 14px', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
           <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 6 }}>0{i+1} · {m.t}</div>
-          <p style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
+          <p style={{ fontSize: 12, lineHeight: 1.55, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
         </div>
       ))}
     </div>
@@ -808,6 +828,9 @@ const FooterMobile = () => (
     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 20, lineHeight: 1.6 }}>
       614 166 6340 · contacto@propower.mx<br/>Chihuahua · Delicias, CHIH
     </div>
+    <a href="/aviso-de-privacidad" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 38, marginTop: 22, padding: '0 14px', border: '1px solid rgba(255,255,255,0.16)', borderBottomColor: 'rgba(200,30,30,0.8)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.78)', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textDecoration: 'none', textTransform: 'uppercase' }}>
+      Aviso de Privacidad <span style={{ color: 'var(--pp-red)', fontSize: 12 }}>→</span>
+    </a>
     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 24, paddingTop: 18, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
       © 2026 ProPower · 100% mexicana desde 2018
     </div>

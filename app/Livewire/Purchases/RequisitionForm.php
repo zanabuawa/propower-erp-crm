@@ -90,6 +90,14 @@ class RequisitionForm extends Component
         })->toArray();
     }
 
+    #[On('products-picked')]
+    public function productsPicked(array $productIds): void
+    {
+        foreach ($productIds as $productId) {
+            $this->productPicked((int) $productId);
+        }
+    }
+
     #[On('product-picked')]
     public function productPicked(int $productId): void
     {

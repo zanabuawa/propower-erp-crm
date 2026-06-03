@@ -226,6 +226,21 @@
                     <div class="p-6 lg:p-8 space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Fecha de nacimiento</label>
+                                <input wire:model="birth_date" type="date"
+                                    class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
+                            </div>
+                            <div class="flex items-center pt-6 ml-1">
+                                <label class="relative inline-flex items-center cursor-pointer group">
+                                    <input type="checkbox" wire:model="notify_birthday" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-500/10 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 transition-colors"></div>
+                                    <span class="ml-3 text-xs font-bold text-slate-500 uppercase tracking-tight group-hover:text-slate-700 transition-colors">Recordar cumpleaños</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Correo electrónico</label>
                                 <input wire:model="email" type="email" placeholder="ejemplo@propower.mx"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 @error('email') border-red-300 bg-red-50/30 @else bg-slate-50/30 @enderror focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
@@ -246,17 +261,88 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="space-y-2">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Ciudad</label>
-                                <input wire:model="city" type="text"
+                                <div class="flex items-center justify-between gap-2">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Pa&iacute;s</label>
+                                    <button type="button" wire:click="openCountryCreator"
+                                        class="h-7 w-7 rounded-xl border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-colors"
+                                        title="Agregar pais">+</button>
+                                </div>
+                                <select wire:model.live="countryId"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
+                                    <option value="0">Seleccionar pa&iacute;s</option>
+                                    @foreach ($availableCountries as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                @if ($showCountryCreator)
+                                    <div class="flex gap-2">
+                                        <input wire:model="newCountryName" type="text" placeholder="Nuevo pais"
+                                            class="min-w-0 flex-1 px-3 py-2 rounded-xl border-slate-200 bg-white text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all">
+                                        <button type="button" wire:click="saveCountry"
+                                            class="h-10 w-10 rounded-xl border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 transition-colors"
+                                            title="Guardar pais">&#10003;</button>
+                                    </div>
+                                @endif
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado</label>
-                                <input wire:model="state" type="text"
-                                    class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
+                                <div class="flex items-center justify-between gap-2">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Estado</label>
+                                    <button type="button" wire:click="openStateCreator" @disabled(! $countryId)
+                                        class="h-7 w-7 rounded-xl border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+                                        title="Agregar estado">+</button>
+                                </div>
+                                <select wire:model.live="stateId" @disabled(! $countryId)
+                                    class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 disabled:opacity-60 transition-all duration-200">
+                                    <option value="0">Seleccionar estado</option>
+                                    @foreach ($availableStates as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                @if ($showStateCreator)
+                                    <div class="flex gap-2">
+                                        <input wire:model="newStateName" type="text" placeholder="Nuevo estado"
+                                            class="min-w-0 flex-1 px-3 py-2 rounded-xl border-slate-200 bg-white text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all">
+                                        <button type="button" wire:click="saveState"
+                                            class="h-10 w-10 rounded-xl border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 transition-colors"
+                                            title="Guardar estado">&#10003;</button>
+                                    </div>
+                                @endif
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Código Postal</label>
+                                <div class="flex items-center justify-between gap-2">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Ciudad</label>
+                                    <button type="button" wire:click="openCityCreator" @disabled(! $stateId)
+                                        class="h-7 w-7 rounded-xl border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition-colors"
+                                        title="Agregar ciudad">+</button>
+                                </div>
+                                <select wire:model.live="cityId" @disabled(! $stateId)
+                                    class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 disabled:opacity-60 transition-all duration-200">
+                                    <option value="0">Seleccionar ciudad</option>
+                                    @foreach ($availableCities as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                @if ($showCityCreator)
+                                    <div class="flex gap-2">
+                                        <input wire:model="newCityName" type="text" placeholder="Nueva ciudad"
+                                            class="min-w-0 flex-1 px-3 py-2 rounded-xl border-slate-200 bg-white text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all">
+                                        <button type="button" wire:click="saveCity"
+                                            class="h-10 w-10 rounded-xl border border-slate-200 text-slate-500 hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 transition-colors"
+                                            title="Guardar ciudad">&#10003;</button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if ($locationFeedback)
+                            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                                {{ $locationFeedback }}
+                            </div>
+                        @endif
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">C&oacute;digo Postal</label>
                                 <input wire:model="postal_code" type="text" maxlength="10"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
                             </div>

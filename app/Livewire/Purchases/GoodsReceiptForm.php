@@ -5,6 +5,7 @@ namespace App\Livewire\Purchases;
 use App\Models\FinanceAccount;
 use App\Models\FinanceTransaction;
 use App\Models\Product;
+use App\Models\ProjectMaterial;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseReceipt;
@@ -144,7 +145,6 @@ class GoodsReceiptForm extends Component
                 'purchase_price'     => (float) $orderItem->unit_price,
                 'prev_purchase_price'=> (float) ($product?->purchase_price ?? $orderItem->unit_price),
                 'profit_margin'      => (float) ($product?->profit_margin ?? 0),
-                'operational_cost'   => (float) ($product?->operational_costs ?? 0),
                 'received'           => true,
                 'notes'              => '',
                 'quantity_rejected'  => 0,
@@ -198,7 +198,6 @@ class GoodsReceiptForm extends Component
                 'quantity'         => $qty,
                 'purchase_price'   => (float) ($product?->purchase_price ?? 0),
                 'profit_margin'    => (float) ($product?->profit_margin ?? 0),
-                'operational_cost' => (float) ($product?->operational_costs ?? 0),
                 'received'         => true,
                 'notes'            => '',
             ];
@@ -251,7 +250,6 @@ class GoodsReceiptForm extends Component
                 'quantity'         => $pending,
                 'purchase_price'   => (float) ($product?->purchase_price ?? 0),
                 'profit_margin'    => (float) ($product?->profit_margin ?? 0),
-                'operational_cost' => (float) ($product?->operational_costs ?? 0),
                 'received'         => true,
                 'notes'            => '',
             ];
@@ -285,6 +283,14 @@ class GoodsReceiptForm extends Component
         $this->addProduct($productId);
     }
 
+    #[On('products-picked')]
+    public function productsPicked(array $productIds): void
+    {
+        foreach ($productIds as $productId) {
+            $this->addProduct((int) $productId);
+        }
+    }
+
     public function addProduct(int $productId): void
     {
         foreach ($this->items as $item) {
@@ -309,7 +315,6 @@ class GoodsReceiptForm extends Component
             'purchase_price'      => (float) $product->purchase_price,
             'prev_purchase_price' => (float) $product->purchase_price,
             'profit_margin'       => (float) $product->profit_margin,
-            'operational_cost'    => (float) $product->operational_costs,
             'received'            => true,
             'notes'               => '',
             'quantity_rejected'   => 0,
@@ -390,7 +395,6 @@ class GoodsReceiptForm extends Component
             $rules["items.{$index}.quantity"]           = 'required|numeric|min:0.01';
             $rules["items.{$index}.purchase_price"]     = 'required|numeric|min:0';
             $rules["items.{$index}.profit_margin"]      = 'required|numeric|min:0|max:999';
-            $rules["items.{$index}.operational_cost"]   = 'required|numeric|min:0|max:999';
             $rules["items.{$index}.quantity_rejected"]  = 'nullable|numeric|min:0';
             $rules["items.{$index}.rejection_reason"]   = 'nullable|string';
         }
@@ -476,12 +480,23 @@ class GoodsReceiptForm extends Component
                 ]);
             }
 
+            // Calcular costo total de mercancía para distribuir gastos de operación
+            $totalMercCost = collect($receivedItems)->sum(
+                fn($i) => (float) $i['quantity'] * (float) $i['purchase_price']
+            );
+
             foreach ($receivedItems as $item) {
                 $productId        = $item['product_id'];
                 $qty              = (float) $item['quantity'];
                 $newPurchasePrice = (float) $item['purchase_price'];
                 $profitMargin     = (float) $item['profit_margin'];
-                $opCostPct        = (float) $item['operational_cost'];
+
+                // Distribuir gastos de operación proporcionalmente por costo
+                $itemCost        = $qty * $newPurchasePrice;
+                $opShare         = $totalMercCost > 0
+                    ? ($itemCost / $totalMercCost) * (float) $this->operating_expenses
+                    : 0;
+                $landedUnitCost  = $newPurchasePrice + ($qty > 0 ? $opShare / $qty : 0);
 
                 $stock = Stock::firstOrCreate(
                     ['product_id' => $productId, 'warehouse_id' => $this->warehouse_id],
@@ -490,19 +505,20 @@ class GoodsReceiptForm extends Component
                 $qtyBefore = (float) $stock->quantity;
                 $stock->increment('quantity', $qty);
 
-                // Crear lote PEPS para compras, devoluciones y transferencias
-                if (in_array($this->reception_type, ['purchase', 'return', 'transfer'])) {
+                // Crear lote PEPS para todos los tipos de recepción
+                if (in_array($this->reception_type, ['purchase', 'return', 'transfer', 'defective'])) {
                     $lotMovementType = match ($this->reception_type) {
-                        'return'   => 'return_sale',
-                        'transfer' => 'transfer_in',
-                        default    => 'purchase',
+                        'return'    => 'return_sale',
+                        'transfer'  => 'transfer_in',
+                        'defective' => 'defective',
+                        default     => 'purchase',
                     };
                     $fifo->createLot(
                         companyId:    $companyId,
                         productId:    $productId,
                         warehouseId:  $this->warehouse_id,
                         quantity:     $qty,
-                        unitCost:     $newPurchasePrice,
+                        unitCost:     $landedUnitCost,
                         reference:    $receipt->folio,
                         expiryDate:   null,
                         notes:        "Recepción {$receipt->folio}",
@@ -513,13 +529,12 @@ class GoodsReceiptForm extends Component
 
                 // Actualizar precios del producto (no aplica para defectuosos ni transferencias)
                 if (!in_array($this->reception_type, ['defective', 'transfer'])) {
-                    $marginDiv     = 1 - $profitMargin / 100;
-                    $newSalePrice  = $marginDiv > 0 ? round($newPurchasePrice / $marginDiv, 2) : 0;
+                    $marginDiv    = 1 - $profitMargin / 100;
+                    $newSalePrice = $marginDiv > 0 ? round($landedUnitCost / $marginDiv, 2) : 0;
                     Product::where('id', $productId)->update([
-                        'purchase_price'    => $newPurchasePrice,
-                        'profit_margin'     => $profitMargin,
-                        'operational_costs' => $opCostPct,
-                        'sale_price'        => $newSalePrice,
+                        'purchase_price' => $landedUnitCost,
+                        'profit_margin'  => $profitMargin,
+                        'sale_price'     => $newSalePrice,
                     ]);
                 }
 
@@ -527,7 +542,7 @@ class GoodsReceiptForm extends Component
                     'product_id'      => $productId,
                     'warehouse_id'    => $this->warehouse_id,
                     'quantity'        => $qty,
-                    'unit_price'      => $newPurchasePrice,
+                    'unit_price'      => $landedUnitCost,
                     'quantity_before' => $qtyBefore,
                     'quantity_after'  => $qtyBefore + $qty,
                 ]);
@@ -565,6 +580,30 @@ class GoodsReceiptForm extends Component
                         $order->update(['status' => 'received']);
                     } elseif ($anyReceived) {
                         $order->update(['status' => 'partial_received']);
+                    }
+                }
+            }
+
+            // Auto-asignar materiales de proyecto cuando la OC viene de una requisición de proyecto
+            if ($this->purchase_order_id) {
+                $order = PurchaseOrder::with('requisition')->find($this->purchase_order_id);
+                if ($order && $order->requisition && $order->requisition->project_id) {
+                    $projectId     = $order->requisition->project_id;
+                    $requisitionId = $order->requisition->id;
+
+                    $materials = ProjectMaterial::where('project_id', $projectId)
+                        ->where('purchase_requisition_id', $requisitionId)
+                        ->whereIn('status', ['solicitado'])
+                        ->get();
+
+                    foreach ($materials as $mat) {
+                        $receivedQty = collect($receivedItems)
+                            ->where('product_id', $mat->product_id)
+                            ->sum('quantity');
+
+                        if ($receivedQty > 0) {
+                            $mat->update(['status' => 'adquirido']);
+                        }
                     }
                 }
             }

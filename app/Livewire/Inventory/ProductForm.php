@@ -35,7 +35,6 @@ class ProductForm extends Component
     public string  $purchase_price             = '0';
     public bool    $purchase_price_includes_iva = false;
     public string  $profit_margin               = '30';
-    public string  $operational_costs           = '10';
     public string  $min_stock          = '0';
     public string  $max_stock          = '0';
     public bool    $is_active          = true;
@@ -61,23 +60,8 @@ class ProductForm extends Component
     // ── Hooks ────────────────────────────────────────────────────────────────
     public function updatedProfitMargin(): void
     {
-        $margin = (float) $this->profit_margin;
-        $opCost = (float) $this->operational_costs;
-        if ($margin < 10) {
+        if ((float) $this->profit_margin < 10) {
             $this->profit_margin = '10';
-        } elseif ($margin <= $opCost) {
-            $this->profit_margin = (string) ($opCost + 1);
-        }
-    }
-
-    public function updatedOperationalCosts(): void
-    {
-        $opCost = (float) $this->operational_costs;
-        $margin = (float) $this->profit_margin;
-        if ($opCost < 0) {
-            $this->operational_costs = '0';
-        } elseif ($opCost >= $margin) {
-            $this->operational_costs = (string) max(0, $margin - 1);
         }
     }
 
@@ -90,15 +74,7 @@ class ProductForm extends Component
         return $divisor > 0 ? round($p / $divisor, 2) : 0.0;
     }
 
-    public function getMinSalePriceProperty(): float
-    {
-        $p       = (float) $this->purchase_price;
-        $op      = (float) $this->operational_costs;
-        $divisor = 1 - $op / 100;
-        return $divisor > 0 ? round($p / $divisor, 2) : 0.0;
-    }
-
-    // ── Mount ────────────────────────────────────────────────────────────────
+// ── Mount ────────────────────────────────────────────────────────────────
     public function mount($product = null): void
     {
         $companyId = auth()->user()->company_id;
@@ -121,7 +97,6 @@ class ProductForm extends Component
             $this->purchase_price             = $this->product->purchase_price;
             $this->purchase_price_includes_iva = (bool) $this->product->purchase_price_includes_iva;
             $this->profit_margin               = max(10, (float) ($this->product->profit_margin ?? 30));
-            $this->operational_costs           = max(0, (float) ($this->product->operational_costs ?? 10));
             $this->min_stock          = $this->product->min_stock;
             $this->max_stock          = $this->product->max_stock;
             $this->is_active          = $this->product->is_active;
@@ -267,8 +242,7 @@ class ProductForm extends Component
             'color'              => 'nullable|string|max:60',
             'purchase_price'             => 'required|numeric|min:0',
             'purchase_price_includes_iva' => 'boolean',
-            'profit_margin'      => 'required|numeric|min:10|max:999|gt:operational_costs',
-            'operational_costs'  => 'required|numeric|min:0|max:99',
+            'profit_margin'      => 'required|numeric|min:10|max:999',
             'min_stock'          => 'required|numeric|min:0',
             'max_stock'          => 'required|numeric|min:0',
             'is_active'          => 'boolean',
@@ -302,7 +276,6 @@ class ProductForm extends Component
             'purchase_price'             => $this->purchase_price,
             'purchase_price_includes_iva' => $this->purchase_price_includes_iva,
             'profit_margin'              => $this->profit_margin,
-            'operational_costs'          => $this->operational_costs,
             'sale_price'                 => $salePrice,
             'min_stock'          => $this->type === 'product' ? $this->min_stock : 0,
             'max_stock'          => $this->type === 'product' ? $this->max_stock : 0,

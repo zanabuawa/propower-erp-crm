@@ -9,7 +9,7 @@ class CrmActivity extends Model
 {
     protected $fillable = [
         'company_id', 'user_id', 'assigned_to',
-        'prospect_id', 'customer_id', 'opportunity_id',
+        'customer_id', 'opportunity_id',
         'type', 'title', 'description',
         'scheduled_at', 'reminder_at', 'completed_at',
         'status', 'outcome',
@@ -63,11 +63,6 @@ class CrmActivity extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function prospect(): BelongsTo
-    {
-        return $this->belongsTo(SalesProspect::class, 'prospect_id');
-    }
-
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -87,6 +82,6 @@ class CrmActivity extends Model
 
     public function getRelatedNameAttribute(): string
     {
-        return $this->customer?->name ?? $this->prospect?->name ?? '—';
+        return $this->customer?->name ?? '—';
     }
 }

@@ -10,8 +10,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ProPower Electroconstrucciones — Soluciones, calidad y garantía</title>
+  <title>ProPower</title>
   <meta name="description" content="Empresa 100% mexicana especializada en servicios electromecánicos industriales y comerciales. Industria, minería e ingeniería en Chihuahua." />
+  @php
+    $company = \App\Models\Company::first();
+    $favicon = ($company && $company->icon) ? $company->icon : ($company->logo ?? null);
+  @endphp
+  @if($favicon)
+    <link rel="icon" type="image/png" href="{{ Storage::url($favicon) }}" />
+  @endif
   <meta name="csrf-token" content="{{ csrf_token() }}" />
   <script>window.__LANDING_DATA__ = {!! json_encode($landingData) !!};</script>
   <style>
@@ -25,7 +32,7 @@
   </style>
   @viteReactRefresh
   @vite('resources/landing/index.jsx')
-</head>
+</head>|
 <body>
   <div id="root"></div>
 </body>

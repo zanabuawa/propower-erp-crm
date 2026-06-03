@@ -52,6 +52,8 @@ class NotificationBell extends Component
             $this->redirect(route('users.index'), navigate: true);
         } elseif (!empty($data['approval_id'])) {
             $this->redirect(route('sales.discount-approvals.index'), navigate: true);
+        } elseif (!empty($data['employee_id'])) {
+            $this->redirect(route('hr.employees.show', $data['employee_id']), navigate: true);
         }
     }
 

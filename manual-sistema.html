@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Manual Maestro de Operaciones y Gobernanza — ProPower ERP/CRM</title>
+<style>
+  :root {
+    --pp-red: #dc2626;
+    --pp-ink: #0f172a;
+    --pp-gray: #64748b;
+    --pp-bg: #f8fafc;
+    --pp-border: #e2e8f0;
+  }
+  @page { size: letter; margin: 2cm; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 10pt; line-height: 1.6; color: var(--pp-ink); background: #fff; margin: 0; padding: 0; }
+  
+  /* Botón de Exportación */
+  #no-print-zone { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+  .pdf-button { display: flex; align-items: center; gap: 10px; background: var(--pp-red); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+  @media print { 
+    #no-print-zone { display: none !important; } 
+    .page-break { page-break-before: always; }
+    h1 { page-break-before: always; }
+    .no-print { display: none !important; }
+  }
+
+  /* Estructura de Secciones */
+  .section-container { margin-bottom: 30px; }
+  .function-header { background: var(--pp-ink); color: #fff; padding: 6px 12px; font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; border-radius: 4px 4px 0 0; }
+  .content-box { border: 1px solid var(--pp-border); border-top: none; padding: 20px; background: #fff; border-radius: 0 0 4px 4px; }
+  
+  h1 { font-size: 24pt; color: var(--pp-ink); border-bottom: 3px solid var(--pp-red); padding-bottom: 10px; margin-top: 0; margin-bottom: 25px; }
+  h2 { font-size: 17pt; color: var(--pp-red); margin-top: 35px; margin-bottom: 15px; font-weight: 800; }
+  h3 { font-size: 12pt; color: var(--pp-ink); margin-top: 25px; margin-bottom: 12px; border-left: 4px solid var(--pp-red); padding-left: 10px; }
+  
+  p { margin-bottom: 15px; text-align: justify; color: #334155; }
+  
+  .logic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .logic-item { padding: 12px; background: var(--pp-bg); border-radius: 6px; border: 1px solid var(--pp-border); }
+  .logic-item b { display: block; color: var(--pp-red); margin-bottom: 6px; font-size: 10.5pt; }
+
+  table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 9pt; }
+  th { background: #f8fafc; padding: 10px; text-align: left; border: 1px solid var(--pp-border); color: #475569; }
+  td { padding: 10px; border: 1px solid var(--pp-border); vertical-align: top; }
+
+  /* Portada */
+  .cover { 
+    min-height: 100vh;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    text-align: center; 
+    border: 10px solid var(--pp-bg); 
+    margin: 0; 
+    position: relative; 
+    page-break-after: always;
+    break-after: page;
+    box-sizing: border-box;
+  }
+  @media print {
+    .cover {
+      height: 98vh;
+      border: none;
+      display: flex !important;
+    }
+    .cover h1 { page-break-before: avoid !important; break-before: avoid !important; }
+  }
+  .cover img { height: 100px; margin-bottom: 40px; }
+  .cover-meta { position: absolute; bottom: 40px; font-size: 8.5pt; color: var(--pp-gray); }
+
+  /* Tabla de Contenido */
+  .toc { padding: 40px; background: #fff; page-break-before: always; break-before: page; }
+  .toc h2 { border: none; color: var(--pp-ink); margin-top: 0; padding-bottom: 20px; border-bottom: 2px solid var(--pp-red); }
+  .toc ul { list-style: none; padding: 0; }
+  .toc li { margin-bottom: 12px; display: flex; align-items: baseline; }
+  .toc .toc-num { color: var(--pp-red); font-weight: 800; min-width: 30px; display: inline-block; }
+  .toc li a { text-decoration: none; color: var(--pp-ink); font-weight: 600; font-size: 11pt; }
+</style>
+</head>
+<body>
+
+<div id="no-print-zone">
+  <button onclick="window.print()" class="pdf-button">Exportar a PDF / Imprimir</button>
+</div>
+
+<!-- PORTADA -->
+<div class="cover">
+  <img src="public/assets/img/LOGO ELECTROCONSTRUCCIONES/PNG/propower_Mesa de trabajo 1h red.png" alt="ProPower">
+  <div style="font-size: 10pt; letter-spacing: 5px; text-transform: uppercase; color: var(--pp-gray); margin-bottom: 20px;">Gobernanza Corporativa</div>
+  <h1 style="border: none; margin: 0; font-size: 32pt;">Manual Maestro de Operaciones</h1>
+  <p style="font-size: 16pt; color: var(--pp-gray); font-weight: 300;">Arquitectura Funcional y Guía de Procesos ERP/CRM</p>
+  <div style="width: 80px; height: 4px; background: var(--pp-red); margin: 40px auto;"></div>
+  <p style="max-width: 450px; margin: 0 auto; color: #64748b; font-size: 10pt;">Normativa oficial para el uso de las herramientas digitales de ProPower Electroconstrucciones S.A. de C.V.</p>
+  <div class="cover-meta">Versión 3.3 — Mayo 2026 | Propiedad Confidencial de ProPower</div>
+</div>
+
+<!-- TABLA DE CONTENIDO -->
+<div class="toc page-break">
+  <h2>Índice General</h2>
+  <ul>
+    <li><span class="toc-num">1.</span> <a href="#intro">Introducción y Arquitectura de Datos</a></li>
+    <li><span class="toc-num">2.</span> <a href="#dashboard">Dashboard y Centro de Control</a></li>
+    <li><span class="toc-num">3.</span> <a href="#inv">Gestión Estratégica de Inventarios</a></li>
+    <li><span class="toc-num">4.</span> <a href="#compras">Gobernanza de Compras y Abastecimiento</a></li>
+    <li><span class="toc-num">5.</span> <a href="#obras">Ingeniería de Licitaciones y Control de Obra</a></li>
+    <li><span class="toc-num">6.</span> <a href="#ventas">Ciclo Comercial y Prospección (CRM)</a></li>
+    <li><span class="toc-num">7.</span> <a href="#rrhh">Administración de Capital Humano</a></li>
+    <li><span class="toc-num">8.</span> <a href="#evaluaciones">Evaluación y Pruebas de Reclutamiento</a></li>
+    <li><span class="toc-num">9.</span> <a href="#finanzas">Control Financiero y Tesorería</a></li>
+    <li><span class="toc-num">10.</span> <a href="#glosario">Glosario de Conceptos Operativos</a></li>
+  </ul>
+</div>
+
+<!-- SECCIÓN 1 -->
+<h1 id="intro">1. Introducción y Arquitectura de Datos</h1>
+<p>El ecosistema ProPower ERP/CRM ha sido diseñado bajo un paradigma de **integración vertical**, lo que significa que la información nace en el borde comercial (CRM) y viaja sin fricciones a través de la ingeniería (Licitaciones), la operación (Almacén y Obra) y finalmente la administración (Finanzas y RRHH). Esta arquitectura elimina la duplicidad de tareas y garantiza que la directiva cuente con una "versión única de la verdad".</p>
+
+<h3>Objetivos Funcionales Primarios</h3>
+<p>El sistema persigue tres pilares fundamentales: **Trazabilidad**, para auditar el origen de cada transacción; **Seguridad**, mediante un control de acceso basado en roles que protege la información sensible; y **Escalabilidad**, permitiendo que la empresa gestione múltiples sucursales y proyectos complejos bajo una estructura de control unificada.</p>
+
+<div class="logic-grid">
+  <div class="logic-item">
+    <b>Visibilidad en Tiempo Real</b>
+    A diferencia de los sistemas tradicionales basados en cierres mensuales, ProPower opera con un motor reactivo que actualiza los indicadores (KPIs) en el momento exacto en que ocurre el evento, permitiendo reacciones tácticas inmediatas ante desviaciones de presupuesto o stock.
+  </div>
+  <div class="logic-item">
+    <b>Normativa y Cumplimiento</b>
+    El sistema incorpora de forma nativa las reglas fiscales del SAT (CFDI 4.0) y las regulaciones de la Ley Federal del Trabajo (LFT), actuando como un asistente de cumplimiento que bloquea acciones que podrían derivar en sanciones legales o fiscales.
+  </div>
+</div>
+
+<!-- SECCIÓN 2 -->
+<h1 id="dashboard">2. Dashboard y Centro de Control Inteligente</h1>
+<div class="section-container">
+  <div class="function-header">Inteligencia de Negocio y KPIs</div>
+  <div class="content-box">
+    <h3>¿Qué hace este módulo y para qué sirve?</h3>
+    <p>El Dashboard es la puerta de entrada principal al sistema y actúa como un <strong>Centro de Mando Personalizado</strong>. Su función es procesar los miles de datos que fluyen por el ERP para presentarlos de forma digerible, visual y altamente relevante para la toma de decisiones. Sirve para que cada usuario tenga una visión panorámica e inmediata del estado de la empresa sin tener que navegar por múltiples listados o generar reportes manuales, permitiendo identificar cuellos de botella, urgencias comerciales o anomalías operativas en segundos.</p>
+
+    <h3>Lógica de Información Filtrada</h3>
+    <p>La característica más crítica de este módulo es su capacidad de <strong>adaptación dinámica</strong>. El sistema identifica automáticamente quién está iniciando sesión y filtra toda la información correspondiente a su rol, sucursal y permisos asignados. Un gerente de obra verá métricas de avance de sus proyectos, mientras que un administrador financiero visualizará el flujo de caja y cuentas por cobrar. Esta lógica de segmentación garantiza que el usuario no se abrume con datos irrelevantes, enfocando su atención exclusivamente en las tareas y estadísticas que están bajo su responsabilidad directa.</p>
+
+    <h3>¿Cómo funciona? (Elementos Visuales)</h3>
+    <p>El funcionamiento se basa en la consolidación de tres elementos clave:</p>
+    <ul>
+      <li><strong>Resumen Estadístico:</strong> Tarjetas numéricas que muestran totales (ventas del mes, órdenes pendientes, stock crítico) comparados contra periodos anteriores para medir el crecimiento o desempeño.</li>
+      <li><strong>Visualización Gráfica:</strong> Gráficas de barras, líneas y pasteles que permiten entender tendencias. Estas gráficas no son estáticas; responden a los cambios del sistema en tiempo real, permitiendo observar, por ejemplo, el avance físico de las obras versus el avance financiero.</li>
+      <li><strong>Alertas de Acción:</strong> El dashboard resalta elementos que requieren atención inmediata (ej. facturas vencidas o stock por debajo del mínimo), funcionando como un sistema de recordatorios inteligentes.</li>
+    </ul>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Interactividad de Datos</b>
+        Cada gráfica y estadística está vinculada a los datos origen. Al hacer clic en un indicador, el sistema permite "profundizar" (drill-down) para ver el detalle de los registros que componen esa métrica.
+      </div>
+      <div class="logic-item">
+        <b>Multisucursal Consolidada</b>
+        Para usuarios con permisos de dirección, el dashboard permite filtrar o consolidar datos de múltiples sucursales con un solo clic, facilitando la comparación de rendimiento entre diferentes unidades de negocio.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 3 -->
+<h1 id="inv">3. Gestión Estratégica de Inventarios</h1>
+<div class="section-container">
+  <div class="function-header">Gobernanza de Activos Circulantes</div>
+  <div class="content-box">
+    <h3>¿Qué hace este módulo y para qué sirve?</h3>
+    <p>Este módulo es la central de control de todos los materiales, consumibles y herramientas registrados en la organización. Su función principal es garantizar la integridad física y financiera de las existencias, permitiendo una gestión segregada por <strong>Almacén y Sucursal</strong>. Sirve para que la empresa tenga visibilidad exacta de sus activos en tiempo real, permitiendo realizar altas, bajas y modificaciones controladas que impactan directamente en la disponibilidad operativa para proyectos y ventas.</p>
+
+    <h3>Lógica de Acceso y Jerarquía de Permisos</h3>
+    <p>El sistema implementa un estricto control de seguridad basado en el origen del usuario. Por defecto, un colaborador solo puede interactuar con los almacenes pertenecientes a su sucursal de registro. <strong>Solo los usuarios con permisos especiales</strong> de visualización multi-sucursal están facultados para ver y operar almacenes de otras ubicaciones geográficas. Esta lógica de segmentación asegura que la responsabilidad del stock esté claramente delimitada, evitando manipulaciones cruzadas no autorizadas y garantizando la precisión de los inventarios cíclicos.</p>
+
+    <h3>¿Cómo funciona? (Procesos Operativos)</h3>
+    <p>La operación se divide en tres ejes fundamentales:</p>
+    <ul>
+      <li><strong>Categorización Estructural:</strong> El módulo permite la creación y administración de categorías maestras. Estas categorías sirven para organizar el catálogo de productos y servicios, facilitando búsquedas rápidas y permitiendo reportes financieros agrupados por tipo de material o familia de productos.</li>
+      <li><strong>Ajustes de Inventario:</strong> No cualquier usuario puede modificar las existencias. Las funciones de ajuste están reservadas para personal autorizado, quienes deben registrar la justificación del movimiento, asegurando que cada cambio en el stock físico tenga una contraparte digital auditable.</li>
+      <li><strong>Transferencias entre Almacenes:</strong> El sistema gestiona el movimiento de mercancía mediante solicitudes de traspaso. Existe un candado de seguridad crítico: <strong>solo un Administrador o Gerente</strong> tiene la facultad de autorizar la salida de mercancía que no pertenezca a su propio almacén de origen o sucursal base. Esta validación jerárquica impide la fuga de materiales y asegura que los movimientos entre plantas o bodegas cuenten con el visto bueno de la dirección técnica.</li>
+    </ul>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Kardex Maestro PEPS</b>
+        El sistema mantiene un historial cronológico inalterable de cada producto. El Kardex registra no solo la cantidad, sino el valor de entrada y salida, asegurando que los costos se calculen correctamente bajo el método de "Primeras Entradas, Primeras Salidas".
+      </div>
+      <div class="logic-item">
+        <b>Trazabilidad por Lotes PEPS</b>
+        Para materiales críticos, el sistema obliga al registro de movimientos por lote. Esto permite identificar el origen exacto de cada unidad consumida, vinculando el costo histórico del lote específico con la salida de almacén correspondiente.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 4 -->
+<h1 id="compras">4. Gobernanza de Compras y Abastecimiento</h1>
+<div class="section-container">
+  <div class="function-header">Ciclo de Adquisiciones y Gestión de Pasivos</div>
+  <div class="content-box">
+    <h3>¿Qué hace este módulo y para qué sirve?</h3>
+    <p>Este módulo regula todo el proceso de egresos de la organización vinculados a la obtención de materiales, equipos y servicios. Su función principal es actuar como un **filtro de control financiero**, asegurando que ninguna compra se realice sin una justificación operativa previa y sin la validación de los responsables correspondientes. Sirve para profesionalizar la relación con proveedores, optimizar el uso del presupuesto y garantizar que los insumos necesarios para la operación y ventas lleguen en tiempo, forma y al costo autorizado.</p>
+
+    <h3>Lógica Operativa: El Flujo de Autorización Escalado</h3>
+    <p>El sistema implementa un flujo de trabajo lineal pero altamente controlado que conecta las necesidades del almacén con la tesorería:</p>
+    <ul>
+      <li><strong>Solicitud de Requisición:</strong> Todo nace con una requisición interna para la obtención de inventario. Este paso inicial obliga al solicitante a especificar la necesidad técnica (equipo o material) y el destino del mismo.</li>
+      <li><strong>Confirmación Técnica:</strong> Una vez solicitada, el sistema requiere la confirmación del equipo o material. Este paso asegura que lo que se va a comprar cumpla con las especificaciones técnicas requeridas antes de comprometer el dinero de la empresa.</li>
+      <li><strong>Autorización Jerárquica:</strong> Las requisiciones aprobadas técnicamente se confirman para el departamento de compras. Aquí entra en juego un **algoritmo de autorización por montos**: dependiendo de la cuantía económica de la compra, el sistema escala automáticamente la solicitud a diferentes responsables (Gerencia, Dirección, etc.), impidiendo que compras de alto impacto se procesen sin la supervisión del nivel ejecutivo adecuado.</li>
+    </ul>
+
+    <h3>¿Cómo funciona? (Gestión de Órdenes y Crédito)</h3>
+    <p>Cuando Compras genera la **Orden de Compra (OC)**, el sistema crea un vínculo legal y financiero con el proveedor. La OC es el documento maestro que permitirá posteriormente recibir la mercancía y validar la factura del proveedor (cruce de tres vías).</p>
+    
+    <p>Si la compra se realiza bajo condiciones de crédito, el sistema automatiza la gestión de la deuda. Registra la obligación financiera y activa un sistema de **recordatorios de pago programados**, asegurando que ProPower mantenga una excelente reputación crediticia con sus proveedores y evite recargos. Finalmente, el módulo consolida toda esta actividad en **Reportes de Compras** analíticos que permiten evaluar el volumen de adquisición por proveedor, sucursal o categoría de producto.</p>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Control de Pasivos y Vencimientos</b>
+        El sistema monitorea las facturas de proveedores pendientes de pago. Al detectar una compra a crédito, el ERP la integra al flujo de caja proyectado, alertando a tesorería sobre la fecha exacta del desembolso necesario.
+      </div>
+      <div class="logic-item">
+        <b>Trazabilidad de la OC</b>
+        Cada Orden de Compra mantiene un registro de quién la solicitó, quién la autorizó y quién la recibió físicamente, creando una cadena de custodia digital para cada peso invertido en materiales.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 5 -->
+<h1 id="obras">5. Ingeniería de Licitaciones y Control de Obra</h1>
+<div class="section-container">
+  <div class="function-header">Núcleo de Ejecución Técnica</div>
+  <div class="content-box">
+    <h3>¿Qué hace este módulo y para qué sirve?</h3>
+    <p>Representa la inteligencia operativa de ProPower en el sector de la construcción. Su función es digitalizar el proceso técnico desde el estudio de mercado hasta la entrega final del proyecto. Sirve para cerrar la brecha de comunicación que históricamente existe entre los ingenieros de oficina y los residentes en campo, asegurando que la rentabilidad estimada en la licitación sea la rentabilidad real obtenida al finalizar la obra.</p>
+
+    <h3>¿Cómo funciona? (Lógica Operativa)</h3>
+    <p>El flujo operativo comienza con la **Digitalización del Concurso**. El sistema permite cargar catálogos de conceptos masivos y desglosarlos mediante **APU (Análisis de Precios Unitarios)**. Estos APU están vinculados dinámicamente al catálogo de productos, lo que permite que, si el precio del cobre sube en el mercado, el ERP alerte automáticamente sobre el impacto en las licitaciones activas.</p>
+    
+    <p>En la etapa de ejecución, el sistema activa el **Módulo de Control de Sitio**. Los residentes de obra capturan el avance físico semanalmente, vinculando cada porcentaje a una evidencia fotográfica. Esta lógica de "Evidencia-Avance" es fundamental para la generación de estimaciones, ya que proporciona al cliente final (y al departamento de cobranza) una base inobjetable para la facturación. El sistema actúa como un monitor de salud, comparando el cronograma de barras (Gantt) contra el avance real, resaltando en rojo cualquier hito que ponga en riesgo la fecha de entrega contractual.</p>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Gobernanza de Seguridad (Libranzas)</b>
+        Las libranzas en el sistema no son simples documentos; son flujos de autorización. Una libranza debe ser solicitada, validada técnicamente y autorizada por seguridad antes de que el sistema permita registrar horas hombre o materiales en esa zona de trabajo.
+      </div>
+      <div class="logic-item">
+        <b>Reporte Fotográfico Inteligente</b>
+        Las fotos cargadas desde campo se geolocalizan y fechan automáticamente, creando un expediente de obra que protege a ProPower ante posibles reclamaciones futuras del cliente o auditorías de calidad.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 6 -->
+<h1 id="ventas">6. Ciclo Comercial y Prospección (CRM)</h1>
+<div class="section-container">
+  <div class="function-header">Motor de Crecimiento y Generación de Ingresos</div>
+  <div class="content-box">
+    <h3>¿Qué hace este módulo y para qué sirve?</h3>
+    <p>Gestiona el embudo de conversión comercial de la empresa. Su función es transformar contactos vagos en relaciones comerciales sólidas y rentables. Sirve para proporcionar a la gerencia un **pronóstico de ingresos (Forecast)** científico, basado en probabilidades reales y no en suposiciones, permitiendo planificar la contratación de personal y la compra de materiales con meses de anticipación.</p>
+
+    <h3>¿Cómo funciona? (Lógica Operativa)</h3>
+    <p>Opera bajo la metodología de **Pipeline Visual**. Cada oportunidad de negocio es clasificada por etapa (Contacto, Calificación, Propuesta, Negociación). El sistema aplica un "peso" financiero a cada etapa; por ejemplo, una propuesta en negociación tiene un 80% de probabilidad de éxito, y ese valor es el que se suma al flujo de caja proyectado de la empresa.</p>
+    
+    <p>Un componente vital es la **Matriz de Autorizaciones de Descuento**. El sistema implementa un control jerárquico donde la rentabilidad mínima es innegociable por el vendedor. Si la cotización cae por debajo del margen permitido, el ERP bloquea el documento y escala la solicitud al nivel superior. Esta lógica asegura que ProPower nunca cierre un trato que, después de costos directos e indirectos, resulte en una pérdida financiera.</p>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Integración con Facturapi</b>
+        El proceso de facturación es el "último eslabón" comercial. El sistema valida los datos fiscales del cliente contra los servidores del SAT en milisegundos. Una vez timbrada, la factura se convierte en una Cuenta por Cobrar que el departamento de Finanzas puede ver instantáneamente.
+      </div>
+      <div class="logic-item">
+        <b>Agenda de Seguimiento</b>
+        El CRM genera alertas automáticas de inactividad. Si un prospecto no ha sido contactado en 5 días, el sistema notifica al supervisor, garantizando que ninguna oportunidad se "enfríe" por descuido administrativo.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 7 -->
+<h1 id="rrhh">7. Administración de Capital Humano</h1>
+<div class="section-container">
+  <div class="function-header">Gestión de Talento y Cumplimiento Laboral</div>
+  <div class="content-box">
+    <h3>¿Qué hace este módulo y para qué sirve?</h3>
+    <p>Digitaliza la relación jurídica y humana entre ProPower y sus colaboradores. Su función es centralizar expedientes, gestionar asistencias y procesar la nómina de forma automatizada. Sirve para asegurar que la empresa cumpla con el 100% de sus obligaciones patronales (IMSS, INFONAVIT, ISR) y para fomentar un entorno de transparencia donde el empleado tiene acceso a su propia información de forma directa.</p>
+
+    <h3>¿Cómo funciona? (Lógica Operativa)</h3>
+    <p>El núcleo del módulo es el **Control de Plantilla Autorizada (Headcount)**. Ninguna contratación puede realizarse si no existe una plaza vacante y presupuestada en el organigrama del sistema. Esta lógica previene el crecimiento desmedido de la carga administrativa y asegura que cada nuevo ingreso esté justificado operativamente por una sucursal y departamento específicos.</p>
+    
+    <p>El **Motor de Cálculo de Nómina** es un procesador de reglas de negocio. Toma el salario base de cotización, cruza las incidencias (faltas, retardos, permisos) y aplica las tablas de retención vigentes del SAT. El resultado es un recibo de nómina timbrado que se envía automáticamente al portal del empleado. Esta automatización reduce los errores manuales de cálculo y garantiza que las dispersiones bancarias coincidan exactamente con lo declarado ante las autoridades laborales.</p>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Portal de Autoservicio (ESS)</b>
+        Permite que los empleados descarguen sus recibos, soliciten vacaciones o consulten su saldo de días sin saturar a los analistas de RRHH. Las solicitudes viajan en un flujo de aprobación que notifica al jefe directo para su firma digital.
+      </div>
+      <div class="logic-item">
+        <b>Gestión de Incidencias y Evaluaciones</b>
+        El sistema mantiene una bitácora histórica de amonestaciones y reconocimientos, vinculada a evaluaciones de desempeño periódicas. Esto proporciona una base objetiva para promociones o ajustes salariales.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 8 -->
+<h1 id="evaluaciones">8. Submódulo: Sistema de Evaluación y Capacitación</h1>
+<div class="section-container">
+  <div class="function-header">Gobernanza de Selección y Formación Técnica</div>
+  <div class="content-box">
+    <h3>¿Qué hace este submódulo y para qué sirve?</h3>
+    <p>El Sistema de Evaluación es un núcleo especializado dentro de RRHH diseñado para gestionar el ciclo completo de validación de competencias de ProPower. Su función es centralizar la creación de exámenes, la distribución de material de estudio y el seguimiento del progreso de los candidatos. Sirve para transformar el reclutamiento tradicional en un proceso de **inducción técnica controlada**, asegurando que cada nuevo ingreso no solo cumpla con el perfil, sino que comprenda los estándares operativos y de seguridad de la empresa antes de su contratación formal.</p>
+
+    <h3>Estructura y Flujo de Navegación</h3>
+    <p>Para garantizar una gestión ordenada, el submódulo se divide en cuatro áreas funcionales, cada una con un propósito específico en el flujo de trabajo:</p>
+    <ul>
+      <li><strong>Panel de Control (Dashboard):</strong> Es el centro de monitoreo en tiempo real. Proporciona estadísticas sobre cuántos prospectos están actualmente en evaluación, el índice de éxito en los exámenes y resalta las tareas urgentes, como calificaciones manuales pendientes.</li>
+      <li><strong>Banco de Exámenes:</strong> Es el repositorio maestro de inteligencia de la empresa. Aquí se diseñan las plantillas de exámenes (Seguridad, Supervisión, Operación) que se aplicarán de forma masiva. Permite configurar preguntas de opción múltiple con calificación automática y preguntas de respuesta abierta para evaluación de criterio.</li>
+      <li><strong>Procesos Activos:</strong> Permite el seguimiento individualizado de cada candidato. Desde aquí se gestiona la "Ruta de Evaluación" (ej. las 4 etapas), se visualiza el progreso porcentual del prospecto y se autoriza el avance a las siguientes fases tras cumplir con los puntajes mínimos.</li>
+      <li><strong>Calificaciones Pendientes:</strong> Una cola de trabajo optimizada para los evaluadores. Concentra todas las respuestas abiertas que requieren revisión manual, permitiendo que el personal técnico asigne puntajes basados en la calidad de la respuesta del candidato.</li>
+    </ul>
+
+    <h3>Lógica de Capacitación por Etapas y Material Multimedia</h3>
+    <p>La potencia operativa de este sistema reside en su capacidad de **enseñar antes de evaluar**. Cada etapa de la ruta de reclutamiento puede ser alimentada con:</p>
+    <ul>
+      <li><strong>Guías Técnicas (PDF):</strong> Manuales de procedimiento, normas oficiales o instrucciones de seguridad que el candidato debe descargar y estudiar.</li>
+      <li><strong>Instrucción en Video:</strong> Links de capacitación vinculados directamente en el ERP. El sistema incorpora un reproductor nativo que permite al prospecto estudiar sin distracciones externas, manteniendo la trazabilidad de su interacción con el material.</li>
+      <li><strong>Control de Intentos Máximos:</strong> Para garantizar el dominio del tema, RRHH puede definir, por ejemplo, 4 intentos por examen. Si el candidato no logra acreditar tras agotar sus intentos, el sistema bloquea el proceso, enviando una alerta para su revisión manual por parte de un supervisor.</li>
+    </ul>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Automatización del 80%</b>
+        El motor inteligente califica instantáneamente las preguntas cerradas, reduciendo la carga administrativa de RRHH y permitiendo que el personal se enfoque únicamente en validar el criterio técnico en las respuestas abiertas.
+      </div>
+      <div class="logic-item">
+        <b>Expediente de Formación</b>
+        Cada intento, respuesta y video visualizado queda registrado permanentemente. Esto genera un historial de aprendizaje que servirá como base para el plan de carrera del colaborador una vez contratado.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 9 -->
+<h1 id="finanzas">9. Control Financiero y Tesorería</h1>
+<div class="section-container">
+  <div class="function-header">Arquitectura de Inteligencia Financiera</div>
+  <div class="content-box">
+    <h3>¿Qué hace este módulo y para qué sirve?</h3>
+    <p>Es la capa superior del ERP que consolida la actividad de todos los demás módulos en estados de resultados y flujos de efectivo. Su función es el control estricto del dinero y el presupuesto. Sirve para dar visibilidad a los socios sobre la rentabilidad real del negocio, gestionar la liquidez diaria y asegurar que cada egreso esté debidamente autorizado y comprobado fiscalmente.</p>
+
+    <h3>¿Cómo funciona? (Lógica Operativa)</h3>
+    <p>El sistema opera bajo el principio de **Contabilidad de Partida Doble Automática**. Cada vez que se recibe una mercancía o se emite una factura, el sistema genera el asiento contable correspondiente en segundo plano. Esto permite que el Balance General esté disponible al cierre de cada día, no al cierre de mes.</p>
+    
+    <p>Un proceso crítico es la **Conciliación Bancaria**. El usuario importa el extracto del banco y el ERP sugiere emparejamientos basados en montos, fechas y referencias. Esta lógica asegura que el "Saldo en Libros" del sistema sea un espejo fiel del "Saldo en Banco", detectando inmediatamente cargos no reconocidos o depósitos de clientes que no han sido aplicados a facturas. El módulo de **Antigüedad de Saldos (Aging)** complementa esto al segmentar la cartera de clientes, disparando recordatorios de pago automáticos antes de que las cuentas entren en morosidad crítica.</p>
+
+    <div class="logic-grid">
+      <div class="logic-item">
+        <b>Control de Presupuestos por Área</b>
+        El sistema impide el registro de gastos que excedan la partida presupuestal asignada. Si un departamento ya agotó su presupuesto mensual de viáticos, el ERP bloqueará cualquier nueva solicitud hasta que se realice una transferencia de partida o una ampliación autorizada por dirección.
+      </div>
+      <div class="logic-item">
+        <b>Flujo de Caja Proyectado (Cashflow)</b>
+        Cruza las cuentas por pagar (compras) contra las cuentas por cobrar (ventas) y las nóminas programadas, entregando un gráfico de liquidez a 30, 60 y 90 días para prevenir crisis de capital.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECCIÓN 10 -->
+<h1 id="glosario">10. Glosario de Conceptos Operativos Técnicos</h1>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 25%;">Concepto</th>
+      <th style="width: 40%;">Definición Operativa</th>
+      <th style="width: 35%;">Importancia en el Proceso</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>APU (Análisis de Precios Unitarios)</b></td>
+      <td>Cálculo matemático que desglosa el costo directo de una unidad de obra (materiales, mano de obra, herramienta).</td>
+      <td>Base de competitividad. Un APU impreciso compromete la utilidad del proyecto.</td>
+    </tr>
+    <tr>
+      <td><b>Libranza Técnica</b></td>
+      <td>Documento de control que autoriza la intervención en líneas de alta/media tensión.</td>
+      <td>Candado de seguridad industrial y legal en campo. Garantiza cumplimiento CFE.</td>
+    </tr>
+    <tr>
+      <td><b>Valuación PEPS / FIFO</b></td>
+      <td>Método contable donde el primer artículo que entra al almacén es el primero en salir.</td>
+      <td>Garantiza que el valor del inventario sea real y actual.</td>
+    </tr>
+    <tr>
+      <td><b>Timbrado SAT (CFDI 4.0)</b></td>
+      <td>Certificación digital ante un PAC para dar validez legal a facturas y nóminas.</td>
+      <td>Asegura deducibilidad y cumplimiento fiscal en México.</td>
+    </tr>
+    <tr>
+      <td><b>Pipeline de Ventas</b></td>
+      <td>Representación visual del flujo comercial por etapas de probabilidad.</td>
+      <td>Permite predecir el flujo de efectivo futuro de la empresa.</td>
+    </tr>
+    <tr>
+      <td><b>Headcount Autorizado</b></td>
+      <td>Número de plazas laborales aprobadas por dirección para una unidad.</td>
+      <td>Evita sobrecostos en nómina y crecimiento desordenado.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div style="text-align:center; margin-top:50px; padding:30px; border-top:1px solid var(--pp-border);">
+  <img src="public/assets/img/LOGO ELECTROCONSTRUCCIONES/PNG/propower_Mesa de trabajo 1h red.png" style="height:40px; margin-bottom:15px;">
+  <p style="color:var(--pp-gray); font-size:10pt; font-weight: 600;">ProPower Electroconstrucciones S.A. de C.V.</p>
+  <p style="color:var(--pp-gray); font-size:8.5pt;">Documento de uso interno exclusivo. Propiedad de la empresa.</p>
+</div>
+
+</body>
+</html>

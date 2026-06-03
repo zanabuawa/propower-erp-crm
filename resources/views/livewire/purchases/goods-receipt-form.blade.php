@@ -205,7 +205,7 @@
                                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Detalle físico de lo que está llegando</p>
                             </div>
                         </div>
-                        <livewire:shared.product-picker />
+                        <livewire:shared.product-picker :multi-select="true" />
                     </div>
 
                     {{-- Buscador Rápido --}}
@@ -258,13 +258,20 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-200/40 bg-white">
-                                        @foreach($items as $index => $item)
+                                        @php
+                                                $_totalMercCost = collect($items)->sum(fn($i) => (float)($i['purchase_price'] ?? 0) * (float)($i['quantity'] ?? 0));
+                                            @endphp
+                                    @foreach($items as $index => $item)
                                             @php
-                                                $received  = $item['received'] ?? true;
-                                                $cost      = (float)($item['purchase_price'] ?? 0);
-                                                $margin    = (float)($item['profit_margin'] ?? 0);
-                                                $_div      = 1 - $margin / 100;
-                                                $salePrice = $_div > 0 ? round($cost / $_div, 2) : 0;
+                                                $received    = $item['received'] ?? true;
+                                                $cost        = (float)($item['purchase_price'] ?? 0);
+                                                $qty         = (float)($item['quantity'] ?? 1);
+                                                $margin      = (float)($item['profit_margin'] ?? 0);
+                                                $_itemCost   = $cost * $qty;
+                                                $_opShare    = $_totalMercCost > 0 ? ($_itemCost / $_totalMercCost) * (float)$operating_expenses : 0;
+                                                $_landed     = $cost + ($qty > 0 ? $_opShare / $qty : 0);
+                                                $_div        = 1 - $margin / 100;
+                                                $salePrice   = $_div > 0 ? round($_landed / $_div, 2) : 0;
                                             @endphp
                                             <tr class="{{ $received ? "hover:bg-slate-50/50" : "opacity-40 grayscale" }} transition-all">
                                                 <td class="px-5 py-3 text-center">

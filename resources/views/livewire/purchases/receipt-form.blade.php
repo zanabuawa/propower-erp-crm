@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto">
+<div>
     <div class="flex items-center gap-3 mb-6">
         <a wire:navigate href="{{ route('purchases.orders.show', $order) }}" class="text-gray-400 hover:text-gray-600">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +125,6 @@
                         <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Cant. a recibir</th>
                         @if($reception_type !== 'defective')
                             <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-28">Precio costo</th>
-                            <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500 w-24">Gastos op. %</th>
                         @endif
                         <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Almacén destino</th>
                         <th class="text-left px-4 py-2.5 text-xs font-medium text-gray-500">Notas</th>
@@ -164,19 +163,6 @@
                                             {{ !$received ? 'disabled' : '' }}
                                             class="w-full border border-gray-200 rounded pl-5 pr-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300 disabled:bg-gray-100">
                                     </div>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="relative">
-                                        <input wire:model="items.{{ $index }}.operational_cost"
-                                            type="number" step="0.01" min="0" max="999"
-                                            {{ !$received ? 'disabled' : '' }}
-                                            class="w-full border border-gray-200 rounded pl-3 pr-7 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-amber-300 disabled:bg-gray-100"
-                                            placeholder="0.00">
-                                        <span class="absolute right-2 top-1.5 text-xs text-gray-400">%</span>
-                                    </div>
-                                    @error("items.{$index}.operational_cost")
-                                        <p class="text-xs text-red-500">{{ $message }}</p>
-                                    @enderror
                                 </td>
                             @endif
                             <td class="px-4 py-3">

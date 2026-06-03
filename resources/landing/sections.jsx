@@ -153,17 +153,6 @@ const Nav = ({ mobile = false, active = 'Inicio' }) => {
             })}
           </nav>
 
-          {/* Phone */}
-          <div style={{ padding: '20px 24px 28px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-            <a href="tel:6141666340" style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              color: 'rgba(255,255,255,0.45)', fontFamily: 'JetBrains Mono, monospace',
-              fontSize: 12, letterSpacing: '0.1em', textDecoration: 'none',
-            }}>
-              <span style={{ color: 'var(--pp-red)', fontSize: 9 }}>◆</span>
-              614 166 6340
-            </a>
-          </div>
         </div>
       </>
     );
@@ -185,10 +174,6 @@ const Nav = ({ mobile = false, active = 'Inicio' }) => {
           </a>
         ))}
       </div>
-      <a href="tel:6141666340" style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'rgba(255,255,255,0.7)', letterSpacing: '0.08em', textDecoration: 'none' }}>
-        <span style={{ color: 'var(--pp-red)' }}>◆</span>
-        614 166 6340
-      </a>
     </div>
   );
 };
@@ -386,19 +371,18 @@ const NosotrosDesktop = () => (
           Nuestro equipo, ambicioso y con un fuerte espíritu de trabajo, se mantiene siempre a la vanguardia,
           con el objetivo de ofrecer a nuestros clientes seguridad y calidad en cada proyecto.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0, marginTop: 48, border: '1px solid rgba(255,255,255,0.15)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0, marginTop: 48, border: '1px solid rgba(255,255,255,0.15)', alignItems: 'stretch' }}>
           {[
             { t: 'Misión', d: _D.nosotros?.mision ?? 'Entregar soluciones electromecánicas con garantía y seguridad, superando las expectativas de cada cliente.' },
             { t: 'Visión', d: _D.nosotros?.vision ?? 'Ser el contratista de referencia en el norte de México en electroconstrucciones industriales.' },
-            { t: 'Valores', d: _D.nosotros?.valores ?? 'Compromiso, responsabilidad y honestidad en cada obra y en cada relación.' },
           ].map((m, i) => (
-            <div key={m.t} style={{ padding: '24px 22px', borderRight: i < 2 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
-              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 14 }}>0{i+1} · {m.t}</div>
-              <p style={{ fontSize: 14, lineHeight: 1.55, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
+            <div key={m.t} style={{ padding: 'clamp(18px, 1.4vw, 28px) clamp(16px, 1.2vw, 24px)', borderRight: i === 0 ? '1px solid rgba(255,255,255,0.15)' : 'none', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 'clamp(9px, 0.6vw, 11px)', letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 12 }}>0{i+1} · {m.t}</div>
+              <p style={{ fontSize: 'clamp(12px, 0.85vw, 14px)', lineHeight: 1.6, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 28, marginTop: 40, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.18em' }}>
+        <div style={{ display: 'flex', gap: 28, marginTop: 40, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.18em', justifyContent: 'flex-end' }}>
           <span style={{ color: 'var(--pp-red)' }}>✦ Compromiso</span>
           <span style={{ color: 'var(--pp-red)' }}>✦ Responsabilidad</span>
           <span style={{ color: 'var(--pp-red)' }}>✦ Honestidad</span>
@@ -733,20 +717,63 @@ const Footer = () => (
         </div>
       </div>
       {[
-        { t: 'Navegación', l: ['Inicio', 'Nosotros', 'Servicios', 'Galería', 'Contacto'] },
-        { t: 'Sectores', l: ['Industria', 'Minería', 'Ingeniería'] },
-        { t: 'Contacto', l: ['614 166 6340', 'contacto@propower.mx', 'Chihuahua, CHIH', 'Delicias, CHIH'] },
+        { 
+          t: 'Navegación', 
+          l: [
+            { n: 'Inicio', h: '#inicio' },
+            { n: 'Nosotros', h: '#nosotros' },
+            { n: 'Servicios', h: '#servicios' },
+            { n: 'Galería', h: '#galeria' },
+            { n: 'Contacto', h: '#contacto' }
+          ] 
+        },
+        { 
+          t: 'Sectores', 
+          l: [
+            { n: 'Industria', h: '#servicios' },
+            { n: 'Minería', h: '#servicios' },
+            { n: 'Ingeniería', h: '#servicios' }
+          ] 
+        },
+        { 
+          t: 'Contacto', 
+          l: [
+            { n: '614 166 6340', h: 'tel:6141666340' },
+            { n: 'contacto@propower.mx', h: 'mailto:contacto@propower.mx' },
+            { n: 'Chihuahua, CHIH', h: 'https://maps.google.com/?q=Chihuahua,MX', t: true },
+            { n: 'Delicias, CHIH', h: 'https://maps.google.com/?q=Delicias,MX', t: true }
+          ] 
+        },
       ].map(col => (
         <div key={col.t}>
           <div style={{ fontSize: 11, fontFamily: 'JetBrains Mono, monospace', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>{col.t}</div>
-          {col.l.map(x => <div key={x} style={{ fontSize: 14, color: 'rgba(255,255,255,0.85)', marginBottom: 10 }}>{x}</div>)}
+          {col.l.map(x => (
+            <a 
+              key={x.n} 
+              href={x.h} 
+              target={x.t ? "_blank" : undefined}
+              rel={x.t ? "noopener" : undefined}
+              style={{ display: 'block', fontSize: 14, color: 'rgba(255,255,255,0.85)', marginBottom: 10, textDecoration: 'none' }}
+              onMouseOver={e => e.currentTarget.style.color = '#fff'}
+              onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.85)'}
+            >
+              {x.n}
+            </a>
+          ))}
         </div>
       ))}
     </div>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24, fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
       <div>{_D.footer?.copyright ?? '© 2026 ProPower Electroconstrucciones — Todos los derechos reservados.'}</div>
       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-        <a href="#" style={{ color: 'rgba(255,255,255,0.7)', textDecoration: 'none' }}>Aviso de Privacidad</a>
+        <a
+          href="/aviso-de-privacidad"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 9, minHeight: 34, padding: '0 14px', border: '1px solid rgba(255,255,255,0.16)', borderBottomColor: 'rgba(200,30,30,0.8)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.78)', fontFamily: 'JetBrains Mono, monospace', fontSize: 10.5, letterSpacing: '0.1em', textDecoration: 'none', textTransform: 'uppercase', transition: 'color 0.2s ease, border-color 0.2s ease, background 0.2s ease' }}
+          onMouseOver={e => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'rgba(200,30,30,0.75)'; e.currentTarget.style.background = 'rgba(200,30,30,0.08)'; }}
+          onMouseOut={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.78)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'; e.currentTarget.style.borderBottomColor = 'rgba(200,30,30,0.8)'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+        >
+          Aviso de Privacidad <span style={{ color: 'var(--pp-red)', fontSize: 12 }}>→</span>
+        </a>
         <span style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.15)' }} />
         <a href={_D.footer?.whatsapp ?? 'https://wa.me/526141666340'} target="_blank" rel="noopener" aria-label="WhatsApp" style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', textDecoration: 'none' }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
@@ -772,14 +799,18 @@ const NosotrosMobile = () => (
     </p>
     <div style={{ display: 'grid', gap: 0, marginTop: 24, border: '1px solid rgba(255,255,255,0.15)' }}>
       {[
-        { t: 'Misión', d: 'Entregar soluciones con garantía y seguridad.' },
-        { t: 'Visión', d: 'Ser el contratista de referencia en el norte de México.' },
-        { t: 'Valores', d: 'Compromiso, responsabilidad y honestidad.' },
+        { t: 'Misión', d: _D.nosotros?.mision ?? 'Entregar soluciones electromecánicas con garantía y seguridad, superando las expectativas de cada cliente.' },
+        { t: 'Visión', d: _D.nosotros?.vision ?? 'Ser el contratista de referencia en el norte de México en electroconstrucciones industriales.' },
       ].map((m, i) => (
-        <div key={m.t} style={{ padding: '16px 14px', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
-          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 6 }}>0{i+1} · {m.t}</div>
-          <p style={{ fontSize: 13, lineHeight: 1.5, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
+        <div key={m.t} style={{ padding: '20px 18px', borderBottom: i === 0 ? '1px solid rgba(255,255,255,0.15)' : 'none' }}>
+          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.2em', color: 'var(--pp-red)', textTransform: 'uppercase', marginBottom: 10 }}>0{i+1} · {m.t}</div>
+          <p style={{ fontSize: 14, lineHeight: 1.6, color: 'rgba(255,255,255,0.8)', margin: 0 }}>{m.d}</p>
         </div>
+      ))}
+    </div>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 20px', marginTop: 24, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.18em', justifyContent: 'flex-end' }}>
+      {['Compromiso', 'Responsabilidad', 'Honestidad'].map(v => (
+        <span key={v} style={{ color: 'var(--pp-red)', whiteSpace: 'nowrap' }}>✦ {v}</span>
       ))}
     </div>
   </section>
@@ -928,6 +959,9 @@ const FooterMobile = () => (
     <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', marginTop: 20, lineHeight: 1.6 }}>
       {_D.contacto?.phone ?? '614 166 6340'} · {_D.contacto?.email ?? 'contacto@propower.mx'}<br/>Chihuahua · Delicias, CHIH
     </div>
+    <a href="/aviso-de-privacidad" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 38, marginTop: 22, padding: '0 14px', border: '1px solid rgba(255,255,255,0.16)', borderBottomColor: 'rgba(200,30,30,0.8)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.78)', fontFamily: 'JetBrains Mono, monospace', fontSize: 10, letterSpacing: '0.1em', textDecoration: 'none', textTransform: 'uppercase' }}>
+      Aviso de Privacidad <span style={{ color: 'var(--pp-red)', fontSize: 12 }}>→</span>
+    </a>
     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 24, paddingTop: 18, fontSize: 11, color: 'rgba(255,255,255,0.45)' }}>
       {_D.footer?.copyright ?? '© 2026 ProPower · 100% mexicana desde 2018'}
     </div>
@@ -937,7 +971,7 @@ const FooterMobile = () => (
 // ==================== WhatsApp float ====================
 const WhatsappFloat = ({ scale = 1 }) => (
   <a href="https://wa.me/526141666340" target="_blank" rel="noopener" className="pp-whatsapp" style={{
-    position: 'fixed', bottom: 24 * scale, right: 24 * scale,
+    position: 'fixed', bottom: 96 * scale, right: 24 * scale,
     width: 56 * scale, height: 56 * scale, borderRadius: '50%',
     background: '#25d366', display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: 'pointer', textDecoration: 'none', zIndex: 999,

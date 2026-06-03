@@ -118,7 +118,7 @@
                                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Definición de precios específicos</p>
                             </div>
                         </div>
-                        <livewire:shared.product-picker />
+                        <livewire:shared.product-picker :multi-select="true" />
                     </div>
 
                     {{-- Buscador Rápido --}}

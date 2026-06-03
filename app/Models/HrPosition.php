@@ -27,7 +27,7 @@ class HrPosition extends Model
         'is_active'  => 'boolean',
     ];
 
-    const SALARY_TYPES = [
+    public const SALARY_TYPES = [
         'hourly'    => 'Por hora',
         'daily'     => 'Diario',
         'weekly'    => 'Semanal',
@@ -55,5 +55,18 @@ class HrPosition extends Model
     public function employees(): HasMany
     {
         return $this->hasMany(HrEmployee::class, 'position_id');
+    }
+
+    public function headcounts(): HasMany
+    {
+        return $this->hasMany(\App\Models\HrPositionHeadcount::class, 'position_id');
+    }
+
+    /**
+     * Total authorized headcount across all branches.
+     */
+    public function totalAuthorized(): int
+    {
+        return (int) $this->headcounts()->sum('headcount');
     }
 }

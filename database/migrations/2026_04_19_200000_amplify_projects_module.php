@@ -10,7 +10,9 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Ampliar projects: nuevos tipos + pedido de venta + referencia contrato
-        DB::statement("ALTER TABLE projects MODIFY COLUMN type ENUM('interno','externo','licitacion','mantenimiento','instalacion','servicio') NOT NULL DEFAULT 'externo'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE projects MODIFY COLUMN type ENUM('interno','externo','licitacion','mantenimiento','instalacion','servicio') NOT NULL DEFAULT 'externo'");
+        }
 
         Schema::table('projects', function (Blueprint $table) {
             $table->foreignId('sale_order_id')->nullable()->after('customer_id')
@@ -89,6 +91,8 @@ return new class extends Migration
             $table->dropColumn(['sale_order_id', 'contract_reference']);
         });
 
-        DB::statement("ALTER TABLE projects MODIFY COLUMN type ENUM('interno','externo','licitacion') NOT NULL DEFAULT 'externo'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE projects MODIFY COLUMN type ENUM('interno','externo','licitacion') NOT NULL DEFAULT 'externo'");
+        }
     }
 };

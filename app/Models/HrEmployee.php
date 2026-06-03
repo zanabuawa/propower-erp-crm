@@ -21,8 +21,8 @@ class HrEmployee extends Model
     protected $fillable = [
         'company_id', 'user_id', 'branch_id', 'department_id', 'position_id', 'supervisor_id',
         'employee_number', 'first_name', 'last_name', 'second_last_name',
-        'curp', 'rfc', 'nss', 'email', 'phone', 'birth_date', 'gender',
-        'address', 'city', 'state', 'postal_code',
+        'curp', 'rfc', 'nss', 'email', 'phone', 'birth_date', 'notify_birthday', 'gender',
+        'address', 'city', 'state', 'country', 'postal_code',
         'hire_date', 'termination_date', 'termination_reason', 'termination_type',
         'contract_type', 'salary', 'salary_period',
         'work_shift', 'status', 'is_external', 'payment_method', 'bank', 'bank_account', 'clabe',
@@ -33,6 +33,7 @@ class HrEmployee extends Model
 
     protected $casts = [
         'birth_date'       => 'date',
+        'notify_birthday'  => 'boolean',
         'hire_date'        => 'date',
         'termination_date' => 'date',
         'salary'           => 'decimal:2',

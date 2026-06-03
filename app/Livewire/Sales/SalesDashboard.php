@@ -2,13 +2,10 @@
 
 namespace App\Livewire\Sales;
 
-use App\Models\Customer;
 use App\Models\SaleInvoice;
 use App\Models\SaleInvoiceItem;
 use App\Models\SaleOrder;
 use App\Models\SaleQuotation;
-use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Computed;
@@ -16,7 +13,7 @@ use Livewire\Attributes\Computed;
 #[Layout('layouts.app')]
 class SalesDashboard extends Component
 {
-    public string $period = 'month'; // month | quarter | year | custom
+    public string $period   = 'month';
     public string $dateFrom = '';
     public string $dateTo   = '';
 
@@ -29,14 +26,14 @@ class SalesDashboard extends Component
     public function updatedPeriod(): void
     {
         match ($this->period) {
-            'month'   => [$this->dateFrom, $this->dateTo] = [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()],
+            'month'   => [$this->dateFrom, $this->dateTo] = [now()->startOfMonth()->toDateString(),   now()->endOfMonth()->toDateString()],
             'quarter' => [$this->dateFrom, $this->dateTo] = [now()->startOfQuarter()->toDateString(), now()->endOfQuarter()->toDateString()],
-            'year'    => [$this->dateFrom, $this->dateTo] = [now()->startOfYear()->toDateString(), now()->endOfYear()->toDateString()],
+            'year'    => [$this->dateFrom, $this->dateTo] = [now()->startOfYear()->toDateString(),    now()->endOfYear()->toDateString()],
             default   => null,
         };
     }
 
-    private function companyId(): int
+    private function cid(): int
     {
         return auth()->user()->company_id;
     }
@@ -44,14 +41,14 @@ class SalesDashboard extends Component
     #[Computed]
     public function kpis(): array
     {
-        $cid  = $this->companyId();
+        $cid  = $this->cid();
         $from = $this->dateFrom;
         $to   = $this->dateTo;
 
         $invoiced = SaleInvoice::where('company_id', $cid)
             ->whereNotIn('status', ['cancelled'])
             ->whereBetween('issued_at', [$from, $to . ' 23:59:59'])
-            ->selectRaw('count(*) as qty, coalesce(sum(total),0) as total, coalesce(sum(paid_amount),0) as paid')
+            ->selectRaw('count(*) as qty, coalesce(sum(total),0) as total, coalesce(sum(paid_amount),0) as paid, coalesce(sum(tax),0) as tax')
             ->first();
 
         $orders = SaleOrder::where('company_id', $cid)
@@ -65,16 +62,16 @@ class SalesDashboard extends Component
             ->selectRaw('count(*) as qty')
             ->first();
 
-        $pending = (float) $invoiced->total - (float) $invoiced->paid;
+        $pending   = (float) $invoiced->total - (float) $invoiced->paid;
         $avgTicket = $invoiced->qty > 0 ? (float) $invoiced->total / $invoiced->qty : 0;
         $convRate  = $quotations->qty > 0
             ? round($orders->qty / $quotations->qty * 100, 1)
             : 0;
 
-        // Comparar con periodo anterior del mismo largo
-        $days = max(1, now()->parse($from)->diffInDays(now()->parse($to)) + 1);
-        $prevFrom = now()->parse($from)->subDays($days)->toDateString();
-        $prevTo   = now()->parse($from)->subDay()->toDateString();
+        // Comparar con período anterior de igual duración
+        $days     = max(1, \Carbon\Carbon::parse($from)->diffInDays(\Carbon\Carbon::parse($to)) + 1);
+        $prevFrom = \Carbon\Carbon::parse($from)->subDays($days)->toDateString();
+        $prevTo   = \Carbon\Carbon::parse($from)->subDay()->toDateString();
 
         $prevTotal = SaleInvoice::where('company_id', $cid)
             ->whereNotIn('status', ['cancelled'])
@@ -87,11 +84,12 @@ class SalesDashboard extends Component
 
         return [
             'invoiced_total'  => (float) $invoiced->total,
-            'invoiced_qty'    => (int) $invoiced->qty,
+            'invoiced_qty'    => (int)   $invoiced->qty,
+            'invoiced_tax'    => (float) $invoiced->tax,
             'pending_amount'  => $pending,
             'orders_total'    => (float) $orders->total,
-            'orders_qty'      => (int) $orders->qty,
-            'quotations_qty'  => (int) $quotations->qty,
+            'orders_qty'      => (int)   $orders->qty,
+            'quotations_qty'  => (int)   $quotations->qty,
             'avg_ticket'      => $avgTicket,
             'conv_rate'       => $convRate,
             'growth_pct'      => $growthPct,
@@ -101,9 +99,7 @@ class SalesDashboard extends Component
     #[Computed]
     public function monthlyTrend(): array
     {
-        $cid = $this->companyId();
-
-        return SaleInvoice::where('company_id', $cid)
+        return SaleInvoice::where('company_id', $this->cid())
             ->whereNotIn('status', ['cancelled'])
             ->where('issued_at', '>=', now()->subMonths(11)->startOfMonth())
             ->selectRaw("DATE_FORMAT(issued_at, '%Y-%m') as month, coalesce(sum(total),0) as total, count(*) as qty")
@@ -114,7 +110,7 @@ class SalesDashboard extends Component
                 'month' => $r->month,
                 'label' => \Carbon\Carbon::createFromFormat('Y-m', $r->month)->translatedFormat('M Y'),
                 'total' => (float) $r->total,
-                'qty'   => (int) $r->qty,
+                'qty'   => (int)   $r->qty,
             ])
             ->toArray();
     }
@@ -122,13 +118,9 @@ class SalesDashboard extends Component
     #[Computed]
     public function topCustomers(): array
     {
-        $cid  = $this->companyId();
-        $from = $this->dateFrom;
-        $to   = $this->dateTo;
-
-        return SaleInvoice::where('sale_invoices.company_id', $cid)
+        return SaleInvoice::where('sale_invoices.company_id', $this->cid())
             ->whereNotIn('sale_invoices.status', ['cancelled'])
-            ->whereBetween('sale_invoices.issued_at', [$from, $to . ' 23:59:59'])
+            ->whereBetween('sale_invoices.issued_at', [$this->dateFrom, $this->dateTo . ' 23:59:59'])
             ->join('customers', 'customers.id', '=', 'sale_invoices.customer_id')
             ->selectRaw('customers.name, customers.id, count(*) as qty, coalesce(sum(sale_invoices.total),0) as total')
             ->groupBy('customers.id', 'customers.name')
@@ -141,14 +133,10 @@ class SalesDashboard extends Component
     #[Computed]
     public function topProducts(): array
     {
-        $cid  = $this->companyId();
-        $from = $this->dateFrom;
-        $to   = $this->dateTo;
-
         return SaleInvoiceItem::join('sale_invoices', 'sale_invoices.id', '=', 'sale_invoice_items.sale_invoice_id')
-            ->where('sale_invoices.company_id', $cid)
+            ->where('sale_invoices.company_id', $this->cid())
             ->whereNotIn('sale_invoices.status', ['cancelled'])
-            ->whereBetween('sale_invoices.issued_at', [$from, $to . ' 23:59:59'])
+            ->whereBetween('sale_invoices.issued_at', [$this->dateFrom, $this->dateTo . ' 23:59:59'])
             ->selectRaw('sale_invoice_items.description, sale_invoice_items.product_id,
                 coalesce(sum(sale_invoice_items.quantity),0) as total_qty,
                 coalesce(sum(sale_invoice_items.subtotal),0) as total_revenue')
@@ -162,17 +150,13 @@ class SalesDashboard extends Component
     #[Computed]
     public function funnel(): array
     {
-        $cid  = $this->companyId();
+        $cid  = $this->cid();
         $from = $this->dateFrom;
-        $to   = $this->dateTo;
+        $to   = $this->dateTo . ' 23:59:59';
 
-        $quot = SaleQuotation::where('company_id', $cid)
-            ->whereBetween('created_at', [$from, $to . ' 23:59:59'])->count();
-        $ord  = SaleOrder::where('company_id', $cid)
-            ->whereBetween('created_at', [$from, $to . ' 23:59:59'])->count();
-        $inv  = SaleInvoice::where('company_id', $cid)
-            ->whereNotIn('status', ['cancelled'])
-            ->whereBetween('issued_at', [$from, $to . ' 23:59:59'])->count();
+        $quot = SaleQuotation::where('company_id', $cid)->whereBetween('created_at', [$from, $to])->count();
+        $ord  = SaleOrder::where('company_id', $cid)->whereBetween('created_at', [$from, $to])->count();
+        $inv  = SaleInvoice::where('company_id', $cid)->whereNotIn('status', ['cancelled'])->whereBetween('issued_at', [$from, $to])->count();
 
         return [
             ['label' => 'Cotizaciones', 'value' => $quot, 'color' => 'bg-blue-500'],
@@ -184,13 +168,9 @@ class SalesDashboard extends Component
     #[Computed]
     public function byVendor(): array
     {
-        $cid  = $this->companyId();
-        $from = $this->dateFrom;
-        $to   = $this->dateTo;
-
-        return SaleInvoice::where('sale_invoices.company_id', $cid)
+        return SaleInvoice::where('sale_invoices.company_id', $this->cid())
             ->whereNotIn('sale_invoices.status', ['cancelled'])
-            ->whereBetween('sale_invoices.issued_at', [$from, $to . ' 23:59:59'])
+            ->whereBetween('sale_invoices.issued_at', [$this->dateFrom, $this->dateTo . ' 23:59:59'])
             ->join('users', 'users.id', '=', 'sale_invoices.created_by')
             ->selectRaw('users.name, count(*) as qty, coalesce(sum(sale_invoices.total),0) as total')
             ->groupBy('users.id', 'users.name')

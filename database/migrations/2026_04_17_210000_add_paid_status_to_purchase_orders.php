@@ -9,11 +9,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // MySQL: modify enum to add 'paid'
-        DB::statement("ALTER TABLE purchase_orders MODIFY COLUMN status ENUM(
-            'draft','sent','waiting_delivery','partial_received',
-            'received','invoiced','paid','cancelled'
-        ) NOT NULL DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE purchase_orders MODIFY COLUMN status ENUM(
+                'draft','sent','waiting_delivery','partial_received',
+                'received','invoiced','paid','cancelled'
+            ) NOT NULL DEFAULT 'draft'");
+        }
 
         Schema::table('purchase_orders', function (Blueprint $table) {
             $table->decimal('paid_amount', 14, 2)->default(0)->after('total');
@@ -26,9 +27,11 @@ return new class extends Migration
             $table->dropColumn('paid_amount');
         });
 
-        DB::statement("ALTER TABLE purchase_orders MODIFY COLUMN status ENUM(
-            'draft','sent','waiting_delivery','partial_received',
-            'received','invoiced','cancelled'
-        ) NOT NULL DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE purchase_orders MODIFY COLUMN status ENUM(
+                'draft','sent','waiting_delivery','partial_received',
+                'received','invoiced','cancelled'
+            ) NOT NULL DEFAULT 'draft'");
+        }
     }
 };

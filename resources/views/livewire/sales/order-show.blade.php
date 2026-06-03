@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto">
+<div>
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div class="flex items-center gap-3 flex-1">
             <a wire:navigate href="{{ route('sales.orders.index') }}" class="text-gray-400 hover:text-gray-600">
@@ -93,7 +93,12 @@
                     </div>
                     @if($order->discount_amount > 0)
                         <div class="flex justify-between">
-                            <span class="text-gray-500">Descuento</span>
+                            <span class="text-gray-500">
+                                Descuento
+                                @if($order->global_discount_pct > 0)
+                                    <span class="text-xs text-gray-400">(global {{ number_format($order->global_discount_pct, 1) }}%)</span>
+                                @endif
+                            </span>
                             <span class="text-red-600">-${{ number_format($order->discount_amount, 2) }}</span>
                         </div>
                     @endif

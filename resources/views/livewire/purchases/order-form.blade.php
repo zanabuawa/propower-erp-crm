@@ -140,7 +140,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <livewire:shared.product-picker />
+                            <livewire:shared.product-picker :multi-select="true" />
                         </div>
                     </div>
 

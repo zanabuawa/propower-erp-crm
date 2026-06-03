@@ -70,11 +70,6 @@ class SalesOpportunity extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function prospect(): BelongsTo
-    {
-        return $this->belongsTo(SalesProspect::class, 'prospect_id');
-    }
-
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
@@ -87,7 +82,7 @@ class SalesOpportunity extends Model
 
     public function getLinkedNameAttribute(): string
     {
-        return $this->customer?->name ?? $this->prospect?->name ?? '—';
+        return $this->customer?->name ?? '—';
     }
 
     public function isActive(): bool

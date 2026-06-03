@@ -75,9 +75,12 @@
                                 @error('department_id') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">{{ $message }}</p> @enderror
                             </div>
                             <div class="space-y-2">
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Headcount Autorizado</label>
-                                <input wire:model="authorized_headcount" type="number" min="1"
-                                    class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 font-bold text-slate-700">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Total de plazas autorizadas</label>
+                                <div class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-100/60 font-black text-slate-700 text-lg select-none">
+                                    {{ $authorized_headcount }}
+                                    <span class="text-xs font-medium text-slate-400 ml-1">plazas</span>
+                                </div>
+                                <p class="text-[10px] text-slate-400 ml-1">Se calcula automáticamente con la distribución por sucursal.</p>
                             </div>
                         </div>
                     </div>
@@ -107,6 +110,74 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {{-- Card: Distribución de plazas por sucursal --}}
+                <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
+                    <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Plantilla por sucursal</h3>
+                            <p class="text-[10px] text-slate-400 mt-0.5">Define cuántas plazas de este puesto corresponden a cada sucursal. El total se usa para controlar el reclutamiento.</p>
+                        </div>
+                        <div class="text-right shrink-0 ml-4">
+                            <p class="text-2xl font-black text-indigo-600">{{ $authorized_headcount }}</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Total</p>
+                        </div>
+                    </div>
+                    <div class="divide-y divide-slate-50">
+                        @foreach($branches as $branch)
+                        @php $filled = \App\Models\HrEmployee::where('position_id', $position?->id ?? 0)->where('branch_id', $branch->id)->whereIn('status', ['active','on_leave'])->count(); @endphp
+                        <div class="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/30 transition-colors">
+                            <div class="flex items-center gap-3 flex-1 min-w-0">
+                                <div class="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-bold text-slate-700 truncate">{{ $branch->name }}</p>
+                                    @if($position?->exists && $filled > 0)
+                                        <p class="text-[10px] text-slate-400">{{ $filled }} ocupada(s) actualmente</p>
+                                    @else
+                                        <p class="text-[10px] text-slate-400">Sin empleados asignados</p>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 shrink-0">
+                                @if($position?->exists && $filled > 0)
+                                    <span class="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
+                                        {{ $filled }}/{{ $branchHeadcounts[$branch->id] ?? 0 }} ocupadas
+                                    </span>
+                                @endif
+                                <div class="flex items-center gap-1">
+                                    <button type="button"
+                                        wire:click="$set('branchHeadcounts.{{ $branch->id }}', max(0, ($branchHeadcounts[{{ $branch->id }}] ?? 0) - 1))"
+                                        class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-black transition-colors text-lg leading-none">
+                                        −
+                                    </button>
+                                    <input type="number" min="0"
+                                        wire:model.live="branchHeadcounts.{{ $branch->id }}"
+                                        class="w-16 text-center px-2 py-2 rounded-xl border-slate-200 bg-slate-50 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/5 transition-all text-sm font-black text-slate-700">
+                                    <button type="button"
+                                        wire:click="$set('branchHeadcounts.{{ $branch->id }}', ($branchHeadcounts[{{ $branch->id }}] ?? 0) + 1)"
+                                        class="w-8 h-8 rounded-xl bg-indigo-50 hover:bg-indigo-100 flex items-center justify-center text-indigo-600 font-black transition-colors text-lg leading-none">
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+
+                        @if($branches->isEmpty())
+                            <div class="px-6 py-8 text-center">
+                                <p class="text-sm text-slate-400">No hay sucursales activas configuradas.</p>
+                            </div>
+                        @endif
+                    </div>
+                    @if($authorized_headcount > 0)
+                    <div class="px-6 py-4 bg-indigo-50/50 border-t border-indigo-100/60 flex items-center justify-between">
+                        <p class="text-xs text-indigo-600 font-bold">Total de plazas distribuidas</p>
+                        <p class="text-xl font-black text-indigo-700">{{ $authorized_headcount }}</p>
+                    </div>
+                    @endif
                 </div>
 
             </div>

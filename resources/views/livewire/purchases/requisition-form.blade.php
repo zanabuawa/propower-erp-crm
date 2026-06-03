@@ -162,7 +162,7 @@
                                 <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Productos o servicios específicos</p>
                             </div>
                         </div>
-                        <livewire:shared.product-picker />
+                        <livewire:shared.product-picker :multi-select="true" />
                     </div>
 
                     {{-- Buscador Rápido --}}

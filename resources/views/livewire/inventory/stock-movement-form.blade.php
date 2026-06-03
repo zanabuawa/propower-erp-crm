@@ -156,7 +156,7 @@
                 <div class="bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
                         <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Partidas del movimiento</h2>
-                        <livewire:shared.product-picker />
+                        <livewire:shared.product-picker :multi-select="true" />
                     </div>
                     <div class="p-6 space-y-6">
                         

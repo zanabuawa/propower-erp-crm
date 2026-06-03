@@ -4,6 +4,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
+// Public endpoint so the login page can silently refresh its CSRF token
+Route::get('/csrf-token', fn () => response()->json(['token' => csrf_token()]))->name('csrf.refresh');
+
 Route::post('/broadcasting/auth', function () {
     return Broadcast::auth(request());
 })->middleware(['web', 'auth']);
@@ -12,19 +15,32 @@ Route::get('/', function () {
     return view('landing');
 })->name('landing');
 
+Route::get('/aviso-de-privacidad', function () {
+    return view('privacy');
+})->name('privacy');
+
 Route::get('/galeria', function () {
     return view('gallery');
 })->name('gallery');
 
 Route::post('/contacto', [\App\Http\Controllers\Landing\ContactoController::class, 'send'])->name('landing.contacto');
 
+// ── Sistema de Evaluación (Candidatos) ──
+Route::get('/evaluacion/{prospect}', \App\Livewire\HR\CandidateEvaluationPortal::class)
+    ->name('hr.candidate.portal')
+    ->middleware('signed');
+
+Route::get('/evaluacion/prueba/{prospectTest}', \App\Livewire\HR\TakeTest::class)
+    ->name('hr.take-test');
+
 Route::get('/dashboard', \App\Livewire\Dashboard::class)->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/admin/landing', \App\Livewire\Landing\LandingEditor::class)->middleware(['auth'])->name('landing.editor');
-Route::get('/admin/galeria', \App\Livewire\Landing\GalleryEditor::class)->middleware(['auth'])->name('gallery.editor');
+Route::get('/admin/landing', \App\Livewire\Landing\LandingEditor::class)->middleware(['auth', 'can:access website section'])->name('landing.editor');
+Route::get('/admin/galeria', \App\Livewire\Landing\GalleryEditor::class)->middleware(['auth', 'can:access website section'])->name('gallery.editor');
 Route::get('/ejecutivo', \App\Livewire\Reports\ExecutiveDashboard::class)->middleware(['auth', 'verified'])->name('reports.executive');
 
 Route::middleware('auth')->group(function () {
     Route::get('/mi-portal', \App\Livewire\HR\EmployeePortal::class)->name('hr.portal');
+    Route::get('/agenda', \App\Livewire\HR\ProspectAgenda::class)->middleware('can:access agenda section')->name('agenda.index');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -53,6 +69,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/inventario/existencias/almacen', \App\Livewire\Inventory\InventoryByWarehouse::class)->name('inventory.warehouse-stock');
         Route::get('/inventario/existencias/almacen/imprimir', \App\Http\Controllers\Inventory\WarehouseStockPrintController::class)->name('inventory.warehouse-stock.print');
         Route::get('/inventario/categorias', \App\Livewire\Inventory\CategoryIndex::class)->name('inventory.categories.index');
+        Route::get('/inventario/unidades', \App\Livewire\Inventory\UnitIndex::class)->name('inventory.units.index');
         Route::get('/inventario/almacenes', \App\Livewire\Inventory\WarehouseIndex::class)->name('inventory.warehouses.index');
         Route::get('/inventario/almacenes/{warehouse}/plano', \App\Livewire\Inventory\WarehouseLayoutEditor::class)->name('inventory.warehouses.layout');
         Route::get('/inventario/movimientos', \App\Livewire\Inventory\StockMovementIndex::class)->name('inventory.movements.index');
@@ -66,6 +83,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:create inventory')->group(function () {
         Route::get('/inventario/productos/crear', \App\Livewire\Inventory\ProductForm::class)->name('inventory.products.create');
         Route::get('/inventario/categorias/crear', \App\Livewire\Inventory\CategoryForm::class)->name('inventory.categories.create');
+        Route::get('/inventario/unidades/crear', \App\Livewire\Inventory\UnitForm::class)->name('inventory.units.create');
         Route::get('/inventario/almacenes/crear', \App\Livewire\Inventory\WarehouseForm::class)->name('inventory.warehouses.create');
     });
     Route::middleware('can:adjust inventory')->group(function () {
@@ -74,6 +92,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:edit inventory')->group(function () {
         Route::get('/inventario/productos/{product}/editar', \App\Livewire\Inventory\ProductForm::class)->name('inventory.products.edit');
         Route::get('/inventario/categorias/{category}/editar', \App\Livewire\Inventory\CategoryForm::class)->name('inventory.categories.edit');
+        Route::get('/inventario/unidades/{unitOfMeasure}/editar', \App\Livewire\Inventory\UnitForm::class)->name('inventory.units.edit');
         Route::get('/inventario/almacenes/{warehouse}/editar', \App\Livewire\Inventory\WarehouseForm::class)->name('inventory.warehouses.edit');
         Route::get('/inventario/almacenes/{warehouse}/ubicaciones', \App\Livewire\Inventory\WarehouseLocationAssignment::class)->name('inventory.warehouses.locations');
         Route::get('/inventario/movimientos/{stockMovement}', \App\Livewire\Inventory\StockMovementForm::class)->name('inventory.movements.show');
@@ -192,20 +211,29 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    // ── CRM (Prospectos, Pipeline, Agenda) ───────────────────────────────────
+    // ── CRM ──────────────────────────────────────────────────────────────────
     Route::middleware('can:view sales')->group(function () {
-        Route::get('/ventas/crm/prospectos', \App\Livewire\Sales\CrmProspectIndex::class)->name('sales.crm.prospects.index');
-        Route::get('/ventas/crm/prospectos/{prospect}', \App\Livewire\Sales\CrmProspectShow::class)->name('sales.crm.prospects.show');
         Route::get('/ventas/crm/pipeline', \App\Livewire\Sales\CrmPipelineIndex::class)->name('sales.crm.pipeline');
         Route::get('/ventas/crm/agenda', \App\Livewire\Sales\CrmAgendaIndex::class)->name('sales.crm.agenda');
         Route::get('/ventas/crm/analytics', \App\Livewire\Sales\CrmAnalytics::class)->name('sales.crm.analytics');
         Route::get('/ventas/clientes/analytics', \App\Livewire\Sales\CustomerAnalytics::class)->name('sales.customers.analytics');
-    });
-    Route::middleware('can:create sales')->group(function () {
-        Route::get('/ventas/crm/prospectos/crear', \App\Livewire\Sales\CrmProspectForm::class)->name('sales.crm.prospects.create');
-        Route::get('/ventas/crm/prospectos/{prospect}/editar', \App\Livewire\Sales\CrmProspectForm::class)->name('sales.crm.prospects.edit');
+
+        // Oportunidades — literal antes del wildcard
         Route::get('/ventas/crm/oportunidades/crear', \App\Livewire\Sales\CrmOpportunityForm::class)->name('sales.crm.opportunities.create');
         Route::get('/ventas/crm/oportunidades/{opportunity}/editar', \App\Livewire\Sales\CrmOpportunityForm::class)->name('sales.crm.opportunities.edit');
+        Route::get('/ventas/crm/oportunidades/{opportunity}', \App\Livewire\Sales\CrmOpportunityShow::class)->name('sales.crm.opportunities.show');
+
+        // Tickets — literal antes del wildcard
+        Route::get('/ventas/crm/tickets', \App\Livewire\Sales\CrmTicketIndex::class)->name('sales.crm.tickets.index');
+        Route::get('/ventas/crm/tickets/crear', \App\Livewire\Sales\CrmTicketForm::class)->name('sales.crm.tickets.create');
+        Route::get('/ventas/crm/tickets/{ticket}/editar', \App\Livewire\Sales\CrmTicketForm::class)->name('sales.crm.tickets.edit');
+        Route::get('/ventas/crm/tickets/{ticket}', \App\Livewire\Sales\CrmTicketShow::class)->name('sales.crm.tickets.show');
+
+        // Campañas — literal antes del wildcard
+        Route::get('/ventas/crm/campanas', \App\Livewire\Sales\CrmCampaignIndex::class)->name('sales.crm.campaigns.index');
+        Route::get('/ventas/crm/campanas/crear', \App\Livewire\Sales\CrmCampaignForm::class)->name('sales.crm.campaigns.create');
+        Route::get('/ventas/crm/campanas/{campaign}/editar', \App\Livewire\Sales\CrmCampaignForm::class)->name('sales.crm.campaigns.edit');
+        Route::get('/ventas/crm/campanas/{campaign}', \App\Livewire\Sales\CrmCampaignShow::class)->name('sales.crm.campaigns.show');
     });
 
     // ── Proyectos ─────────────────────────────────────────────────────────────
@@ -234,6 +262,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware('can:view tenders')->group(function () {
         Route::get('/licitaciones/{tender}', \App\Livewire\Tenders\TenderShow::class)->name('tenders.show');
         Route::get('/licitaciones/{tender}/cotizacion/crear', \App\Livewire\Tenders\QuotationForm::class)->name('tenders.quotations.create');
+    });
+    Route::middleware('can:view tenders')->group(function () {
+        Route::get('/catalogo', \App\Livewire\Tenders\CatalogIndex::class)->name('tenders.catalog.index');
+        Route::get('/catalogo/crear', \App\Livewire\Tenders\CatalogItemForm::class)->name('tenders.catalog.create');
+        Route::get('/catalogo/{item}/editar', \App\Livewire\Tenders\CatalogItemForm::class)->name('tenders.catalog.edit');
     });
 
     // ── Control de Obras ─────────────────────────────────────────────────────
@@ -286,6 +319,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/rrhh/permisos', \App\Livewire\HR\LeaveIndex::class)->name('hr.leaves.index');
         Route::get('/rrhh/permisos/crear', \App\Livewire\HR\LeaveForm::class)->name('hr.leaves.create');
         Route::get('/rrhh/permisos/{leave}/editar', \App\Livewire\HR\LeaveForm::class)->name('hr.leaves.edit');
+        Route::get('/rrhh/vacaciones', \App\Livewire\HR\VacationIndex::class)->name('hr.vacations.index');
+        Route::get('/rrhh/vacaciones/crear', \App\Livewire\HR\VacationForm::class)->name('hr.vacations.create');
+        Route::get('/rrhh/vacaciones/{leave}/editar', \App\Livewire\HR\VacationForm::class)->name('hr.vacations.edit');
         Route::get('/rrhh/incidencias', \App\Livewire\HR\IncidentIndex::class)->name('hr.incidents.index');
         Route::get('/rrhh/incidencias/crear', \App\Livewire\HR\IncidentForm::class)->name('hr.incidents.create');
         Route::get('/rrhh/incidencias/{incident}/editar', \App\Livewire\HR\IncidentForm::class)->name('hr.incidents.edit');
@@ -305,6 +341,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/rrhh/vacantes/{jobOpening}/editar', \App\Livewire\HR\JobOpeningForm::class)->name('hr.job-openings.edit');
         Route::get('/rrhh/organigrama', \App\Livewire\HR\OrgChart::class)->name('hr.org-chart');
         Route::get('/rrhh/plantilla', \App\Livewire\HR\WorkforcePlanning::class)->name('hr.workforce-planning');
+
+        // ── Sistema de Evaluación ──
+        Route::prefix('sistema-evaluacion')->group(function () {
+            Route::get('/panel', \App\Livewire\HR\EvaluationDashboard::class)->name('hr.evaluations.dashboard');
+            Route::get('/procesos', \App\Livewire\HR\EvaluationDashboard::class)->name('hr.evaluations.processes');
+            Route::get('/nueva', \App\Livewire\HR\EvaluationCreate::class)->name('hr.evaluations.create_permit');
+            Route::get('/examenes', \App\Livewire\HR\TestTemplateIndex::class)->name('hr.test-templates.index');
+            Route::get('/examenes/crear', \App\Livewire\HR\TestTemplateForm::class)->name('hr.test-templates.create');
+            Route::get('/examenes/{template}/editar', \App\Livewire\HR\TestTemplateForm::class)->name('hr.test-templates.edit');
+            Route::get('/procesos/{process}', \App\Livewire\HR\EvaluationProcessManagement::class)->name('hr.evaluations.manage');
+            Route::get('/prospectos/{prospect}/evaluacion', \App\Livewire\HR\EvaluationProcessManagement::class)->name('hr.prospects.evaluation');
+            Route::get('/calificaciones-pendientes', \App\Livewire\HR\PendingGradesIndex::class)->name('hr.evaluations.pending-grades');
+            Route::get('/calificar/{attempt}', \App\Livewire\HR\HrTestGrading::class)->name('hr.test-grading');
+        });
     });
     Route::middleware('can:edit hr')->group(function () {
         Route::get('/rrhh/empleados/{employee}/editar', \App\Livewire\HR\EmployeeForm::class)->name('hr.employees.edit');

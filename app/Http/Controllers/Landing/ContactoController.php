@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Landing;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ContactoMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -19,21 +20,7 @@ class ContactoController extends Controller
             'mensaje'  => 'required|string|max:2000',
         ]);
 
-        $body = implode("\n", array_filter([
-            "Nombre:   {$data['nombre']}",
-            isset($data['empresa'])  ? "Empresa:  {$data['empresa']}"  : null,
-            "Correo:   {$data['correo']}",
-            isset($data['telefono']) ? "Teléfono: {$data['telefono']}" : null,
-            isset($data['sector'])   ? "Sector:   {$data['sector']}"   : null,
-            "",
-            $data['mensaje'],
-        ]));
-
-        Mail::raw($body, function ($msg) use ($data) {
-            $msg->to('contacto@propower.mx')
-                ->replyTo($data['correo'], $data['nombre'])
-                ->subject("Nuevo contacto web: {$data['nombre']}");
-        });
+        Mail::to('no-reply@marcordgzdev.net')->send(new ContactoMail($data));
 
         return response()->json(['ok' => true]);
     }

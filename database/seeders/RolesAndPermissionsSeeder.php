@@ -43,6 +43,76 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     public static array $standaloneGroups = [
         'dashboard' => 'Dashboard',
+        'portal'    => 'Mi Portal',
+        'agenda'    => 'Agenda',
+        'website'   => 'Sitio web',
+    ];
+
+    /**
+     * Section/module access permissions shown before CRUD and granular actions.
+     * These are the first layer for deciding which areas a user can enter.
+     */
+    public static array $sectionPermissions = [
+        'inventory' => [
+            'access inventory section' => 'Acceso a Inventario',
+        ],
+        'assets' => [
+            'access assets section' => 'Acceso a Activos fijos',
+        ],
+        'purchases' => [
+            'access purchases section' => 'Acceso a Compras',
+        ],
+        'sales' => [
+            'access sales section' => 'Acceso a Ventas',
+        ],
+        'contacts' => [
+            'access crm section' => 'Acceso a CRM',
+        ],
+        'suppliers' => [
+            'access suppliers section' => 'Acceso a Proveedores',
+        ],
+        'hr' => [
+            'access hr section'             => 'Acceso a Recursos Humanos',
+            'access hr recruitment section' => 'Acceso a Reclutamiento',
+            'access hr employees section'   => 'Acceso a Personal',
+            'access hr attendance section'  => 'Acceso a Asistencia',
+            'access hr payroll section'     => 'Acceso a Nomina',
+            'access hr evaluations section' => 'Acceso a Evaluaciones',
+        ],
+        'projects' => [
+            'access projects section' => 'Acceso a Proyectos',
+        ],
+        'tenders' => [
+            'access tenders section' => 'Acceso a Licitaciones',
+            'access works section'   => 'Acceso a Control de obra',
+        ],
+        'finance' => [
+            'access finance section' => 'Acceso a Finanzas',
+        ],
+        'reports' => [
+            'access reports section' => 'Acceso a Reportes',
+        ],
+        'companies' => [
+            'access companies section' => 'Acceso a Empresas',
+        ],
+        'branches' => [
+            'access branches section' => 'Acceso a Sucursales',
+        ],
+        'users' => [
+            'access users section' => 'Acceso a Usuarios',
+        ],
+        'dashboard' => [
+            'access dashboard section' => 'Acceso a Dashboard',
+        ],
+        'portal' => [
+            'access portal section' => 'Acceso a Mi Portal',
+        ],
+        'agenda' => [
+            'access agenda section' => 'Acceso a Agenda',
+        ],
+        'website' => [
+            'access website section' => 'Acceso a Sitio web',
+        ],
     ];
 
     /**
@@ -95,6 +165,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'cancel invoices'      => 'Cancelar CFDI de venta ante el SAT',
             'override sale prices' => 'Modificar precios unitarios en una venta',
             'apply discounts'      => 'Aplicar descuentos en cotizaciones y órdenes',
+            'discount level 2'    => 'Aplicar hasta 2/3 del margen de utilidad como descuento',
+            'discount level 3'    => 'Aplicar hasta el 100% del margen de utilidad como descuento',
             'manage price lists'   => 'Crear y editar listas de precios',
             // Nuevos
             'approve discounts'    => 'Autorizar descuentos solicitados por vendedores',
@@ -198,6 +270,13 @@ class RolesAndPermissionsSeeder extends Seeder
             }
         }
 
+        // Create section/module access permissions
+        foreach (self::$sectionPermissions as $perms) {
+            foreach (array_keys($perms) as $permName) {
+                Permission::firstOrCreate(['name' => $permName]);
+            }
+        }
+
         // Create extra granular permissions
         foreach (self::$extraPermissions as $perms) {
             foreach (array_keys($perms) as $permName) {
@@ -228,11 +307,19 @@ class RolesAndPermissionsSeeder extends Seeder
         // vendedor: ventas + CRM + inventario lectura + precios venta + facturación + cobranza lectura
         $seller = Role::firstOrCreate(['name' => 'vendedor']);
         $seller->syncPermissions([
+            'access portal section',
+            'access agenda section',
+            'access dashboard section',
+            'access inventory section',
             'view inventory',
             'view prices',           // precio de venta
+            'access sales section',
             'view sales', 'create sales', 'edit sales',
+            'access crm section',
             'view contacts', 'create contacts', 'edit contacts',
+            'access suppliers section',
             'view suppliers',
+            'access reports section',
             'view reports',
             'stamp invoices',
             'apply discounts',
@@ -240,6 +327,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'view crm analytics',
             'manage deliveries',
             'view sales summary',
+            'access finance section',
             'view finance summary',
             'view accounts receivable',
         ]);
@@ -247,6 +335,10 @@ class RolesAndPermissionsSeeder extends Seeder
         // almacenista: inventario completo + precios de compra + compras + activos
         $warehouse = Role::firstOrCreate(['name' => 'almacenista']);
         $warehouse->syncPermissions([
+            'access portal section',
+            'access agenda section',
+            'access dashboard section',
+            'access inventory section',
             'view inventory', 'create inventory', 'edit inventory',
             'adjust inventory',
             'view prices',
@@ -255,8 +347,10 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage inventory categories',
             'view inventory analytics',
             'access other branches warehouses',
+            'access purchases section',
             'view purchases', 'create purchases', 'edit purchases',
             'receive goods',
+            'access assets section',
             'view assets', 'create assets', 'edit assets', 'transfer assets',
             'manage asset maintenance',
             'manage asset loans',
@@ -267,26 +361,43 @@ class RolesAndPermissionsSeeder extends Seeder
         // comprador: gestión completa de compras + costos + aprobaciones + proveedores
         $buyer = Role::firstOrCreate(['name' => 'comprador']);
         $buyer->syncPermissions([
+            'access portal section',
+            'access agenda section',
+            'access dashboard section',
+            'access inventory section',
             'view inventory',
             'view prices',
             'view product cost',     // comprador necesita ver costo de obtención
+            'access purchases section',
             'view purchases', 'create purchases', 'edit purchases',
             'receive goods',
             'approve requisitions',
             'approve purchase orders',
             'manage supplier invoices',
             'view purchases analytics',
+            'access suppliers section',
             'view suppliers',
+            'access reports section',
             'view reports',
             'export reports',
             'view purchases summary',
             'view inventory summary',
+            'access finance section',
             'view accounts payable',
         ]);
 
         // rrhh: gestión completa de RRHH + salarios + datos sensibles + nómina
         $hrManager = Role::firstOrCreate(['name' => 'rrhh']);
         $hrManager->syncPermissions([
+            'access portal section',
+            'access agenda section',
+            'access dashboard section',
+            'access hr section',
+            'access hr recruitment section',
+            'access hr employees section',
+            'access hr attendance section',
+            'access hr payroll section',
+            'access hr evaluations section',
             'view hr', 'create hr', 'edit hr',
             'manage payroll', 'approve leaves', 'view payroll', 'stamp payroll',
             'view employee salary',         // puede ver salarios individuales
@@ -298,6 +409,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'manage workforce planning',
             'view org chart',
             'manage training costs',
+            'access inventory section',
             'view inventory',
             'view hr summary',
         ]);
@@ -305,9 +417,16 @@ class RolesAndPermissionsSeeder extends Seeder
         // empleado: lectura básica + portal propio
         $employee = Role::firstOrCreate(['name' => 'empleado']);
         $employee->syncPermissions([
+            'access portal section',
+            'access agenda section',
+            'access inventory section',
             'view inventory',
+            'access sales section',
             'view sales',
+            'access crm section',
             'view contacts',
+            'access hr section',
+            'access hr employees section',
             'view org chart',
         ]);
     }

@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto">
+<div>
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div class="flex items-center gap-3 flex-1">
             <a wire:navigate href="{{ route('sales.index') }}" class="text-gray-400 hover:text-gray-600">
@@ -90,7 +90,12 @@
                     </div>
                     @if($quotation->discount_amount > 0)
                         <div class="flex justify-between">
-                            <span class="text-gray-500">Descuento</span>
+                            <span class="text-gray-500">
+                                Descuento
+                                @if($quotation->global_discount_pct > 0)
+                                    <span class="text-xs text-gray-400">(global {{ number_format($quotation->global_discount_pct, 1) }}%)</span>
+                                @endif
+                            </span>
                             <span class="text-red-600">-${{ number_format($quotation->discount_amount, 2) }}</span>
                         </div>
                     @endif

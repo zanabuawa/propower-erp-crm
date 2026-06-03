@@ -11,6 +11,7 @@ use App\Models\PurchaseReceipt;
 use App\Models\Stock;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use App\Services\FifoStockService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -51,7 +52,6 @@ class ReceiptForm extends Component
                 'quantity_ordered'  => $i->quantity,
                 'quantity_received' => $i->pending_quantity,
                 'quantity_pending'  => $i->pending_quantity,
-                'operational_cost'  => '0',
                 'notes'             => '',
                 'received'          => true,
             ])->values()->toArray();
@@ -110,7 +110,6 @@ class ReceiptForm extends Component
             'items'                      => 'required|array|min:1',
             'items.*.quantity_received'  => 'required|numeric|min:0',
             'items.*.warehouse_id'       => 'required|exists:warehouses,id',
-            'items.*.operational_cost'   => 'required|numeric|min:0',
         ];
 
         if ($this->reception_type === 'purchase') {
@@ -136,13 +135,16 @@ class ReceiptForm extends Component
         $this->validate($this->validationRules());
 
         DB::transaction(function () {
+            $companyId = auth()->user()->company_id;
+            $fifo      = app(FifoStockService::class);
+
             $folio = 'REC-' . str_pad(
-                PurchaseReceipt::where('company_id', auth()->user()->company_id)->count() + 1,
+                PurchaseReceipt::where('company_id', $companyId)->count() + 1,
                 6, '0', STR_PAD_LEFT
             );
 
             $receipt = PurchaseReceipt::create([
-                'company_id'         => auth()->user()->company_id,
+                'company_id'         => $companyId,
                 'purchase_order_id'  => $this->order->id,
                 'received_by'        => auth()->id(),
                 'warehouse_id'       => $this->warehouse_id,
@@ -183,24 +185,36 @@ class ReceiptForm extends Component
                 ]);
             }
 
+            // Calcular costo total de mercancía para distribuir gastos de operación
+            $receivedForCalc = collect($this->items)->filter(fn($i) => ($i['received'] ?? true) && $i['quantity_received'] > 0);
+            $totalMercCost   = $receivedForCalc->sum(fn($i) => (float) $i['quantity_received'] * (float) $i['purchase_price']);
+
             foreach ($this->items as $item) {
                 if (!($item['received'] ?? true)) continue;
                 if ($item['quantity_received'] <= 0) continue;
 
                 $warehouseId = $this->reception_type === 'defective'
-                    ? $this->warehouse_id   // todos van al almacén defectuoso
+                    ? $this->warehouse_id
                     : $item['warehouse_id'];
+
+                $qty              = (float) $item['quantity_received'];
+                $newPurchasePrice = (float) $item['purchase_price'];
+                $itemCost         = $qty * $newPurchasePrice;
+                $opShare          = $totalMercCost > 0
+                    ? ($itemCost / $totalMercCost) * (float) $this->operating_expenses
+                    : 0;
+                $landedUnitCost   = $newPurchasePrice + ($qty > 0 ? $opShare / $qty : 0);
 
                 $receipt->items()->create([
                     'purchase_order_item_id' => $item['order_item_id'],
                     'product_id'             => $item['product_id'],
                     'warehouse_id'           => $warehouseId,
-                    'quantity_received'      => $item['quantity_received'],
+                    'quantity_received'      => $qty,
                     'notes'                  => $item['notes'] ?? null,
                 ]);
 
                 $orderItem = PurchaseOrderItem::find($item['order_item_id']);
-                $orderItem->increment('quantity_received', $item['quantity_received']);
+                $orderItem->increment('quantity_received', $qty);
 
                 if ($item['product_id']) {
                     $stock = Stock::firstOrCreate(
@@ -208,27 +222,44 @@ class ReceiptForm extends Component
                         ['quantity' => 0]
                     );
                     $quantityBefore = $stock->quantity;
-                    $stock->increment('quantity', $item['quantity_received']);
+                    $stock->increment('quantity', $qty);
 
                     // No actualizar precios si es defectuoso
                     if ($this->reception_type !== 'defective') {
                         $product = Product::find($item['product_id']);
                         if ($product) {
-                            $newPurchasePrice = (float) $item['purchase_price'];
-                            $newOpCostPct     = (float) ($item['operational_cost'] ?? 0);
-                            $marginDiv        = 1 - $product->profit_margin / 100;
-                            $newSalePrice     = $marginDiv > 0 ? round($newPurchasePrice / $marginDiv, 2) : 0;
+                            $marginDiv    = 1 - $product->profit_margin / 100;
+                            $newSalePrice = $marginDiv > 0 ? round($landedUnitCost / $marginDiv, 2) : 0;
 
                             $product->update([
-                                'purchase_price'    => $newPurchasePrice,
-                                'operational_costs' => $newOpCostPct,
-                                'sale_price'        => $newSalePrice,
+                                'purchase_price' => $landedUnitCost,
+                                'sale_price'     => $newSalePrice,
                             ]);
                         }
                     }
 
+                    // Crear lote PEPS para todos los tipos de recepción
+                    $lotMovementType = match ($this->reception_type) {
+                        'return'    => 'return_sale',
+                        'transfer'  => 'transfer_in',
+                        'defective' => 'defective',
+                        default     => 'purchase',
+                    };
+                    $fifo->createLot(
+                        companyId:    $companyId,
+                        productId:    $item['product_id'],
+                        warehouseId:  $warehouseId,
+                        quantity:     $qty,
+                        unitCost:     $landedUnitCost,
+                        reference:    $folio,
+                        expiryDate:   null,
+                        notes:        "Recepción {$folio}",
+                        movementType: $lotMovementType,
+                        movedAt:      now(),
+                    );
+
                     $movement = StockMovement::create([
-                        'company_id'   => auth()->user()->company_id,
+                        'company_id'   => $companyId,
                         'warehouse_id' => $warehouseId,
                         'user_id'      => auth()->id(),
                         'type'         => $movementType,
@@ -242,8 +273,8 @@ class ReceiptForm extends Component
                     $movement->items()->create([
                         'product_id'      => $item['product_id'],
                         'warehouse_id'    => $warehouseId,
-                        'quantity'        => $item['quantity_received'],
-                        'unit_price'      => $item['purchase_price'] ?? 0,
+                        'quantity'        => $qty,
+                        'unit_price'      => $landedUnitCost,
                         'quantity_before' => $quantityBefore,
                         'quantity_after'  => $stock->fresh()->quantity,
                     ]);

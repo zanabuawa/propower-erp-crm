@@ -46,6 +46,7 @@ class PepsKardex extends Model
         'transfer_out'    => ['label' => 'Transferencia (salida)',      'direction' => 'out', 'color' => 'violet'],
         'internal_use'    => ['label' => 'Uso interno',                'direction' => 'out', 'color' => 'gray'],
         'scrap'           => ['label' => 'Merma / Desperdicio',         'direction' => 'out', 'color' => 'gray'],
+        'defective'       => ['label' => 'Producto defectivo',          'direction' => 'in',  'color' => 'red'],
         'other'           => ['label' => 'Otro',                       'direction' => 'out', 'color' => 'gray'],
     ];
 

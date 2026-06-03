@@ -78,8 +78,10 @@ class DeliveryForm extends Component
 
     // ── Rebuild lotes cuando cambia cantidad a entregar ───────────────────────
 
-    public function updatedItems(mixed $value, string $key): void
+    public function updatedItems(mixed $value, ?string $key = null): void
     {
+        if (!$key) return;
+
         // key es "0.quantity_to_deliver" o "0.warehouse_id"
         if (str_ends_with($key, '.quantity_to_deliver') || str_ends_with($key, '.warehouse_id')) {
             [$index] = explode('.', $key);

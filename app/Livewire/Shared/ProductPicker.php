@@ -15,26 +15,51 @@ class ProductPicker extends Component
     public string $search     = '';
     public ?int   $categoryId = null;
     public ?int   $supplierId = null;
+    public bool   $multiSelect = false;
+    public array  $selectedIds = [];
 
     /** When set, only products with stock > 0 in this warehouse are shown
      *  and stock quantity is displayed instead of price. */
     #[Reactive]
     public ?int $warehouseId = null;
 
+    public function mount(bool $multiSelect = false): void
+    {
+        $this->multiSelect = $multiSelect;
+    }
+
     public function open(): void
     {
+        $this->selectedIds = [];
         $this->isOpen = true;
     }
 
     public function close(): void
     {
         $this->isOpen = false;
+        $this->selectedIds = [];
         $this->reset(['search', 'categoryId', 'supplierId']);
     }
 
     public function pick(int $productId): void
     {
-        $this->dispatch('product-picked', productId: $productId);
+        if ($this->multiSelect) {
+            if (in_array($productId, $this->selectedIds)) {
+                $this->selectedIds = array_values(array_filter($this->selectedIds, fn($id) => $id !== $productId));
+            } else {
+                $this->selectedIds[] = $productId;
+            }
+        } else {
+            $this->dispatch('product-picked', productId: $productId);
+            $this->close();
+        }
+    }
+
+    public function confirm(): void
+    {
+        if (!empty($this->selectedIds)) {
+            $this->dispatch('products-picked', productIds: $this->selectedIds);
+        }
         $this->close();
     }
 

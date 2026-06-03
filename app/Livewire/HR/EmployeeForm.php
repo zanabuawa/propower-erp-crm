@@ -2,6 +2,7 @@
 
 namespace App\Livewire\HR;
 
+use App\Livewire\Concerns\HasLocationFields;
 use App\Models\Branch;
 use App\Models\HrContract;
 use App\Models\HrDepartment;
@@ -11,6 +12,9 @@ use App\Models\User;
 use App\Notifications\NewRoleCreatedNotification;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Nnjeim\World\Models\City;
+use Nnjeim\World\Models\Country;
+use Nnjeim\World\Models\State;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -21,7 +25,7 @@ use Spatie\Permission\Models\Role;
 #[Title('Empleado')]
 class EmployeeForm extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, HasLocationFields;
 
     public ?HrEmployee $employee = null;
     public ?int $prospect_id = null;
@@ -40,12 +44,21 @@ class EmployeeForm extends Component
     public string $email = '';
     public string $phone = '';
     public string $birth_date = '';
+    public bool $notify_birthday = false;
 
     // Dirección
     public string $address = '';
     public string $city = '';
     public string $state = '';
+    public string $country = 'Mexico';
     public string $postal_code = '';
+    public bool $showCountryCreator = false;
+    public bool $showStateCreator = false;
+    public bool $showCityCreator = false;
+    public string $newCountryName = '';
+    public string $newStateName = '';
+    public string $newCityName = '';
+    public string $locationFeedback = '';
 
     // Laboral
     public ?int $department_id = null;
@@ -100,6 +113,7 @@ class EmployeeForm extends Component
             $this->address           = $employee->address ?? '';
             $this->city              = $employee->city ?? '';
             $this->state             = $employee->state ?? '';
+            $this->country           = $employee->country ?? 'Mexico';
             $this->postal_code       = $employee->postal_code ?? '';
             $this->department_id     = $employee->department_id;
             $this->position_id       = $employee->position_id;
@@ -120,8 +134,9 @@ class EmployeeForm extends Component
             $this->emergency_contact_phone        = $employee->emergency_contact_phone ?? '';
             $this->emergency_contact_relationship = $employee->emergency_contact_relationship ?? '';
             $this->notes             = $employee->notes ?? '';
-            $this->birth_date = $employee->birth_date?->format('Y-m-d') ?? '';
-            $this->hire_date  = $employee->hire_date?->format('Y-m-d') ?? '';
+            $this->birth_date      = $employee->birth_date?->format('Y-m-d') ?? '';
+            $this->notify_birthday = (bool) ($employee->notify_birthday ?? false);
+            $this->hire_date       = $employee->hire_date?->format('Y-m-d') ?? '';
             $this->salary = (string) ($employee->salary ?? '');
             $this->daily_salary_imss = (string) ($employee->daily_salary_imss ?? '');
             $this->loadPositions();
@@ -144,6 +159,8 @@ class EmployeeForm extends Component
         } else {
             $this->hire_date = now()->format('Y-m-d');
         }
+
+        $this->initializeLocation();
     }
 
     public function updatedDepartmentId(): void
@@ -163,6 +180,124 @@ class EmployeeForm extends Component
             : [];
     }
 
+    public function openCountryCreator(): void
+    {
+        $this->newCountryName = '';
+        $this->showCountryCreator = true;
+        $this->showStateCreator = false;
+        $this->showCityCreator = false;
+        $this->locationFeedback = '';
+    }
+
+    public function openStateCreator(): void
+    {
+        $this->newStateName = '';
+        $this->showCountryCreator = false;
+        $this->showStateCreator = true;
+        $this->showCityCreator = false;
+        $this->locationFeedback = '';
+    }
+
+    public function openCityCreator(): void
+    {
+        $this->newCityName = '';
+        $this->showCountryCreator = false;
+        $this->showStateCreator = false;
+        $this->showCityCreator = true;
+        $this->locationFeedback = '';
+    }
+
+    public function saveCountry(): void
+    {
+        $this->validate([
+            'newCountryName' => 'required|string|max:191',
+        ]);
+
+        $country = Country::where('name', trim($this->newCountryName))->first();
+
+        if (! $country) {
+            $iso2 = $this->makeCountryCode($this->newCountryName, 2);
+            $iso3 = $this->makeCountryCode($this->newCountryName, 3);
+
+            $country = Country::create([
+                'iso2' => $iso2,
+                'iso3' => $iso3,
+                'name' => trim($this->newCountryName),
+                'status' => 1,
+                'phone_code' => '',
+                'region' => '',
+                'subregion' => '',
+            ]);
+        }
+
+        $this->availableCountries = Country::orderBy('name')->pluck('name', 'id')->toArray();
+        $this->updatedCountryId($country->id);
+        $this->newCountryName = '';
+        $this->showCountryCreator = false;
+        $this->locationFeedback = 'País agregado correctamente.';
+    }
+
+    public function saveState(): void
+    {
+        $this->validate([
+            'countryId' => 'required|integer|min:1',
+            'newStateName' => 'required|string|max:191',
+        ]);
+
+        $country = Country::findOrFail($this->countryId);
+        $state = State::firstOrCreate(
+            [
+                'country_id' => $country->id,
+                'name' => trim($this->newStateName),
+            ],
+            [
+                'country_code' => $country->iso2,
+                'state_code' => Str::upper(Str::substr(Str::slug($this->newStateName, ''), 0, 5)),
+            ]
+        );
+
+        $this->availableStates = State::where('country_id', $country->id)->orderBy('name')->pluck('name', 'id')->toArray();
+        $this->updatedStateId($state->id);
+        $this->newStateName = '';
+        $this->showStateCreator = false;
+        $this->locationFeedback = 'Estado agregado correctamente.';
+    }
+
+    public function saveCity(): void
+    {
+        $this->validate([
+            'countryId' => 'required|integer|min:1',
+            'stateId' => 'required|integer|min:1',
+            'newCityName' => 'required|string|max:191',
+        ]);
+
+        $country = Country::findOrFail($this->countryId);
+        $state = State::findOrFail($this->stateId);
+        $city = City::firstOrCreate(
+            [
+                'country_id' => $country->id,
+                'state_id' => $state->id,
+                'name' => trim($this->newCityName),
+            ],
+            [
+                'country_code' => $country->iso2,
+                'state_code' => $state->state_code,
+            ]
+        );
+
+        $this->availableCities = City::where('state_id', $state->id)->orderBy('name')->pluck('name', 'id')->toArray();
+        $this->updatedCityId($city->id);
+        $this->newCityName = '';
+        $this->showCityCreator = false;
+        $this->locationFeedback = 'Ciudad agregada correctamente.';
+    }
+
+    private function makeCountryCode(string $name, int $length): string
+    {
+        $base = Str::upper(Str::substr(preg_replace('/[^A-Za-z]/', '', Str::ascii($name)) ?: 'XX', 0, $length));
+        return str_pad($base, $length, 'X');
+    }
+
     public function save(): void
     {
         $this->validate([
@@ -177,6 +312,9 @@ class EmployeeForm extends Component
             'curp'          => 'nullable|string|max:18',
             'nss'           => 'nullable|string|max:11',
             'email'         => 'nullable|email|max:191',
+            'city'          => 'nullable|string|max:100',
+            'state'         => 'nullable|string|max:100',
+            'country'       => 'nullable|string|max:100',
             'clabe'         => 'nullable|string|size:18',
             'photo_upload'  => 'nullable|image|max:2048',
         ]);
@@ -194,9 +332,11 @@ class EmployeeForm extends Component
             'email'                         => $this->email ?: null,
             'phone'                         => $this->phone ?: null,
             'birth_date'                    => $this->birth_date ?: null,
+            'notify_birthday'               => $this->notify_birthday,
             'address'                       => $this->address ?: null,
             'city'                          => $this->city ?: null,
             'state'                         => $this->state ?: null,
+            'country'                       => $this->country ?: null,
             'postal_code'                   => $this->postal_code ?: null,
             'department_id'                 => $this->department_id,
             'position_id'                   => $this->position_id,
@@ -236,7 +376,11 @@ class EmployeeForm extends Component
                 $prospect = \App\Models\HrProspect::find($this->prospect_id);
                 if ($prospect) {
                     $prospect->update(['employee_id' => $employee->id]);
+                    \App\Models\HrEvaluationProcess::where('hr_prospect_id', $prospect->id)
+                        ->whereNull('hr_employee_id')
+                        ->update(['hr_employee_id' => $employee->id]);
                     $prospect->changeStatus('contratado', 'Candidato contratado. Registro de empleado creado.');
+                    $this->syncJobOpeningAfterHire($prospect);
                 }
             }
 
@@ -315,6 +459,21 @@ class EmployeeForm extends Component
             foreach ($admins as $admin) {
                 $admin->notify(new NewRoleCreatedNotification($roleName, $employee->full_name));
             }
+        }
+    }
+
+    private function syncJobOpeningAfterHire(\App\Models\HrProspect $prospect): void
+    {
+        if (! $prospect->job_opening_id) {
+            return;
+        }
+
+        $opening = \App\Models\HrJobOpening::withCount([
+            'prospects as hired_prospects_count' => fn ($q) => $q->where('status', 'contratado'),
+        ])->find($prospect->job_opening_id);
+
+        if ($opening && $opening->status === 'open' && $opening->hired_prospects_count >= $opening->quantity) {
+            $opening->update(['status' => 'closed']);
         }
     }
 

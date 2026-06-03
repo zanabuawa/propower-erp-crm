@@ -4,7 +4,6 @@ namespace App\Livewire\Sales;
 
 use App\Models\Customer;
 use App\Models\SalesOpportunity;
-use App\Models\SalesProspect;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -21,8 +20,6 @@ class CrmOpportunityForm extends Component
     public string $expected_close_date= '';
     public string $description        = '';
     public string $assigned_to        = '';
-    public string $linked_type        = 'prospect'; // prospect | customer
-    public string $prospect_id        = '';
     public string $customer_id        = '';
     public string $lost_reason        = '';
 
@@ -38,23 +35,11 @@ class CrmOpportunityForm extends Component
             $this->description          = $opportunity->description ?? '';
             $this->assigned_to          = (string) ($opportunity->assigned_to ?? '');
             $this->lost_reason          = $opportunity->lost_reason ?? '';
-            if ($opportunity->customer_id) {
-                $this->linked_type  = 'customer';
-                $this->customer_id  = (string) $opportunity->customer_id;
-            } else {
-                $this->linked_type  = 'prospect';
-                $this->prospect_id  = (string) ($opportunity->prospect_id ?? '');
-            }
+            $this->customer_id          = (string) ($opportunity->customer_id ?? '');
         } else {
             $this->assigned_to = (string) auth()->id();
-            // Pre-fill from URL params
-            if (request('prospect_id')) {
-                $this->prospect_id = request('prospect_id');
-                $this->linked_type = 'prospect';
-            }
             if (request('customer_id')) {
                 $this->customer_id = request('customer_id');
-                $this->linked_type = 'customer';
             }
         }
     }
@@ -74,7 +59,6 @@ class CrmOpportunityForm extends Component
             'expected_close_date' => 'nullable|date',
             'description'         => 'nullable|string',
             'assigned_to'         => 'nullable|exists:users,id',
-            'prospect_id'         => 'nullable|exists:sales_prospects,id',
             'customer_id'         => 'nullable|exists:customers,id',
             'lost_reason'         => 'nullable|string|max:100',
         ];
@@ -83,15 +67,12 @@ class CrmOpportunityForm extends Component
     public function save(): void
     {
         $data = $this->validate();
-        $data['company_id']      = auth()->user()->company_id;
-        $data['estimated_value'] = $data['estimated_value'] ?? 0;
-        $data['assigned_to']     = $data['assigned_to'] ?: null;
-
-        if ($this->linked_type === 'customer') {
-            $data['prospect_id'] = null;
-        } else {
-            $data['customer_id'] = null;
-        }
+        $data['company_id']          = auth()->user()->company_id;
+        $data['estimated_value']     = $data['estimated_value'] ?? 0;
+        $data['assigned_to']         = $data['assigned_to'] ?: null;
+        $data['customer_id']         = $data['customer_id'] ?: null;
+        $data['expected_close_date'] = $data['expected_close_date'] ?: null;
+        $data['lost_reason']         = $data['lost_reason'] ?: null;
 
         if ($data['stage'] === 'won' && !($this->opportunity?->won_at)) {
             $data['won_at'] = now();
@@ -115,11 +96,9 @@ class CrmOpportunityForm extends Component
     {
         $companyId = auth()->user()->company_id;
         $users     = User::where('company_id', $companyId)->orderBy('name')->get();
-        $prospects = SalesProspect::where('company_id', $companyId)
-            ->whereIn('status', ['new', 'contacted', 'qualified'])->orderBy('name')->get();
         $customers = Customer::where('company_id', $companyId)
             ->where('status', 'active')->orderBy('name')->get();
 
-        return view('livewire.sales.crm-opportunity-form', compact('users', 'prospects', 'customers'));
+        return view('livewire.sales.crm-opportunity-form', compact('users', 'customers'));
     }
 }

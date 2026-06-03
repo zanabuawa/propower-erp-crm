@@ -134,8 +134,11 @@ class ProspectIndex extends Component
 
     public function render()
     {
+        $companyId = auth()->user()->company_id;
+
         $prospects = HrProspect::query()
-            ->with(['position', 'interviewer'])
+            ->with(['position', 'interviewer', 'jobOpening'])
+            ->where('company_id', $companyId)
             ->when($this->search, fn($q) => $q->where(fn($q2) =>
                 $q2->where('first_name', 'like', "%{$this->search}%")
                    ->orWhere('last_name', 'like', "%{$this->search}%")
@@ -152,20 +155,45 @@ class ProspectIndex extends Component
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        $positions = HrPosition::where('is_active', true)->orderBy('name')->get();
+        $positions = HrPosition::where('company_id', $companyId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
         $recruiters = User::where('is_active', true)->orderBy('name')->get();
 
         $stats = [
-            'total' => HrProspect::count(),
-            'new' => HrProspect::where('status', 'nuevo')->count(),
-            'interviewing' => HrProspect::whereIn('status', ['evaluando', 'entrevista_agendada', 'entrevistado'])->count(),
-            'hired' => HrProspect::where('status', 'contratado')->count(),
+            'total' => HrProspect::where('company_id', $companyId)
+                ->when($this->filterJobOpening, fn($q) => $q->where('job_opening_id', $this->filterJobOpening))
+                ->count(),
+            'new' => HrProspect::where('company_id', $companyId)
+                ->when($this->filterJobOpening, fn($q) => $q->where('job_opening_id', $this->filterJobOpening))
+                ->where('status', 'nuevo')
+                ->count(),
+            'interviewing' => HrProspect::where('company_id', $companyId)
+                ->when($this->filterJobOpening, fn($q) => $q->where('job_opening_id', $this->filterJobOpening))
+                ->whereIn('status', ['evaluando', 'entrevista_agendada', 'entrevistado'])
+                ->count(),
+            'hired' => HrProspect::where('company_id', $companyId)
+                ->when($this->filterJobOpening, fn($q) => $q->where('job_opening_id', $this->filterJobOpening))
+                ->where('status', 'contratado')
+                ->count(),
         ];
 
-        $jobOpenings = HrJobOpening::where('company_id', auth()->user()->company_id)
-            ->whereIn('status', ['open', 'paused'])
+        $jobOpenings = HrJobOpening::where('company_id', $companyId)
+            ->whereNotIn('status', ['cancelled'])
             ->orderBy('title')->get(['id', 'title']);
 
-        return view('livewire.hr.prospect-index', compact('prospects', 'positions', 'recruiters', 'stats', 'jobOpenings'));
+        $currentJobOpening = $this->filterJobOpening
+            ? HrJobOpening::with(['position', 'branch'])
+                ->withCount([
+                    'prospects',
+                    'prospects as active_prospects_count' => fn ($q) => $q->whereNotIn('status', ['rechazado', 'contratado']),
+                    'prospects as hired_prospects_count' => fn ($q) => $q->where('status', 'contratado'),
+                ])
+                ->where('company_id', $companyId)
+                ->find($this->filterJobOpening)
+            : null;
+
+        return view('livewire.hr.prospect-index', compact('prospects', 'positions', 'recruiters', 'stats', 'jobOpenings', 'currentJobOpening'));
     }
 }

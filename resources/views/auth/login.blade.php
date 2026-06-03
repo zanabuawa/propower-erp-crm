@@ -116,4 +116,18 @@
             </div>
         </div>
     </div>
+
+<script>
+    // Refresh CSRF token every 25 minutes so the login form never expires
+    setInterval(function () {
+        fetch('/csrf-token')
+            .then(r => r.json())
+            .then(data => {
+                document.querySelectorAll('input[name="_token"]').forEach(el => el.value = data.token);
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                if (meta) meta.setAttribute('content', data.token);
+            })
+            .catch(() => {});
+    }, 25 * 60 * 1000);
+</script>
 </x-guest-layout>

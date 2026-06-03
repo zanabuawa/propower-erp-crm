@@ -86,9 +86,11 @@ class CreditNoteForm extends Component
         $this->items = array_values($this->items);
     }
 
-    public function updatedItems($value, $key): void
+    public function updatedItems($value, ?string $key = null): void
     {
+        if (!$key) return;
         [$index] = explode('.', $key);
+        if (!isset($this->items[(int) $index])) return;
         $this->recalcItem((int) $index);
     }
 

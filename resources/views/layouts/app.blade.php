@@ -20,10 +20,12 @@
         .sb-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
         .sb-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
         .sb-nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
+        .sb-nav > div > div.transition-all.duration-200.overflow-hidden { display: none; }
+        .sb-nav > div.pt-3 { padding-top: 0.25rem; }
 
         /* ── Accordion ───────────────────────────────────────────────── */
         .sb-sub { overflow: hidden; max-height: 0; }
-        .sb-sub.open { max-height: 600px; }
+        .sb-sub.open { max-height: 1200px; }
         .sb-animated .sb-sub { transition: max-height 0.22s ease; }
 
         /* ── Chevron ─────────────────────────────────────────────────── */
@@ -158,61 +160,61 @@ x-init="init()">
     >
         {{-- ── LOGO ──────────────────────────────────────────────────── --}}
         <div class="flex-shrink-0 border-b border-white/[0.06]">
+            <a href="{{ route('dashboard') }}" wire:navigate class="block">
+                {{-- Expanded: full logo centered --}}
+                <div x-show="sidebarOpen"
+                     x-transition:enter="transition-opacity ease-out duration-200 delay-100"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition-opacity ease-in duration-100"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="flex items-center justify-center py-6 px-4">
+                    @if($company?->logo)
+                        <img src="{{ Storage::url($company->logo) }}"
+                             alt="{{ $company->name }}"
+                             class="h-24 w-auto max-w-full object-contain">
+                    @else
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-12 h-12 min-w-[3rem] rounded-xl bg-indigo-500 flex items-center justify-center
+                                        text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
+                                {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-[14px] font-bold text-white/90 leading-tight truncate">
+                                    {{ $company?->name ?? config('app.name') }}
+                                </p>
+                                <p class="text-[11px] text-white/30 leading-tight tracking-wide">
+                                    Sistema ERP
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
 
-            {{-- Expanded: full logo centered --}}
-            <div x-show="sidebarOpen"
-                 x-transition:enter="transition-opacity ease-out duration-200 delay-100"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition-opacity ease-in duration-100"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="flex items-center justify-center py-6 px-4">
-                @if($company?->logo)
-                    <img src="{{ Storage::url($company->logo) }}"
-                         alt="{{ $company->name }}"
-                         class="h-24 w-auto max-w-full object-contain">
-                @else
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-12 h-12 min-w-[3rem] rounded-xl bg-indigo-500 flex items-center justify-center
-                                    text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
+                {{-- Collapsed: icon only, strictly centered --}}
+                <div x-show="!sidebarOpen"
+                     x-transition:enter="transition-opacity ease-out duration-150 delay-150"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition-opacity ease-in duration-75"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="flex items-center justify-center py-4">
+                    @if($company?->icon)
+                        <img src="{{ Storage::url($company->icon) }}"
+                             class="w-10 h-10 rounded-xl object-contain">
+                    @elseif($company?->logo)
+                        <img src="{{ Storage::url($company->logo) }}"
+                             class="w-10 h-10 rounded-xl object-contain">
+                    @else
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center
+                                    text-white font-bold text-lg shadow-lg shadow-indigo-500/30">
                             {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-[14px] font-bold text-white/90 leading-tight truncate">
-                                {{ $company?->name ?? config('app.name') }}
-                            </p>
-                            <p class="text-[11px] text-white/30 leading-tight tracking-wide">
-                                Sistema ERP
-                            </p>
-                        </div>
-                    </div>
-                @endif
-            </div>
-
-            {{-- Collapsed: icon only, strictly centered --}}
-            <div x-show="!sidebarOpen"
-                 x-transition:enter="transition-opacity ease-out duration-150 delay-150"
-                 x-transition:enter-start="opacity-0"
-                 x-transition:enter-end="opacity-100"
-                 x-transition:leave="transition-opacity ease-in duration-75"
-                 x-transition:leave-start="opacity-100"
-                 x-transition:leave-end="opacity-0"
-                 class="flex items-center justify-center py-4">
-                @if($company?->icon)
-                    <img src="{{ Storage::url($company->icon) }}"
-                         class="w-10 h-10 rounded-xl object-contain">
-                @elseif($company?->logo)
-                    <img src="{{ Storage::url($company->logo) }}"
-                         class="w-10 h-10 rounded-xl object-contain">
-                @else
-                    <div class="w-10 h-10 rounded-xl bg-indigo-500 flex items-center justify-center
-                                text-white font-bold text-lg shadow-lg shadow-indigo-500/30">
-                        {{ strtoupper(substr($company?->name ?? 'E', 0, 1)) }}
-                    </div>
-                @endif
-            </div>
-
+                    @endif
+                </div>
+            </a>
         </div>
 
         {{-- ── NAVIGATION ─────────────────────────────────────────────── --}}
@@ -277,6 +279,18 @@ x-init="init()">
             </div>
 
             {{-- ·· OPERACIONES ────────────────────────────────── --}}
+            {{-- Agenda --}}
+            @can('access agenda section')
+            <div class="pt-1 mb-1">
+                <x-sidebar-menu id="agenda" label="Agenda" icon="agenda" :routes="['agenda.*','hr.prospects.agenda','sales.crm.agenda']">
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Organización</span>
+                    </div>
+                    <x-sidebar-subitem route="agenda.index" label="Calendario general" />
+                </x-sidebar-menu>
+            </div>
+            @endcan
+
             @canany(['view inventory', 'create inventory', 'view purchases', 'create purchases', 'view sales', 'create sales'])
             <div class="pt-3 mb-1">
                 <div class="transition-all duration-200 overflow-hidden"
@@ -333,7 +347,7 @@ x-init="init()">
             @endcanany
 
             {{-- ·· CRM ────────────────────────────────────────── --}}
-            @canany(['view contacts', 'create contacts', 'view suppliers', 'create suppliers'])
+            @can('view sales')
             <div class="pt-3 mb-1">
                 <div class="transition-all duration-200 overflow-hidden"
                      :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
@@ -343,19 +357,15 @@ x-init="init()">
                 </div>
 
                 <x-sidebar-menu id="crm" label="CRM" icon="contacts"
-                    :routes="['contacts.*','suppliers.*','opportunities.*','tickets.*','campaigns.*']">
-                    @can('view contacts')
+                    :routes="['sales.crm.*', 'contacts.*', 'suppliers.*']">
+                    <x-sidebar-subitem route="sales.crm.pipeline" label="Oportunidades" />
                     <x-sidebar-subitem route="contacts.index" label="Clientes" />
-                    @endcan
-                    @can('view suppliers')
                     <x-sidebar-subitem route="suppliers.index" label="Proveedores" />
-                    @endcan
-                    <x-sidebar-subitem route="opportunities.index" label="Oportunidades" />
-                    <x-sidebar-subitem route="tickets.index" label="Tickets" />
-                    <x-sidebar-subitem route="campaigns.index" label="Campañas" />
+                    <x-sidebar-subitem route="sales.crm.tickets.index" label="Tickets" />
+                    <x-sidebar-subitem route="sales.crm.campaigns.index" label="Campañas" />
                 </x-sidebar-menu>
             </div>
-            @endcanany
+            @endcan
 
             {{-- ·· PROYECTOS ──────────────────────────────────── --}}
             @canany(['view projects', 'create projects'])
@@ -375,19 +385,22 @@ x-init="init()">
             </div>
             @endcanany
 
-            {{-- ·· LICITACIONES Y OBRAS ──────────────────────── --}}
+            {{-- ·· LICITACIONES ──────────────────────────────── --}}
             @canany(['view tenders', 'create tenders', 'manage tender catalog', 'manage work permits', 'manage work reports', 'approve libranzas'])
             <div class="pt-3 mb-1">
                 <div class="transition-all duration-200 overflow-hidden"
                      :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
                     <span class="text-[10px] font-semibold uppercase tracking-widest text-white/25 select-none">
-                        Licitaciones y Obras
+                        Licitaciones
                     </span>
                 </div>
 
-                @canany(['view tenders', 'create tenders', 'edit tenders'])
                 <x-sidebar-menu id="tenders" label="Licitaciones" icon="tenders"
-                    :routes="['tenders.index','tenders.create','tenders.show','tenders.edit']">
+                    :routes="['tenders.*','works.permits.index','works.reports.index','works.photo-reports.index','works.libranzas.index']">
+                    @canany(['view tenders', 'create tenders', 'edit tenders'])
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Licitaciones</span>
+                    </div>
                     @can('view tenders')
                     <x-sidebar-subitem route="tenders.index" label="Todas las licitaciones" />
                     @endcan
@@ -397,14 +410,14 @@ x-init="init()">
                     @can('view tenders')
                     <x-sidebar-subitem route="tenders.visits.index" label="Visitas de campo" />
                     @endcan
-                </x-sidebar-menu>
                 @endcanany
 
                 {{-- Catálogo APU reemplazado por catálogo de productos --}}
 
                 @canany(['manage work permits', 'manage work reports', 'approve libranzas', 'view tenders'])
-                <x-sidebar-menu id="obras" label="Control de Obra" icon="obras"
-                    :routes="['works.permits.index','works.reports.index','works.photo-reports.index','works.libranzas.index']">
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Control de Obra</span>
+                    </div>
                     @can('manage work permits')
                     <x-sidebar-subitem route="works.permits.index" label="Permisos de trabajo" />
                     @endcan
@@ -415,41 +428,76 @@ x-init="init()">
                     @canany(['approve libranzas', 'view tenders'])
                     <x-sidebar-subitem route="works.libranzas.index" label="Libranzas / Estimaciones" />
                     @endcanany
-                </x-sidebar-menu>
                 @endcanany
+                </x-sidebar-menu>
             </div>
             @endcanany
 
-            {{-- ·· FINANZAS ───────────────────────────────────── --}}
-            @canany(['view hr', 'create hr', 'view finance', 'create finance', 'view assets', 'create assets'])
+            {{-- ·· RECURSOS HUMANOS ───────────────────────────── --}}
+            @canany(['view hr', 'create hr', 'edit hr', 'delete hr'])
             <div class="pt-3 mb-1">
                 <div class="transition-all duration-200 overflow-hidden"
                      :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
                     <span class="text-[10px] font-semibold uppercase tracking-widest text-white/25 select-none">
-                        Finanzas y RRHH
+                        Recursos humanos
                     </span>
                 </div>
 
-                @canany(['view hr', 'create hr', 'edit hr', 'delete hr'])
                 <x-sidebar-menu id="hr" label="Recursos humanos" icon="hr"
-                    :routes="['hr.employees.*','hr.prospects.*','hr.departments.*','hr.positions.*','hr.contracts.*','hr.attendances.*','hr.payrolls.*','hr.leaves.*','hr.incidents.*','hr.evaluations.*']">
+                    :routes="['hr.employees.*','hr.prospects.*','hr.departments.*','hr.positions.*','hr.contracts.*','hr.attendances.*','hr.attendance.locations*','hr.payrolls.*','hr.leaves.*','hr.vacations.*','hr.job-openings.*','hr.incidents.*','hr.evaluations.*','hr.test-templates.*']">
                     @can('view hr')
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Reclutamiento</span>
+                    </div>
                     <x-sidebar-subitem route="hr.prospects.index" label="Reclutamiento" />
-                    <x-sidebar-subitem route="hr.prospects.agenda" label="Agenda entrevistas" />
+                    <x-sidebar-subitem route="hr.job-openings.index" label="Vacantes" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Personal</span>
+                    </div>
                     <x-sidebar-subitem route="hr.employees.index" label="Empleados" />
                     <x-sidebar-subitem route="hr.departments.index" label="Departamentos" />
                     <x-sidebar-subitem route="hr.positions.index" label="Puestos laborales" />
                     <x-sidebar-subitem route="hr.contracts.index" label="Contratos" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Asistencia</span>
+                    </div>
                     <x-sidebar-subitem route="hr.attendances.index" label="Asistencias" />
-                    <x-sidebar-subitem route="hr.payrolls.index" label="Nóminas" />
+                    <x-sidebar-subitem route="hr.attendance.locations" label="Zonas GPS" />
                     <x-sidebar-subitem route="hr.leaves.index" label="Permisos y bajas" />
+                    <x-sidebar-subitem route="hr.vacations.index" label="Vacaciones" />
                     <x-sidebar-subitem route="hr.incidents.index" label="Incidencias" />
-                    <x-sidebar-subitem route="hr.evaluations.index" label="Evaluaciones" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Nómina</span>
+                    </div>
+                    <x-sidebar-subitem route="hr.payrolls.index" label="Nóminas" />
+
+                    {{-- Sistema de Evaluación Sub-Header --}}
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Evaluaciones</span>
+                    </div>
+                    <x-sidebar-subitem route="hr.evaluations.dashboard" label="Panel de Control" />
+                    <x-sidebar-subitem route="hr.evaluations.create_permit" label="Nueva Evaluación" />
+                    <x-sidebar-subitem route="hr.test-templates.index" label="Banco de Exámenes" />
+                    <x-sidebar-subitem route="hr.evaluations.pending-grades" label="Calif. Pendientes" />
+
+                    <x-sidebar-subitem route="hr.evaluations.index" label="Evaluación de Desempeño" />
                     @endcan
                 </x-sidebar-menu>
-                @endcanany
+            </div>
+            @endcanany
 
-                @canany(['view finance', 'create finance', 'edit finance', 'delete finance'])
+            {{-- Finanzas --}}
+            @canany(['view finance', 'create finance', 'edit finance', 'delete finance'])
+            <div class="pt-3 mb-1">
+                <div class="transition-all duration-200 overflow-hidden"
+                     :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
+                    <span class="text-[10px] font-semibold uppercase tracking-widest text-white/25 select-none">
+                        Finanzas
+                    </span>
+                </div>
                 <x-sidebar-menu id="fin" label="Finanzas" icon="finance" :routes="['finance.*']">
                     @can('view finance')
                     <x-sidebar-subitem route="finance.dashboard" label="Gestión financiera" />
@@ -471,9 +519,18 @@ x-init="init()">
                     <x-sidebar-subitem route="finance.travel-expenses.index" label="Viáticos" />
                     @endcan
                 </x-sidebar-menu>
-                @endcanany
+            </div>
+            @endcanany
 
-                @canany(['view assets', 'create assets', 'transfer assets'])
+            {{-- Activos fijos --}}
+            @canany(['view assets', 'create assets', 'transfer assets'])
+            <div class="pt-3 mb-1">
+                <div class="transition-all duration-200 overflow-hidden"
+                     :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
+                    <span class="text-[10px] font-semibold uppercase tracking-widest text-white/25 select-none">
+                        Activos fijos
+                    </span>
+                </div>
                 <x-sidebar-menu id="assets" label="Activos fijos" icon="assets" :routes="['assets.*']">
                     @can('view assets')
                     <x-sidebar-subitem route="assets.index" label="Equipo y bienes" />
@@ -481,7 +538,6 @@ x-init="init()">
                     <x-sidebar-subitem route="assets.transfers.index" label="Transferencias" />
                     @endcan
                 </x-sidebar-menu>
-                @endcanany
             </div>
             @endcanany
 
@@ -511,7 +567,7 @@ x-init="init()">
             @endcanany
 
             {{-- ·· LANDING PAGE ──────────────────────────── --}}
-            @if(auth()->user()->hasAnyRole(['admin', 'gerente']))
+            @can('access website section')
             <div class="pt-3 mb-1">
                 <div class="transition-all duration-200 overflow-hidden"
                      :class="sidebarOpen ? 'max-h-8 opacity-100 px-2 pb-1' : 'max-h-0 opacity-0'">
@@ -570,7 +626,7 @@ x-init="init()">
                     </span>
                 </a>
             </div>
-            @endif
+            @endcan
 
         </nav>
 
@@ -649,6 +705,7 @@ x-init="init()">
                 @php
                     $moduleTitle = match(true) {
                         request()->routeIs('inventory.*')    => 'Inventario',
+                        request()->routeIs('agenda.*')       => 'Agenda',
                         request()->routeIs('purchases.*')    => 'Compras',
                         request()->routeIs('sales.*')        => 'Ventas',
                         request()->routeIs('contacts.*', 'suppliers.*', 'opportunities.*',

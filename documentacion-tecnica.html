@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentación Técnica — ProPower ERP/CRM</title>
+<style>
+  :root {
+    --red: #dc2626;
+    --dark: #0a0a0a;
+    --ink: #0f172a;
+    --gray: #64748b;
+    --light: #f8fafc;
+    --border: #e2e8f0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11pt; color: var(--ink); background: #fff; }
+
+  /* PORTADA */
+  .cover {
+    background: var(--dark);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    page-break-after: always;
+  }
+  .cover img { height: 80px; margin-bottom: 48px; }
+  .cover .tag {
+    background: var(--red);
+    color: #fff;
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 20px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+  }
+  .cover h1 { font-size: 32pt; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+  .cover h2 { font-size: 14pt; font-weight: 300; color: #94a3b8; margin-bottom: 48px; }
+  .cover .divider { width: 60px; height: 3px; background: var(--red); margin: 0 auto 48px; }
+  .cover .meta { color: #64748b; font-size: 10pt; line-height: 2; }
+  .cover .meta span { color: #94a3b8; }
+
+  /* CONTROL DE DOCUMENTO */
+  .page { padding: 60px 72px; max-width: 900px; margin: 0 auto; page-break-after: always; }
+  .section-header {
+    border-left: 5px solid var(--red);
+    padding-left: 16px;
+    margin-bottom: 32px;
+  }
+  .section-header .num { font-size: 9pt; font-weight: 700; color: var(--red); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+  .section-header h2 { font-size: 20pt; font-weight: 800; color: var(--dark); }
+  .section-header p { font-size: 10pt; color: var(--gray); margin-top: 6px; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 10pt; }
+  th { background: var(--dark); color: #fff; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 9pt; letter-spacing: 0.5px; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  tr:hover td { background: #f1f5f9; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 8.5pt;
+    font-weight: 700;
+  }
+  .badge-red { background: #fee2e2; color: var(--red); }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-blue { background: #dbeafe; color: #2563eb; }
+  .badge-yellow { background: #fef9c3; color: #ca8a04; }
+  .badge-gray { background: #f1f5f9; color: #475569; }
+
+  h3 { font-size: 12pt; font-weight: 700; color: var(--dark); margin: 28px 0 12px; }
+  h4 { font-size: 10.5pt; font-weight: 700; color: var(--gray); margin: 20px 0 8px; }
+  p { line-height: 1.7; margin-bottom: 12px; color: #334155; }
+  ul, ol { margin: 8px 0 16px 24px; line-height: 1.8; color: #334155; }
+
+  .info-box {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--red);
+    padding: 16px 20px;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: 20px;
+  }
+  .info-box .label { font-size: 8pt; font-weight: 700; color: var(--red); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+
+  .toc { list-style: none; margin: 0; padding: 0; }
+  .toc li { display: flex; align-items: baseline; padding: 7px 0; border-bottom: 1px dashed var(--border); font-size: 10.5pt; }
+  .toc li .num { color: var(--red); font-weight: 700; min-width: 36px; }
+  .toc li .dots { flex: 1; border-bottom: 1px dotted #cbd5e1; margin: 0 8px; }
+  .toc li .page-num { color: var(--gray); font-size: 9pt; }
+
+  /* SVG Diagrams */
+  .diagram-wrap { 
+    background: #f8fafc; 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    padding: 32px; 
+    margin: 32px 0; 
+    text-align: center; 
+    overflow: hidden; 
+  }
+  .diagram-wrap svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+  .diagram-title { font-size: 10pt; font-weight: 700; color: var(--gray); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 24px; }
+
+  @media print {
+    .cover { min-height: auto; background: #fff !important; color: #000 !important; border: 2px solid #000; }
+    .cover h1 { color: #000 !important; }
+    .cover h2 { color: #64748b !important; }
+    .page { padding: 40px 60px; }
+    #no-print-zone { display: none !important; }
+    .diagram-wrap { border: 1px solid #cbd5e1; background: #fff; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Botón flotante para PDF -->
+<div id="no-print-zone">
+  <button onclick="window.print()" class="pdf-button">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9V2h12v7"></path>
+      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+      <rect x="6" y="14" width="12" height="8"></rect>
+    </svg>
+    Exportar a PDF / Imprimir
+  </button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ PORTADA -->
+<div class="cover">
+  <img src="public/assets/img/LOGO ELECTROCONSTRUCCIONES/PNG/propower_Mesa de trabajo 1h red.png" alt="ProPower">
+  <div class="tag">Documentación Técnica</div>
+  <h1>Sistema ERP / CRM</h1>
+  <h2>ProPower Electroconstrucciones S.A. de C.V.</h2>
+  <div class="divider"></div>
+  <div class="meta">
+    Versión: <span>1.0.0</span><br>
+    Fecha de emisión: <span>Mayo 2026</span><br>
+    Clasificación: <span>Interno — Confidencial</span><br>
+    Norma de referencia: <span>ISO 9001:2015 / ISO/IEC 25010</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ ÍNDICE -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Índice</div>
+    <h2>Tabla de Contenidos</h2>
+  </div>
+  <ul class="toc">
+    <li><span class="num">1.</span> Control del Documento <span class="dots"></span><span class="page-num">3</span></li>
+    <li><span class="num">2.</span> Contexto de la Organización <span class="dots"></span><span class="page-num">4</span></li>
+    <li><span class="num">3.</span> Partes Interesadas <span class="dots"></span><span class="page-num">5</span></li>
+    <li><span class="num">4.</span> Justificación del Sistema <span class="dots"></span><span class="page-num">6</span></li>
+    <li><span class="num">5.</span> Arquitectura del Sistema <span class="dots"></span><span class="page-num">7</span></li>
+    <li><span class="num">6.</span> Mapa de Procesos <span class="dots"></span><span class="page-num">8</span></li>
+    <li><span class="num">7.</span> Diagramas de Flujo <span class="dots"></span><span class="page-num">9</span></li>
+    <li><span class="num">8.</span> Diagrama de Casos de Uso <span class="dots"></span><span class="page-num">12</span></li>
+    <li><span class="num">9.</span> Diagrama de Clases <span class="dots"></span><span class="page-num">13</span></li>
+    <li><span class="num">10.</span> Gestión de Riesgos <span class="dots"></span><span class="page-num">14</span></li>
+    <li><span class="num">11.</span> Indicadores de Calidad <span class="dots"></span><span class="page-num">15</span></li>
+    <li><span class="num">12.</span> Política de Calidad del Software <span class="dots"></span><span class="page-num">16</span></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ 1. CONTROL DEL DOCUMENTO -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 1</div>
+    <h2>Control del Documento</h2>
+    <p>Historial de versiones y responsabilidades — ISO 9001:2015 cláusula 7.5</p>
+  </div>
+
+  <h3>Historial de Versiones</h3>
+  <table>
+    <thead><tr><th>Versión</th><th>Fecha</th><th>Descripción</th><th>Autor</th><th>Aprobador</th></tr></thead>
+    <tbody>
+      <tr><td>0.1</td><td>Ene 2026</td><td>Borrador inicial — módulos Ventas y Compras</td><td>Equipo TI</td><td>Dirección</td></tr>
+      <tr><td>0.5</td><td>Feb 2026</td><td>Incorporación módulos Inventario, Proyectos y CRM</td><td>Equipo TI</td><td>Dirección</td></tr>
+      <tr><td>0.8</td><td>Mar 2026</td><td>Módulo RRHH completo (nómina, vacaciones, vacantes)</td><td>Equipo TI</td><td>RRHH / Dirección</td></tr>
+      <tr><td>1.0</td><td>May 2026</td><td>Versión de producción — todos los módulos activos</td><td>Equipo TI</td><td>Dirección General</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Responsabilidades del Documento</h3>
+  <table>
+    <thead><tr><th>Rol</th><th>Responsable</th><th>Responsabilidad</th></tr></thead>
+    <tbody>
+      <tr><td>Propietario</td><td>Dirección General</td><td>Aprobar y publicar versiones oficiales</td></tr>
+      <tr><td>Autor técnico</td><td>Área de TI / Desarrollo</td><td>Mantener y actualizar el documento</td></tr>
+      <tr><td>Revisor de proceso</td><td>Gerencia de Operaciones</td><td>Validar flujos de proceso documentados</td></tr>
+      <tr><td>Revisor de calidad</td><td>Representante de Calidad</td><td>Verificar cumplimiento ISO 9001:2015</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box">
+    <div class="label">Nota de distribución</div>
+    Este documento es de uso interno y confidencial. Cualquier reproducción parcial o total sin autorización escrita de la Dirección General está prohibida. Las versiones impresas no controladas deben ser identificadas con el sello "COPIA NO CONTROLADA".
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 2. CONTEXTO DE LA ORGANIZACIÓN -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 2</div>
+    <h2>Contexto de la Organización</h2>
+    <p>Análisis interno y externo — ISO 9001:2015 cláusula 4.1</p>
+  </div>
+
+  <h3>Descripción de la Organización</h3>
+  <p>
+    ProPower Electroconstrucciones S.A. de C.V. es una empresa mexicana especializada en soluciones de ingeniería eléctrica, construcción electromecánica y mantenimiento industrial. Opera en múltiples sucursales del estado de Chihuahua, gestionando proyectos de mediana y gran escala para clientes del sector industrial, comercial y gubernamental.
+  </p>
+  <table>
+    <thead><tr><th>Atributo</th><th>Detalle</th></tr></thead>
+    <tbody>
+      <tr><td>Razón social</td><td>ProPower Electroconstrucciones S.A. de C.V.</td></tr>
+      <tr><td>Sector</td><td>Ingeniería eléctrica / Construcción electromecánica</td></tr>
+      <tr><td>Régimen fiscal</td><td>Persona Moral — Régimen General</td></tr>
+      <tr><td>Operación</td><td>Multi-sucursal (Chihuahua, Delicias y otras plazas)</td></tr>
+      <tr><td>Facturación</td><td>CFDI 4.0 vía PAC certificado SAT (Facturapi)</td></tr>
+      <tr><td>Nómina</td><td>Régimen de salarios con cálculo ISR / IMSS</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Análisis FODA</h3>
+  <!-- FODA grid -->
+  <table>
+    <thead>
+      <tr>
+        <th style="background:#16a34a">Fortalezas (Interno +)</th>
+        <th style="background:#dc2626">Debilidades (Interno −)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <ul>
+            <li>Experiencia en proyectos eléctricos de alta complejidad</li>
+            <li>Equipo técnico certificado y especializado</li>
+            <li>Relaciones consolidadas con proveedores estratégicos</li>
+            <li>Capacidad multi-sucursal y movilidad de recursos</li>
+            <li>Nuevo sistema ERP/CRM integrado como ventaja operativa</li>
+          </ul>
+        </td>
+        <td>
+          <ul>
+            <li>Procesos administrativos históricamente manuales</li>
+            <li>Dispersión de información entre sucursales</li>
+            <li>Dependencia de hojas de cálculo para control de inventario</li>
+            <li>Curva de aprendizaje en adopción del sistema</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <table>
+    <thead>
+      <tr>
+        <th style="background:#2563eb">Oportunidades (Externo +)</th>
+        <th style="background:#0a0a0a">Amenazas (Externo −)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <ul>
+            <li>Crecimiento del sector energético en México</li>
+            <li>Demanda de soluciones eléctricas en zonas industriales del norte</li>
+            <li>Digitalización obligatoria de facturación (CFDI 4.0)</li>
+            <li>Posibilidad de expansión a nuevas plazas</li>
+            <li>Automatización de nómina reduce costos operativos</li>
+          </ul>
+        </td>
+        <td>
+          <ul>
+            <li>Alta competencia de empresas con mayor respaldo financiero</li>
+            <li>Volatilidad en precios de materiales eléctricos</li>
+            <li>Cambios regulatorios fiscales y laborales frecuentes</li>
+            <li>Riesgo cibernético en sistemas digitales</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Cuestiones Internas y Externas Relevantes</h3>
+  <table>
+    <thead><tr><th>Tipo</th><th>Cuestión</th><th>Impacto en el sistema</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-blue">Interna</span></td><td>Múltiples sucursales con inventario independiente</td><td>Módulo de almacén multi-sucursal con transferencias</td></tr>
+      <tr><td><span class="badge badge-blue">Interna</span></td><td>Nómina con regímenes mixtos</td><td>Cálculo automático ISR/IMSS por empleado</td></tr>
+      <tr><td><span class="badge badge-blue">Interna</span></td><td>Gestión de proyectos con materiales y avances</td><td>Módulo de proyectos con control de partidas</td></tr>
+      <tr><td><span class="badge badge-red">Externa</span></td><td>Obligación CFDI 4.0 — SAT México</td><td>Integración PAC Facturapi para timbrado en línea</td></tr>
+      <tr><td><span class="badge badge-red">Externa</span></td><td>Normativa laboral IMSS / INFONAVIT</td><td>Cálculo automático de cuotas patronales</td></tr>
+      <tr><td><span class="badge badge-red">Externa</span></td><td>Ley Federal de Protección de Datos (LFPDPPP)</td><td>Acceso por roles, contraseñas cifradas (bcrypt)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 3. PARTES INTERESADAS -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 3</div>
+    <h2>Partes Interesadas</h2>
+    <p>Identificación y necesidades — ISO 9001:2015 cláusula 4.2</p>
+  </div>
+
+  <p>Se identifican las partes interesadas (stakeholders) que tienen influencia o son afectadas por el sistema ERP/CRM, así como sus necesidades y expectativas relevantes para la calidad del software.</p>
+
+  <table>
+    <thead>
+      <tr><th>Parte Interesada</th><th>Tipo</th><th>Necesidades / Expectativas</th><th>Cómo el sistema las atiende</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Dirección General</strong></td>
+        <td><span class="badge badge-blue">Interna</span></td>
+        <td>Visibilidad financiera, indicadores clave, control multi-sucursal</td>
+        <td>Dashboards de ventas, reportes de nómina, control de presupuesto en proyectos</td>
+      </tr>
+      <tr>
+        <td><strong>Área de Ventas</strong></td>
+        <td><span class="badge badge-blue">Interna</span></td>
+        <td>Gestión de cotizaciones, órdenes, clientes y oportunidades CRM</td>
+        <td>Módulos Cotizaciones, Órdenes de Venta, Facturas, CRM con pipeline de oportunidades</td>
+      </tr>
+      <tr>
+        <td><strong>Área de Compras</strong></td>
+        <td><span class="badge badge-blue">Interna</span></td>
+        <td>Requisiciones, órdenes de compra, recepción de mercancía</td>
+        <td>Flujo completo: Requisición → OC → Recepción → Factura proveedor</td>
+      </tr>
+      <tr>
+        <td><strong>Almacén / Inventario</strong></td>
+        <td><span class="badge badge-blue">Interna</span></td>
+        <td>Control de existencias, movimientos, costeo PEPS/UEPS</td>
+        <td>Kardex PEPS, transferencias inter-sucursal, alertas de stock mínimo</td>
+      </tr>
+      <tr>
+        <td><strong>RRHH / Nómina</strong></td>
+        <td><span class="badge badge-blue">Interna</span></td>
+        <td>Gestión de empleados, nómina, vacaciones, incidencias</td>
+        <td>Nómina con ISR/IMSS automático, timbrado CFDI 4.0, control de vacaciones y plantilla</td>
+      </tr>
+      <tr>
+        <td><strong>Gerencia de Proyectos</strong></td>
+        <td><span class="badge badge-blue">Interna</span></td>
+        <td>Seguimiento de avance, materiales, costos y rentabilidad</td>
+        <td>Módulo Proyectos con partidas, asignación de materiales y % de avance</td>
+      </tr>
+      <tr>
+        <td><strong>Clientes</strong></td>
+        <td><span class="badge badge-green">Externa</span></td>
+        <td>Recibir facturas CFDI 4.0 válidas, servicio ágil, cotizaciones rápidas</td>
+        <td>Generación y timbrado de facturas en línea, portal de cotizaciones</td>
+      </tr>
+      <tr>
+        <td><strong>Proveedores</strong></td>
+        <td><span class="badge badge-green">Externa</span></td>
+        <td>Órdenes de compra formales, pagos oportunos, catálogo actualizado</td>
+        <td>OC generadas desde el sistema, trazabilidad de recepción y pago</td>
+      </tr>
+      <tr>
+        <td><strong>SAT (Autoridad Fiscal)</strong></td>
+        <td><span class="badge badge-yellow">Regulador</span></td>
+        <td>Emisión de CFDI 4.0 conforme a normativa, retenciones correctas</td>
+        <td>Integración con PAC certificado (Facturapi), validación fiscal automática</td>
+      </tr>
+      <tr>
+        <td><strong>IMSS / INFONAVIT</strong></td>
+        <td><span class="badge badge-yellow">Regulador</span></td>
+        <td>Cálculo correcto de cuotas patronales y obrero-patronales</td>
+        <td>Módulo nómina calcula y reporta SBC, cuotas IMSS e INFONAVIT</td>
+      </tr>
+      <tr>
+        <td><strong>Equipo de TI / Desarrollo</strong></td>
+        <td><span class="badge badge-gray">Soporte</span></td>
+        <td>Código mantenible, despliegue sencillo, documentación técnica clara</td>
+        <td>Laravel 11 + Livewire 3, arquitectura MVC, documentación técnica (este documento)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info-box">
+    <div class="label">ISO 9001:2015 — Cláusula 4.2</div>
+    La organización debe determinar las partes interesadas pertinentes al sistema de gestión de calidad y los requisitos de estas partes interesadas. Esta información se revisa periódicamente (mínimo anual) por el Representante de Calidad.
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 4. JUSTIFICACIÓN DEL SISTEMA -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 4</div>
+    <h2>Justificación del Sistema</h2>
+    <p>Por qué, para qué y cómo fue desarrollado el sistema</p>
+  </div>
+
+  <h3>4.1 Problema que resuelve</h3>
+  <p>
+    Antes del sistema, ProPower Electroconstrucciones gestionaba sus operaciones mediante una combinación de hojas de cálculo, correos electrónicos y registros manuales en papel. Esto generaba los siguientes problemas críticos:
+  </p>
+  <table>
+    <thead><tr><th>Problema identificado</th><th>Impacto en la operación</th></tr></thead>
+    <tbody>
+      <tr><td>Inventario sin control en tiempo real</td><td>Exceso de compras, faltantes en obra, pérdida de material</td></tr>
+      <tr><td>Cotizaciones y facturas elaboradas en Excel</td><td>Errores de cálculo, no conformes con CFDI 4.0, tiempo elevado</td></tr>
+      <tr><td>Nómina calculada manualmente</td><td>Riesgo de errores ISR/IMSS, retrasos en pagos, multas fiscales</td></tr>
+      <tr><td>Proyectos sin seguimiento de costos</td><td>Imposibilidad de medir rentabilidad por proyecto</td></tr>
+      <tr><td>Información dispersa por sucursal</td><td>Dirección sin visibilidad consolidada del negocio</td></tr>
+      <tr><td>Sin CRM formal</td><td>Pérdida de oportunidades comerciales, seguimiento informal</td></tr>
+      <tr><td>Reclutamiento sin control de plantilla</td><td>Contrataciones fuera del headcount autorizado</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 Objetivos del Sistema</h3>
+  <ul>
+    <li>Centralizar la información operativa y administrativa en una plataforma única multi-sucursal.</li>
+    <li>Automatizar la facturación electrónica CFDI 4.0 conforme a las disposiciones del SAT.</li>
+    <li>Calcular nómina con ISR y cuotas IMSS/INFONAVIT de forma automática y generar recibos timbrados.</li>
+    <li>Controlar el inventario con costeo PEPS, kardex y transferencias entre almacenes.</li>
+    <li>Gestionar proyectos con seguimiento de materiales, avance y costos en tiempo real.</li>
+    <li>Proporcionar un CRM con pipeline de oportunidades y agenda comercial integrada.</li>
+    <li>Controlar la plantilla laboral autorizada por puesto y sucursal para el proceso de reclutamiento.</li>
+  </ul>
+
+  <h3>4.3 Para quién fue desarrollado</h3>
+  <p>
+    El sistema fue desarrollado <strong>a la medida</strong> para ProPower Electroconstrucciones S.A. de C.V., diseñado para ser utilizado por todos los departamentos de la empresa: Dirección, Ventas, Compras, Almacén, RRHH, Proyectos y Administración. Cada usuario accede únicamente a los módulos que le corresponden mediante un sistema de roles y permisos granulares.
+  </p>
+
+  <h3>4.4 Cómo fue desarrollado</h3>
+  <table>
+    <thead><tr><th>Aspecto</th><th>Decisión tomada</th><th>Justificación</th></tr></thead>
+    <tbody>
+      <tr><td>Framework backend</td><td>Laravel 11 (PHP)</td><td>Ecosistema maduro, ORM Eloquent, autenticación y roles listos, amplia comunidad en México</td></tr>
+      <tr><td>Frontend reactivo</td><td>Livewire 3 + Alpine.js</td><td>Componentes reactivos sin necesidad de API REST separada, menor complejidad de mantenimiento</td></tr>
+      <tr><td>Estilos UI</td><td>Tailwind CSS 3</td><td>Desarrollo rápido, diseño consistente, modo oscuro nativo</td></tr>
+      <tr><td>Base de datos</td><td>MySQL 8</td><td>Rendimiento probado, soporte pleno en Laravel, replicación sencilla</td></tr>
+      <tr><td>Facturación</td><td>Facturapi (PAC certificado)</td><td>API moderna, soporte CFDI 4.0, sin infraestructura fiscal propia</td></tr>
+      <tr><td>Roles y permisos</td><td>Spatie Laravel Permission</td><td>Paquete estándar de la industria, granularidad por ruta y por acción</td></tr>
+      <tr><td>Metodología</td><td>Desarrollo iterativo por módulo</td><td>Permite entrega parcial y validación con usuarios reales en cada etapa</td></tr>
+      <tr><td>Control de versiones</td><td>Git (repositorio privado)</td><td>Trazabilidad de cambios, ramas por módulo, integración con despliegue</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.5 Alcance del sistema</h3>
+  <div class="info-box">
+    <div class="label">Módulos incluidos en v1.0</div>
+    <strong>Ventas:</strong> Cotizaciones, Órdenes, Facturas, Listas de precio &nbsp;|&nbsp;
+    <strong>Compras:</strong> Requisiciones, Órdenes de compra, Recepciones, Facturas proveedor &nbsp;|&nbsp;
+    <strong>Inventario:</strong> Productos, Movimientos, Transferencias, Kardex PEPS &nbsp;|&nbsp;
+    <strong>Proyectos:</strong> Gestión de proyectos con materiales y avance &nbsp;|&nbsp;
+    <strong>CRM:</strong> Clientes, Oportunidades, Actividades, Agenda &nbsp;|&nbsp;
+    <strong>RRHH:</strong> Empleados, Contratos, Nómina, Vacaciones, Asistencias, Incidencias, Evaluaciones, Vacantes &nbsp;|&nbsp;
+    <strong>Configuración:</strong> Empresas, Sucursales, Usuarios, Roles, Permisos
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 5. ARQUITECTURA DEL SISTEMA -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 5</div>
+    <h2>Arquitectura del Sistema</h2>
+    <p>Capas tecnológicas, módulos y servicios externos</p>
+  </div>
+
+  <h3>5.1 Diagrama de Arquitectura por Capas</h3>
+  <div class="diagram-wrap">
+    <div class="diagram-title">Arquitectura MVC — Laravel 11 + Livewire 3</div>
+    <svg width="720" height="480" viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#64748b"/>
+        </marker>
+      </defs>
+
+      <!-- Capa: Navegador / Cliente -->
+      <rect x="10" y="10" width="700" height="70" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.5"/>
+      <text x="24" y="34" fill="#94a3b8" font-size="8" font-weight="700" letter-spacing="1">CAPA DE PRESENTACIÓN — NAVEGADOR</text>
+      <rect x="24" y="42" width="130" height="28" rx="4" fill="#0f172a" stroke="#475569"/>
+      <text x="89" y="61" fill="#e2e8f0" font-size="9.5" text-anchor="middle">Blade Templates</text>
+      <rect x="164" y="42" width="130" height="28" rx="4" fill="#0f172a" stroke="#475569"/>
+      <text x="229" y="61" fill="#e2e8f0" font-size="9.5" text-anchor="middle">Livewire Components</text>
+      <rect x="304" y="42" width="110" height="28" rx="4" fill="#0f172a" stroke="#475569"/>
+      <text x="359" y="61" fill="#e2e8f0" font-size="9.5" text-anchor="middle">Alpine.js</text>
+      <rect x="424" y="42" width="110" height="28" rx="4" fill="#0f172a" stroke="#475569"/>
+      <text x="479" y="61" fill="#e2e8f0" font-size="9.5" text-anchor="middle">Tailwind CSS</text>
+      <rect x="544" y="42" width="150" height="28" rx="4" fill="#0f172a" stroke="#475569"/>
+      <text x="619" y="61" fill="#e2e8f0" font-size="9.5" text-anchor="middle">Chart.js / ApexCharts</text>
+
+      <!-- Flecha -->
+      <line x1="360" y1="80" x2="360" y2="105" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Capa: Aplicación -->
+      <rect x="10" y="108" width="700" height="80" rx="8" fill="#1e3a5f" stroke="#2563eb" stroke-width="1.5"/>
+      <text x="24" y="128" fill="#93c5fd" font-size="8" font-weight="700" letter-spacing="1">CAPA DE APLICACIÓN — LARAVEL 11</text>
+      <rect x="24" y="136" width="100" height="28" rx="4" fill="#1e40af" stroke="#3b82f6"/>
+      <text x="74" y="155" fill="#fff" font-size="9" text-anchor="middle">Controllers</text>
+      <rect x="134" y="136" width="100" height="28" rx="4" fill="#1e40af" stroke="#3b82f6"/>
+      <text x="184" y="155" fill="#fff" font-size="9" text-anchor="middle">Livewire Classes</text>
+      <rect x="244" y="136" width="100" height="28" rx="4" fill="#1e40af" stroke="#3b82f6"/>
+      <text x="294" y="155" fill="#fff" font-size="9" text-anchor="middle">Services</text>
+      <rect x="354" y="136" width="100" height="28" rx="4" fill="#1e40af" stroke="#3b82f6"/>
+      <text x="404" y="155" fill="#fff" font-size="9" text-anchor="middle">Policies / Gates</text>
+      <rect x="464" y="136" width="100" height="28" rx="4" fill="#1e40af" stroke="#3b82f6"/>
+      <text x="514" y="155" fill="#fff" font-size="9" text-anchor="middle">Jobs / Events</text>
+      <rect x="574" y="136" width="120" height="28" rx="4" fill="#1e40af" stroke="#3b82f6"/>
+      <text x="634" y="155" fill="#fff" font-size="9" text-anchor="middle">Middleware / Auth</text>
+
+      <!-- Flecha -->
+      <line x1="360" y1="188" x2="360" y2="213" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Capa: Dominio / Modelos -->
+      <rect x="10" y="216" width="700" height="70" rx="8" fill="#14532d" stroke="#16a34a" stroke-width="1.5"/>
+      <text x="24" y="236" fill="#86efac" font-size="8" font-weight="700" letter-spacing="1">CAPA DE DOMINIO — ELOQUENT MODELS + BUSINESS LOGIC</text>
+      <rect x="24" y="244" width="90" height="28" rx="4" fill="#166534" stroke="#22c55e"/>
+      <text x="69" y="263" fill="#fff" font-size="8.5" text-anchor="middle">Ventas</text>
+      <rect x="124" y="244" width="90" height="28" rx="4" fill="#166534" stroke="#22c55e"/>
+      <text x="169" y="263" fill="#fff" font-size="8.5" text-anchor="middle">Compras</text>
+      <rect x="224" y="244" width="90" height="28" rx="4" fill="#166534" stroke="#22c55e"/>
+      <text x="269" y="263" fill="#fff" font-size="8.5" text-anchor="middle">Inventario</text>
+      <rect x="324" y="244" width="90" height="28" rx="4" fill="#166534" stroke="#22c55e"/>
+      <text x="369" y="263" fill="#fff" font-size="8.5" text-anchor="middle">Proyectos</text>
+      <rect x="424" y="244" width="90" height="28" rx="4" fill="#166534" stroke="#22c55e"/>
+      <text x="469" y="263" fill="#fff" font-size="8.5" text-anchor="middle">CRM</text>
+      <rect x="524" y="244" width="90" height="28" rx="4" fill="#166534" stroke="#22c55e"/>
+      <text x="569" y="263" fill="#fff" font-size="8.5" text-anchor="middle">RRHH</text>
+      <rect x="624" y="244" width="76" height="28" rx="4" fill="#166534" stroke="#22c55e"/>
+      <text x="662" y="263" fill="#fff" font-size="8.5" text-anchor="middle">Config</text>
+
+      <!-- Flecha -->
+      <line x1="360" y1="286" x2="360" y2="311" stroke="#64748b" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Capa: Datos -->
+      <rect x="10" y="314" width="480" height="60" rx="8" fill="#4a1942" stroke="#a855f7" stroke-width="1.5"/>
+      <text x="24" y="334" fill="#d8b4fe" font-size="8" font-weight="700" letter-spacing="1">CAPA DE DATOS</text>
+      <rect x="24" y="342" width="130" height="24" rx="4" fill="#581c87" stroke="#9333ea"/>
+      <text x="89" y="359" fill="#fff" font-size="9" text-anchor="middle">MySQL 8 — ProPower DB</text>
+      <rect x="164" y="342" width="130" height="24" rx="4" fill="#581c87" stroke="#9333ea"/>
+      <text x="229" y="359" fill="#fff" font-size="9" text-anchor="middle">Redis — Cache / Queue</text>
+      <rect x="304" y="342" width="170" height="24" rx="4" fill="#581c87" stroke="#9333ea"/>
+      <text x="389" y="359" fill="#fff" font-size="9" text-anchor="middle">Storage — Archivos / Comprobantes</text>
+
+      <!-- Servicios Externos -->
+      <rect x="500" y="314" width="210" height="130" rx="8" fill="#431407" stroke="#dc2626" stroke-width="1.5"/>
+      <text x="516" y="334" fill="#fca5a5" font-size="8" font-weight="700" letter-spacing="1">SERVICIOS EXTERNOS</text>
+      <rect x="514" y="342" width="180" height="24" rx="4" fill="#7f1d1d" stroke="#ef4444"/>
+      <text x="604" y="359" fill="#fff" font-size="9" text-anchor="middle">Facturapi — PAC / CFDI 4.0</text>
+      <rect x="514" y="374" width="180" height="24" rx="4" fill="#7f1d1d" stroke="#ef4444"/>
+      <text x="604" y="391" fill="#fff" font-size="9" text-anchor="middle">SAT — Validación fiscal</text>
+      <rect x="514" y="406" width="180" height="24" rx="4" fill="#7f1d1d" stroke="#ef4444"/>
+      <text x="604" y="423" fill="#fff" font-size="9" text-anchor="middle">SMTP — Correo electrónico</text>
+
+      <!-- Flecha hacia servicios externos -->
+      <line x1="490" y1="188" x2="605" y2="314" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="5,3" marker-end="url(#arr)"/>
+
+      <!-- Labels de tecnologías clave -->
+      <text x="360" y="460" fill="#475569" font-size="8" text-anchor="middle">PHP 8.3 · Laravel 11 · Livewire 3 · Tailwind CSS 3 · MySQL 8 · Redis · Facturapi</text>
+    </svg>
+  </div>
+
+  <h3>5.2 Stack Tecnológico</h3>
+  <table>
+    <thead><tr><th>Capa</th><th>Tecnología</th><th>Versión</th><th>Función</th></tr></thead>
+    <tbody>
+      <tr><td>Lenguaje backend</td><td>PHP</td><td>8.3</td><td>Lógica de negocio, procesamiento servidor</td></tr>
+      <tr><td>Framework backend</td><td>Laravel</td><td>11.x</td><td>MVC, ORM, autenticación, colas, eventos</td></tr>
+      <tr><td>Componentes reactivos</td><td>Livewire</td><td>3.x</td><td>UI reactiva sin JavaScript separado</td></tr>
+      <tr><td>Interactividad ligera</td><td>Alpine.js</td><td>3.x</td><td>Dropdowns, modales, comportamiento UI</td></tr>
+      <tr><td>Estilos</td><td>Tailwind CSS</td><td>3.x</td><td>Diseño utilitario responsive</td></tr>
+      <tr><td>Base de datos</td><td>MySQL</td><td>8.0</td><td>Persistencia relacional principal</td></tr>
+      <tr><td>Caché / Colas</td><td>Redis</td><td>7.x</td><td>Sesiones, caché de consultas, procesamiento async</td></tr>
+      <tr><td>Facturación electrónica</td><td>Facturapi</td><td>v3</td><td>Timbrado CFDI 4.0 vía PAC certificado SAT</td></tr>
+      <tr><td>Roles y permisos</td><td>Spatie Permission</td><td>6.x</td><td>Control de acceso por rol y permiso granular</td></tr>
+      <tr><td>Servidor web</td><td>Nginx / Apache</td><td>—</td><td>Proxy inverso y entrega de archivos estáticos</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 6. MAPA DE PROCESOS -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 6</div>
+    <h2>Mapa de Procesos</h2>
+    <p>Procesos estratégicos, operativos y de apoyo — ISO 9001:2015 cláusula 4.4</p>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Mapa de Procesos del Sistema ERP/CRM</div>
+    <svg width="720" height="420" viewBox="0 0 720 420" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif">
+      <defs>
+        <marker id="arr2" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0,0 L0,7 L8,3.5 z" fill="#94a3b8"/>
+        </marker>
+      </defs>
+
+      <!-- ─── Fila superior: ESTRATÉGICOS ─── -->
+      <rect x="0" y="0" width="720" height="24" rx="0" fill="#0a0a0a"/>
+      <text x="360" y="16" fill="#fff" font-size="9" font-weight="700" letter-spacing="2" text-anchor="middle">PROCESOS ESTRATÉGICOS</text>
+
+      <rect x="20" y="30" width="155" height="50" rx="6" fill="#1e293b" stroke="#475569"/>
+      <text x="97" y="52" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">Dirección y</text>
+      <text x="97" y="67" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">Planificación</text>
+
+      <rect x="190" y="30" width="155" height="50" rx="6" fill="#1e293b" stroke="#475569"/>
+      <text x="267" y="52" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">Gestión Comercial</text>
+      <text x="267" y="67" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">(CRM / Ventas)</text>
+
+      <rect x="360" y="30" width="155" height="50" rx="6" fill="#1e293b" stroke="#475569"/>
+      <text x="437" y="52" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">Gestión de</text>
+      <text x="437" y="67" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">Calidad</text>
+
+      <rect x="530" y="30" width="170" height="50" rx="6" fill="#1e293b" stroke="#475569"/>
+      <text x="615" y="52" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">Cumplimiento</text>
+      <text x="615" y="67" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">Fiscal y Legal</text>
+
+      <!-- ─── Fila central: OPERATIVOS ─── -->
+      <rect x="0" y="100" width="720" height="24" rx="0" fill="#dc2626"/>
+      <text x="360" y="116" fill="#fff" font-size="9" font-weight="700" letter-spacing="2" text-anchor="middle">PROCESOS OPERATIVOS</text>
+
+      <!-- Módulo Compras -->
+      <rect x="10" y="130" width="115" height="130" rx="6" fill="#1e3a5f" stroke="#2563eb"/>
+      <text x="67" y="150" fill="#93c5fd" font-size="8.5" font-weight="700" text-anchor="middle">COMPRAS</text>
+      <text x="67" y="166" fill="#bfdbfe" font-size="7.5" text-anchor="middle">Requisiciones</text>
+      <text x="67" y="180" fill="#bfdbfe" font-size="7.5" text-anchor="middle">Órdenes de compra</text>
+      <text x="67" y="194" fill="#bfdbfe" font-size="7.5" text-anchor="middle">Recepciones</text>
+      <text x="67" y="208" fill="#bfdbfe" font-size="7.5" text-anchor="middle">Facturas proveedor</text>
+
+      <!-- Módulo Inventario -->
+      <rect x="135" y="130" width="115" height="130" rx="6" fill="#14532d" stroke="#16a34a"/>
+      <text x="192" y="150" fill="#86efac" font-size="8.5" font-weight="700" text-anchor="middle">INVENTARIO</text>
+      <text x="192" y="166" fill="#bbf7d0" font-size="7.5" text-anchor="middle">Entradas / Salidas</text>
+      <text x="192" y="180" fill="#bbf7d0" font-size="7.5" text-anchor="middle">Transferencias</text>
+      <text x="192" y="194" fill="#bbf7d0" font-size="7.5" text-anchor="middle">Kardex PEPS</text>
+      <text x="192" y="208" fill="#bbf7d0" font-size="7.5" text-anchor="middle">Stock mínimo</text>
+
+      <!-- Módulo Proyectos -->
+      <rect x="260" y="130" width="115" height="130" rx="6" fill="#451a03" stroke="#f97316"/>
+      <text x="317" y="150" fill="#fed7aa" font-size="8.5" font-weight="700" text-anchor="middle">PROYECTOS</text>
+      <text x="317" y="166" fill="#ffedd5" font-size="7.5" text-anchor="middle">Creación proyecto</text>
+      <text x="317" y="180" fill="#ffedd5" font-size="7.5" text-anchor="middle">Partidas / Materiales</text>
+      <text x="317" y="194" fill="#ffedd5" font-size="7.5" text-anchor="middle">Avance %</text>
+      <text x="317" y="208" fill="#ffedd5" font-size="7.5" text-anchor="middle">Costos y rentab.</text>
+
+      <!-- Módulo Ventas -->
+      <rect x="385" y="130" width="115" height="130" rx="6" fill="#4a1942" stroke="#a855f7"/>
+      <text x="442" y="150" fill="#d8b4fe" font-size="8.5" font-weight="700" text-anchor="middle">VENTAS</text>
+      <text x="442" y="166" fill="#ede9fe" font-size="7.5" text-anchor="middle">Cotizaciones</text>
+      <text x="442" y="180" fill="#ede9fe" font-size="7.5" text-anchor="middle">Órdenes de venta</text>
+      <text x="442" y="194" fill="#ede9fe" font-size="7.5" text-anchor="middle">Facturas CFDI 4.0</text>
+      <text x="442" y="208" fill="#ede9fe" font-size="7.5" text-anchor="middle">Listas de precio</text>
+
+      <!-- Módulo CRM -->
+      <rect x="510" y="130" width="115" height="130" rx="6" fill="#422006" stroke="#d97706"/>
+      <text x="567" y="150" fill="#fde68a" font-size="8.5" font-weight="700" text-anchor="middle">CRM</text>
+      <text x="567" y="166" fill="#fef3c7" font-size="7.5" text-anchor="middle">Oportunidades</text>
+      <text x="567" y="180" fill="#fef3c7" font-size="7.5" text-anchor="middle">Clientes / Prospectos</text>
+      <text x="567" y="194" fill="#fef3c7" font-size="7.5" text-anchor="middle">Actividades</text>
+      <text x="567" y="208" fill="#fef3c7" font-size="7.5" text-anchor="middle">Agenda comercial</text>
+
+      <!-- Módulo RRHH -->
+      <rect x="635" y="130" width="75" height="130" rx="6" fill="#0c1a3a" stroke="#6366f1"/>
+      <text x="672" y="150" fill="#a5b4fc" font-size="8.5" font-weight="700" text-anchor="middle">RRHH</text>
+      <text x="672" y="166" fill="#e0e7ff" font-size="7" text-anchor="middle">Empleados</text>
+      <text x="672" y="180" fill="#e0e7ff" font-size="7" text-anchor="middle">Nómina</text>
+      <text x="672" y="194" fill="#e0e7ff" font-size="7" text-anchor="middle">Vacaciones</text>
+      <text x="672" y="208" fill="#e0e7ff" font-size="7" text-anchor="middle">Vacantes</text>
+
+      <!-- Flechas entre módulos operativos -->
+      <line x1="125" y1="195" x2="135" y2="195" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+      <line x1="250" y1="195" x2="260" y2="195" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+      <line x1="375" y1="195" x2="385" y2="195" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+      <line x1="500" y1="195" x2="510" y2="195" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+      <line x1="625" y1="195" x2="635" y2="195" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+      <!-- ─── Fila inferior: APOYO ─── -->
+      <rect x="0" y="275" width="720" height="24" rx="0" fill="#334155"/>
+      <text x="360" y="291" fill="#fff" font-size="9" font-weight="700" letter-spacing="2" text-anchor="middle">PROCESOS DE APOYO</text>
+
+      <rect x="20" y="305" width="155" height="50" rx="6" fill="#0f172a" stroke="#334155"/>
+      <text x="97" y="327" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Gestión de</text>
+      <text x="97" y="342" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Usuarios y Roles</text>
+
+      <rect x="190" y="305" width="155" height="50" rx="6" fill="#0f172a" stroke="#334155"/>
+      <text x="267" y="327" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Configuración</text>
+      <text x="267" y="342" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Multi-empresa</text>
+
+      <rect x="360" y="305" width="155" height="50" rx="6" fill="#0f172a" stroke="#334155"/>
+      <text x="437" y="327" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Respaldo y</text>
+      <text x="437" y="342" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Recuperación</text>
+
+      <rect x="530" y="305" width="170" height="50" rx="6" fill="#0f172a" stroke="#334155"/>
+      <text x="615" y="327" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Soporte y</text>
+      <text x="615" y="342" fill="#94a3b8" font-size="9.5" font-weight="600" text-anchor="middle">Mantenimiento TI</text>
+
+      <!-- Flechas apoyo → operativos -->
+      <line x1="360" y1="275" x2="360" y2="260" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr2)"/>
+    </svg>
+  </div>
+
+  <div class="info-box">
+    <div class="label">ISO 9001:2015 — Cláusula 4.4.1</div>
+    La organización debe determinar los procesos necesarios para el sistema de gestión de la calidad, sus entradas y salidas requeridas, la secuencia e interacción de estos procesos, y los criterios y métodos para asegurarse de la operación eficaz y el control de estos procesos.
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 7. DIAGRAMAS DE FLUJO -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 7</div>
+    <h2>Diagramas de Flujo</h2>
+    <p>Flujos principales de proceso del sistema</p>
+  </div>
+
+  <h3>7.1 Ciclo de Venta</h3>
+  <div class="diagram-wrap">
+    <svg width="680" height="520" viewBox="0 0 680 520" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="9">
+      <defs>
+        <marker id="a" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#64748b"/></marker>
+      </defs>
+      <!-- INICIO -->
+      <ellipse cx="340" cy="30" rx="70" ry="20" fill="#0a0a0a" stroke="#0a0a0a"/>
+      <text x="340" y="34" fill="#fff" text-anchor="middle" font-weight="700">INICIO</text>
+      <line x1="340" y1="50" x2="340" y2="74" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+      <!-- Registro cliente -->
+      <rect x="220" y="75" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="97" text-anchor="middle" fill="#0f172a" font-weight="600">Registro / selección de cliente</text>
+      <line x1="340" y1="111" x2="340" y2="134" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+      <!-- Crear cotización -->
+      <rect x="220" y="135" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="157" text-anchor="middle" fill="#0f172a" font-weight="600">Crear Cotización con productos</text>
+      <line x1="340" y1="171" x2="340" y2="194" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+      <!-- Decisión: aprobada? -->
+      <polygon points="340,195 440,225 340,255 240,225" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+      <text x="340" y="221" text-anchor="middle" fill="#92400e" font-weight="700">¿Aprobada</text>
+      <text x="340" y="234" text-anchor="middle" fill="#92400e" font-weight="700">por cliente?</text>
+      <!-- No -->
+      <line x1="240" y1="225" x2="160" y2="225" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+      <text x="196" y="218" fill="#dc2626" font-size="8" font-weight="700">No</text>
+      <rect x="60" y="207" width="100" height="36" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+      <text x="110" y="229" text-anchor="middle" fill="#7f1d1d" font-weight="600">Revisar /</text>
+      <text x="110" y="241" text-anchor="middle" fill="#7f1d1d" font-weight="600">Modificar</text>
+      <line x1="110" y1="207" x2="110" y2="153" stroke="#64748b" stroke-width="1.5"/>
+      <line x1="110" y1="153" x2="220" y2="153" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+      <!-- Sí -->
+      <line x1="340" y1="255" x2="340" y2="278" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+      <text x="350" y="270" fill="#16a34a" font-size="8" font-weight="700">Sí</text>
+
+      <!-- Convertir a Orden -->
+      <rect x="220" y="279" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="301" text-anchor="middle" fill="#0f172a" font-weight="600">Convertir a Orden de Venta</text>
+      <line x1="340" y1="315" x2="340" y2="338" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+      <!-- Despacho inventario -->
+      <rect x="220" y="339" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="361" text-anchor="middle" fill="#0f172a" font-weight="600">Salida de inventario (almacén)</text>
+      <line x1="340" y1="375" x2="340" y2="398" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+      <!-- Emitir factura -->
+      <rect x="220" y="399" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="421" text-anchor="middle" fill="#0f172a" font-weight="600">Emitir Factura CFDI 4.0 (Facturapi)</text>
+      <line x1="340" y1="435" x2="340" y2="458" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+      <!-- FIN -->
+      <ellipse cx="340" cy="478" rx="70" ry="20" fill="#0a0a0a" stroke="#0a0a0a"/>
+      <text x="340" y="482" fill="#fff" text-anchor="middle" font-weight="700">FIN</text>
+    </svg>
+  </div>
+
+  <h3>7.2 Ciclo de Compra</h3>
+  <div class="diagram-wrap">
+    <svg width="680" height="480" viewBox="0 0 680 480" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="9">
+      <defs>
+        <marker id="b" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#64748b"/></marker>
+      </defs>
+      <ellipse cx="340" cy="30" rx="70" ry="20" fill="#0a0a0a"/>
+      <text x="340" y="34" fill="#fff" text-anchor="middle" font-weight="700">INICIO</text>
+      <line x1="340" y1="50" x2="340" y2="74" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+
+      <rect x="220" y="75" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="97" text-anchor="middle" fill="#0f172a" font-weight="600">Crear Requisición de compra</text>
+      <line x1="340" y1="111" x2="340" y2="134" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+
+      <!-- Decisión autorización -->
+      <polygon points="340,135 450,165 340,195 230,165" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+      <text x="340" y="161" text-anchor="middle" fill="#92400e" font-weight="700">¿Autorizada</text>
+      <text x="340" y="174" text-anchor="middle" fill="#92400e" font-weight="700">por gerencia?</text>
+      <line x1="230" y1="165" x2="150" y2="165" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+      <text x="186" y="158" fill="#dc2626" font-size="8" font-weight="700">No</text>
+      <rect x="50" y="147" width="100" height="36" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+      <text x="100" y="169" text-anchor="middle" fill="#7f1d1d" font-weight="600">Rechazada /</text>
+      <text x="100" y="181" text-anchor="middle" fill="#7f1d1d" font-weight="600">Devuelta</text>
+      <line x1="340" y1="195" x2="340" y2="218" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+      <text x="350" y="210" fill="#16a34a" font-size="8" font-weight="700">Sí</text>
+
+      <rect x="220" y="219" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="241" text-anchor="middle" fill="#0f172a" font-weight="600">Generar Orden de Compra</text>
+      <line x1="340" y1="255" x2="340" y2="278" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+
+      <rect x="220" y="279" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="301" text-anchor="middle" fill="#0f172a" font-weight="600">Recepción de mercancía (almacén)</text>
+      <line x1="340" y1="315" x2="340" y2="338" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+
+      <!-- Decisión: conforme? -->
+      <polygon points="340,339 450,369 340,399 230,369" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+      <text x="340" y="365" text-anchor="middle" fill="#92400e" font-weight="700">¿Mercancía</text>
+      <text x="340" y="378" text-anchor="middle" fill="#92400e" font-weight="700">conforme?</text>
+      <line x1="450" y1="369" x2="540" y2="369" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+      <text x="490" y="362" fill="#dc2626" font-size="8" font-weight="700">No</text>
+      <rect x="540" y="351" width="110" height="36" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+      <text x="595" y="373" text-anchor="middle" fill="#7f1d1d" font-weight="600">Devolución /</text>
+      <text x="595" y="385" text-anchor="middle" fill="#7f1d1d" font-weight="600">Nota de crédito</text>
+      <line x1="340" y1="399" x2="340" y2="422" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+      <text x="350" y="414" fill="#16a34a" font-size="8" font-weight="700">Sí</text>
+
+      <rect x="220" y="423" width="240" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="445" text-anchor="middle" fill="#0f172a" font-weight="600">Registrar factura proveedor / pago</text>
+      <line x1="340" y1="459" x2="340" y2="472" stroke="#64748b" stroke-width="1.5" marker-end="url(#b)"/>
+      <ellipse cx="340" cy="472" rx="5" ry="5" fill="#0a0a0a"/>
+    </svg>
+  </div>
+</div>
+
+<!-- Diagramas de flujo adicionales: Nómina y Reclutamiento -->
+<div class="page">
+  <h3>7.3 Flujo de Nómina</h3>
+  <div class="diagram-wrap">
+    <svg width="680" height="400" viewBox="0 0 680 400" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="9">
+      <defs>
+        <marker id="c" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#64748b"/></marker>
+      </defs>
+      <ellipse cx="340" cy="30" rx="70" ry="20" fill="#0a0a0a"/>
+      <text x="340" y="34" fill="#fff" text-anchor="middle" font-weight="700">INICIO — Período</text>
+      <line x1="340" y1="50" x2="340" y2="74" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+
+      <rect x="200" y="75" width="280" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="97" text-anchor="middle" fill="#0f172a" font-weight="600">Cargar incidencias (faltas, horas extra, IMSS)</text>
+      <line x1="340" y1="111" x2="340" y2="134" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+
+      <rect x="200" y="135" width="280" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="157" text-anchor="middle" fill="#0f172a" font-weight="600">Calcular percepciones y deducciones (ISR / IMSS)</text>
+      <line x1="340" y1="171" x2="340" y2="194" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+
+      <polygon points="340,195 450,225 340,255 230,225" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+      <text x="340" y="221" text-anchor="middle" fill="#92400e" font-weight="700">¿Revisión</text>
+      <text x="340" y="234" text-anchor="middle" fill="#92400e" font-weight="700">aprobada?</text>
+      <line x1="230" y1="225" x2="155" y2="225" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+      <text x="188" y="218" fill="#dc2626" font-size="8" font-weight="700">No</text>
+      <rect x="55" y="207" width="100" height="36" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+      <text x="105" y="229" text-anchor="middle" fill="#7f1d1d">Corregir</text>
+      <text x="105" y="241" text-anchor="middle" fill="#7f1d1d">incidencias</text>
+      <line x1="105" y1="207" x2="105" y2="153" stroke="#64748b" stroke-width="1.5"/>
+      <line x1="105" y1="153" x2="200" y2="153" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+
+      <line x1="340" y1="255" x2="340" y2="278" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+      <text x="350" y="270" fill="#16a34a" font-size="8" font-weight="700">Sí</text>
+
+      <rect x="200" y="279" width="280" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="301" text-anchor="middle" fill="#0f172a" font-weight="600">Timbrar recibos CFDI 4.0 (Facturapi)</text>
+      <line x1="340" y1="315" x2="340" y2="338" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+
+      <rect x="200" y="339" width="280" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="361" text-anchor="middle" fill="#0f172a" font-weight="600">Dispersar pago y archivar comprobantes</text>
+      <line x1="340" y1="375" x2="340" y2="390" stroke="#64748b" stroke-width="1.5" marker-end="url(#c)"/>
+      <ellipse cx="340" cy="390" rx="5" ry="5" fill="#0a0a0a"/>
+    </svg>
+  </div>
+
+  <h3>7.4 Flujo de Reclutamiento</h3>
+  <div class="diagram-wrap">
+    <svg width="680" height="360" viewBox="0 0 680 360" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="9">
+      <defs>
+        <marker id="d" markerWidth="8" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L0,7 L8,3.5 z" fill="#64748b"/></marker>
+      </defs>
+      <ellipse cx="340" cy="28" rx="90" ry="20" fill="#0a0a0a"/>
+      <text x="340" y="32" fill="#fff" text-anchor="middle" font-weight="700">NECESIDAD DE PERSONAL</text>
+      <line x1="340" y1="48" x2="340" y2="68" stroke="#64748b" stroke-width="1.5" marker-end="url(#d)"/>
+
+      <polygon points="340,69 450,99 340,129 230,99" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+      <text x="340" y="95" text-anchor="middle" fill="#92400e" font-weight="700">¿Hay plazas</text>
+      <text x="340" y="108" text-anchor="middle" fill="#92400e" font-weight="700">disponibles?</text>
+      <line x1="230" y1="99" x2="140" y2="99" stroke="#64748b" stroke-width="1.5" marker-end="url(#d)"/>
+      <text x="180" y="92" fill="#dc2626" font-size="8" font-weight="700">No</text>
+      <rect x="30" y="81" width="110" height="36" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+      <text x="85" y="103" text-anchor="middle" fill="#7f1d1d">Ampliar</text>
+      <text x="85" y="115" text-anchor="middle" fill="#7f1d1d">headcount</text>
+
+      <line x1="340" y1="129" x2="340" y2="149" stroke="#64748b" stroke-width="1.5" marker-end="url(#d)"/>
+      <text x="350" y="142" fill="#16a34a" font-size="8" font-weight="700">Sí</text>
+
+      <rect x="210" y="150" width="260" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="172" text-anchor="middle" fill="#0f172a" font-weight="600">Crear Vacante en el sistema</text>
+      <line x1="340" y1="186" x2="340" y2="206" stroke="#64748b" stroke-width="1.5" marker-end="url(#d)"/>
+
+      <rect x="210" y="207" width="260" height="36" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="340" y="229" text-anchor="middle" fill="#0f172a" font-weight="600">Registrar candidatos / prospectos</text>
+      <line x1="340" y1="243" x2="340" y2="263" stroke="#64748b" stroke-width="1.5" marker-end="url(#d)"/>
+
+      <polygon points="340,264 450,294 340,324 230,294" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+      <text x="340" y="290" text-anchor="middle" fill="#92400e" font-weight="700">¿Candidato</text>
+      <text x="340" y="303" text-anchor="middle" fill="#92400e" font-weight="700">seleccionado?</text>
+      <line x1="450" y1="294" x2="550" y2="294" stroke="#64748b" stroke-width="1.5" marker-end="url(#d)"/>
+      <text x="496" y="287" fill="#dc2626" font-size="8" font-weight="700">No</text>
+      <rect x="550" y="276" width="110" height="36" rx="6" fill="#fee2e2" stroke="#dc2626"/>
+      <text x="605" y="298" text-anchor="middle" fill="#7f1d1d">Continuar</text>
+      <text x="605" y="310" text-anchor="middle" fill="#7f1d1d">búsqueda</text>
+
+      <line x1="340" y1="324" x2="340" y2="344" stroke="#64748b" stroke-width="1.5" marker-end="url(#d)"/>
+      <text x="350" y="337" fill="#16a34a" font-size="8" font-weight="700">Sí</text>
+      <ellipse cx="340" cy="350" rx="80" ry="12" fill="#0a0a0a"/>
+      <text x="340" y="354" fill="#fff" text-anchor="middle" font-weight="700" font-size="8">Alta de empleado en sistema</text>
+    </svg>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 8. CASOS DE USO -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 8</div>
+    <h2>Diagrama de Casos de Uso</h2>
+    <p>Actores y funcionalidades principales del sistema — UML</p>
+  </div>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Casos de Uso — Sistema ERP/CRM ProPower</div>
+    <svg width="700" height="560" viewBox="0 0 700 560" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, Arial, sans-serif" font-size="9">
+
+      <!-- Sistema boundary -->
+      <rect x="120" y="10" width="470" height="540" rx="8" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,3"/>
+      <text x="355" y="28" text-anchor="middle" fill="#94a3b8" font-size="8" font-weight="700" letter-spacing="1">«SISTEMA» ERP/CRM ProPower</text>
+
+      <!-- ACTORES izquierda -->
+      <!-- Director -->
+      <circle cx="50" cy="80" r="14" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="94" x2="50" y2="125" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="30" y1="108" x2="70" y2="108" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="125" x2="32" y2="148" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="125" x2="68" y2="148" stroke="#0a0a0a" stroke-width="1.5"/>
+      <text x="50" y="162" text-anchor="middle" fill="#0f172a" font-weight="600">Director</text>
+
+      <!-- Vendedor -->
+      <circle cx="50" cy="220" r="14" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="234" x2="50" y2="265" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="30" y1="248" x2="70" y2="248" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="265" x2="32" y2="288" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="265" x2="68" y2="288" stroke="#0a0a0a" stroke-width="1.5"/>
+      <text x="50" y="302" text-anchor="middle" fill="#0f172a" font-weight="600">Vendedor</text>
+
+      <!-- Compras -->
+      <circle cx="50" cy="360" r="14" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="374" x2="50" y2="405" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="30" y1="388" x2="70" y2="388" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="405" x2="32" y2="428" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="405" x2="68" y2="428" stroke="#0a0a0a" stroke-width="1.5"/>
+      <text x="50" y="442" text-anchor="middle" fill="#0f172a" font-weight="600">Compras</text>
+
+      <!-- RRHH -->
+      <circle cx="50" cy="490" r="14" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="504" x2="50" y2="530" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="30" y1="517" x2="70" y2="517" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="530" x2="32" y2="550" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="50" y1="530" x2="68" y2="550" stroke="#0a0a0a" stroke-width="1.5"/>
+      <text x="50" y="560" text-anchor="middle" fill="#0f172a" font-weight="600">RRHH</text>
+
+      <!-- ACTORES derecha -->
+      <!-- Almacenista -->
+      <circle cx="660" cy="300" r="14" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="660" y1="314" x2="660" y2="345" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="640" y1="328" x2="680" y2="328" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="660" y1="345" x2="642" y2="368" stroke="#0a0a0a" stroke-width="1.5"/>
+      <line x1="660" y1="345" x2="678" y2="368" stroke="#0a0a0a" stroke-width="1.5"/>
+      <text x="660" y="382" text-anchor="middle" fill="#0f172a" font-weight="600">Almacenista</text>
+
+      <!-- Casos de uso — elipses -->
+      <!-- Fila 1 -->
+      <ellipse cx="255" cy="55" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="59" text-anchor="middle" fill="#0f172a" font-weight="600">Ver Dashboard / Reportes</text>
+
+      <ellipse cx="460" cy="55" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="59" text-anchor="middle" fill="#0f172a" font-weight="600">Gestionar Usuarios y Roles</text>
+
+      <!-- Fila 2 -->
+      <ellipse cx="255" cy="110" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="114" text-anchor="middle" fill="#0f172a" font-weight="600">Crear / Enviar Cotización</text>
+
+      <ellipse cx="460" cy="110" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="114" text-anchor="middle" fill="#0f172a" font-weight="600">Gestionar Clientes (CRM)</text>
+
+      <!-- Fila 3 -->
+      <ellipse cx="255" cy="165" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="169" text-anchor="middle" fill="#0f172a" font-weight="600">Generar Orden de Venta</text>
+
+      <ellipse cx="460" cy="165" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="169" text-anchor="middle" fill="#0f172a" font-weight="600">Emitir Factura CFDI 4.0</text>
+
+      <!-- Fila 4 -->
+      <ellipse cx="255" cy="220" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="224" text-anchor="middle" fill="#0f172a" font-weight="600">Registrar Requisición</text>
+
+      <ellipse cx="460" cy="220" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="224" text-anchor="middle" fill="#0f172a" font-weight="600">Generar Orden de Compra</text>
+
+      <!-- Fila 5 -->
+      <ellipse cx="255" cy="275" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="279" text-anchor="middle" fill="#0f172a" font-weight="600">Recibir Mercancía</text>
+
+      <ellipse cx="460" cy="275" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="279" text-anchor="middle" fill="#0f172a" font-weight="600">Consultar Kardex / Stock</text>
+
+      <!-- Fila 6 -->
+      <ellipse cx="255" cy="330" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="334" text-anchor="middle" fill="#0f172a" font-weight="600">Registrar Movimiento Inventario</text>
+
+      <ellipse cx="460" cy="330" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="334" text-anchor="middle" fill="#0f172a" font-weight="600">Transferencia Inter-sucursal</text>
+
+      <!-- Fila 7 -->
+      <ellipse cx="255" cy="385" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="389" text-anchor="middle" fill="#0f172a" font-weight="600">Calcular y Timbrar Nómina</text>
+
+      <ellipse cx="460" cy="385" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="389" text-anchor="middle" fill="#0f172a" font-weight="600">Gestionar Vacaciones</text>
+
+      <!-- Fila 8 -->
+      <ellipse cx="255" cy="440" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="255" y="444" text-anchor="middle" fill="#0f172a" font-weight="600">Publicar Vacante</text>
+
+      <ellipse cx="460" cy="440" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="460" y="444" text-anchor="middle" fill="#0f172a" font-weight="600">Gestionar Proyectos</text>
+
+      <!-- Fila 9 -->
+      <ellipse cx="357" cy="500" rx="95" ry="18" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
+      <text x="357" y="504" text-anchor="middle" fill="#0f172a" font-weight="600">Evaluar Desempeño</text>
+
+      <!-- Líneas actor → caso de uso -->
+      <!-- Director -->
+      <line x1="64" y1="80" x2="160" y2="55" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="80" x2="160" y2="110" stroke="#94a3b8" stroke-width="1"/>
+      <!-- Vendedor -->
+      <line x1="64" y1="240" x2="160" y2="110" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="240" x2="160" y2="165" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="240" x2="160" y2="220" stroke="#94a3b8" stroke-width="1"/>
+      <!-- Compras -->
+      <line x1="64" y1="375" x2="160" y2="220" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="375" x2="160" y2="275" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="375" x2="160" y2="330" stroke="#94a3b8" stroke-width="1"/>
+      <!-- RRHH -->
+      <line x1="64" y1="490" x2="160" y2="385" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="490" x2="160" y2="440" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="490" x2="262" y2="500" stroke="#94a3b8" stroke-width="1"/>
+      <!-- Almacenista -->
+      <line x1="646" y1="300" x2="555" y2="275" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="646" y1="300" x2="555" y2="330" stroke="#94a3b8" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <h3>Descripción de Casos de Uso Clave</h3>
+  <table>
+    <thead><tr><th>Caso de Uso</th><th>Actor Principal</th><th>Precondición</th><th>Resultado</th></tr></thead>
+    <tbody>
+      <tr><td>Emitir Factura CFDI 4.0</td><td>Vendedor</td><td>Orden de venta confirmada</td><td>CFDI timbrado y enviado al cliente</td></tr>
+      <tr><td>Calcular y Timbrar Nómina</td><td>RRHH</td><td>Empleados activos con contrato vigente</td><td>Recibos timbrados, dispersión lista</td></tr>
+      <tr><td>Publicar Vacante</td><td>RRHH</td><td>Plazas disponibles en headcount autorizado</td><td>Vacante publicada, candidatos registrables</td></tr>
+      <tr><td>Recibir Mercancía</td><td>Almacenista / Compras</td><td>Orden de compra aprobada y enviada</td><td>Entrada en inventario con número de lote</td></tr>
+      <tr><td>Gestionar Proyectos</td><td>Director / Operaciones</td><td>Cliente y contrato existentes</td><td>Proyecto activo con partidas y avance registrado</td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 9. DIAGRAMA DE CLASES -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 9</div>
+    <h2>Diagrama de Clases</h2>
+    <p>Modelos principales y sus relaciones — simplificado por módulo</p>
+  </div>
+
+  <h3>9.1 Módulo de Ventas</h3>
+  <div class="diagram-wrap">
+    <svg width="680" height="300" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" font-family="Courier New, monospace" font-size="8.5">
+      <defs>
+        <marker id="rel" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto"><path d="M0,0 L0,10 L10,5 z" fill="none" stroke="#64748b" stroke-width="1"/></marker>
+        <marker id="comp" markerWidth="10" markerHeight="10" refX="1" refY="5" orient="auto"><polygon points="5,0 10,5 5,10 0,5" fill="#0a0a0a"/></marker>
+      </defs>
+
+      <!-- Customer -->
+      <rect x="10" y="20" width="140" height="130" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="10" y="20" width="140" height="22" rx="4" fill="#1e293b" stroke="#334155"/>
+      <text x="80" y="36" fill="#e2e8f0" text-anchor="middle" font-weight="700" font-size="9">Customer</text>
+      <text x="18" y="56" fill="#94a3b8">+ id: int</text>
+      <text x="18" y="70" fill="#94a3b8">+ name: string</text>
+      <text x="18" y="84" fill="#94a3b8">+ rfc: string</text>
+      <text x="18" y="98" fill="#94a3b8">+ email: string</text>
+      <text x="18" y="112" fill="#94a3b8">+ company_id: int</text>
+      <line x1="10" y1="120" x2="150" y2="120" stroke="#334155"/>
+      <text x="18" y="134" fill="#60a5fa">+ quotations()</text>
+      <text x="18" y="148" fill="#60a5fa">+ orders()</text>
+
+      <!-- SaleQuotation -->
+      <rect x="200" y="20" width="155" height="160" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="200" y="20" width="155" height="22" rx="4" fill="#1e293b" stroke="#334155"/>
+      <text x="277" y="36" fill="#e2e8f0" text-anchor="middle" font-weight="700" font-size="9">SaleQuotation</text>
+      <text x="208" y="56" fill="#94a3b8">+ id: int</text>
+      <text x="208" y="70" fill="#94a3b8">+ folio: string</text>
+      <text x="208" y="84" fill="#94a3b8">+ customer_id: int</text>
+      <text x="208" y="98" fill="#94a3b8">+ status: enum</text>
+      <text x="208" y="112" fill="#94a3b8">+ subtotal: decimal</text>
+      <text x="208" y="126" fill="#94a3b8">+ tax: decimal</text>
+      <text x="208" y="140" fill="#94a3b8">+ total: decimal</text>
+      <line x1="200" y1="148" x2="355" y2="148" stroke="#334155"/>
+      <text x="208" y="162" fill="#60a5fa">+ items()</text>
+      <text x="208" y="176" fill="#60a5fa">+ customer()</text>
+
+      <!-- SaleOrder -->
+      <rect x="410" y="20" width="145" height="150" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="410" y="20" width="145" height="22" rx="4" fill="#1e293b" stroke="#334155"/>
+      <text x="482" y="36" fill="#e2e8f0" text-anchor="middle" font-weight="700" font-size="9">SaleOrder</text>
+      <text x="418" y="56" fill="#94a3b8">+ id: int</text>
+      <text x="418" y="70" fill="#94a3b8">+ folio: string</text>
+      <text x="418" y="84" fill="#94a3b8">+ quotation_id: int</text>
+      <text x="418" y="98" fill="#94a3b8">+ status: enum</text>
+      <text x="418" y="112" fill="#94a3b8">+ total: decimal</text>
+      <line x1="410" y1="120" x2="555" y2="120" stroke="#334155"/>
+      <text x="418" y="134" fill="#60a5fa">+ invoice()</text>
+      <text x="418" y="148" fill="#60a5fa">+ items()</text>
+      <text x="418" y="162" fill="#60a5fa">+ quotation()</text>
+
+      <!-- SaleInvoice -->
+      <rect x="580" y="20" width="90" height="100" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="580" y="20" width="90" height="22" rx="4" fill="#dc2626" stroke="#dc2626"/>
+      <text x="625" y="36" fill="#fff" text-anchor="middle" font-weight="700" font-size="8.5">SaleInvoice</text>
+      <text x="588" y="56" fill="#94a3b8">+ folio_fiscal</text>
+      <text x="588" y="70" fill="#94a3b8">+ cfdi_uuid</text>
+      <text x="588" y="84" fill="#94a3b8">+ status: enum</text>
+      <line x1="580" y1="90" x2="670" y2="90" stroke="#334155"/>
+      <text x="588" y="104" fill="#60a5fa">+ order()</text>
+
+      <!-- Relaciones -->
+      <line x1="150" y1="80" x2="200" y2="80" stroke="#64748b" stroke-width="1.2" stroke-dasharray="5,3"/>
+      <text x="168" y="74" fill="#94a3b8" font-family="Arial" font-size="7.5">1..*</text>
+      <line x1="355" y1="100" x2="410" y2="100" stroke="#64748b" stroke-width="1.2"/>
+      <text x="373" y="94" fill="#94a3b8" font-family="Arial" font-size="7.5">→</text>
+      <line x1="555" y1="60" x2="580" y2="60" stroke="#64748b" stroke-width="1.2"/>
+      <text x="561" y="54" fill="#94a3b8" font-family="Arial" font-size="7.5">1</text>
+
+      <!-- QuotationItem -->
+      <rect x="200" y="210" width="155" height="80" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="200" y="210" width="155" height="22" rx="4" fill="#1e3a5f" stroke="#334155"/>
+      <text x="277" y="226" fill="#93c5fd" text-anchor="middle" font-weight="700" font-size="9">QuotationItem</text>
+      <text x="208" y="246" fill="#94a3b8">+ product_id: int</text>
+      <text x="208" y="260" fill="#94a3b8">+ qty: decimal</text>
+      <text x="208" y="274" fill="#94a3b8">+ unit_price: decimal</text>
+      <line x1="277" y1="210" x2="277" y2="180" stroke="#64748b" stroke-width="1.2"/>
+    </svg>
+  </div>
+
+  <h3>9.2 Módulo RRHH — Relaciones principales</h3>
+  <div class="diagram-wrap">
+    <svg width="680" height="280" viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" font-family="Courier New, monospace" font-size="8.5">
+      <!-- HrEmployee -->
+      <rect x="10" y="20" width="150" height="160" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="10" y="20" width="150" height="22" rx="4" fill="#14532d" stroke="#334155"/>
+      <text x="85" y="36" fill="#86efac" text-anchor="middle" font-weight="700" font-size="9">HrEmployee</text>
+      <text x="18" y="56" fill="#94a3b8">+ id: int</text>
+      <text x="18" y="70" fill="#94a3b8">+ name: string</text>
+      <text x="18" y="84" fill="#94a3b8">+ position_id: int</text>
+      <text x="18" y="98" fill="#94a3b8">+ branch_id: int</text>
+      <text x="18" y="112" fill="#94a3b8">+ status: enum</text>
+      <text x="18" y="126" fill="#94a3b8">+ hire_date: date</text>
+      <line x1="10" y1="134" x2="160" y2="134" stroke="#334155"/>
+      <text x="18" y="148" fill="#60a5fa">+ position()</text>
+      <text x="18" y="162" fill="#60a5fa">+ payrolls()</text>
+      <text x="18" y="176" fill="#60a5fa">+ vacations()</text>
+
+      <!-- HrPosition -->
+      <rect x="210" y="20" width="155" height="140" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="210" y="20" width="155" height="22" rx="4" fill="#14532d" stroke="#334155"/>
+      <text x="287" y="36" fill="#86efac" text-anchor="middle" font-weight="700" font-size="9">HrPosition</text>
+      <text x="218" y="56" fill="#94a3b8">+ id: int</text>
+      <text x="218" y="70" fill="#94a3b8">+ name: string</text>
+      <text x="218" y="84" fill="#94a3b8">+ department_id: int</text>
+      <text x="218" y="98" fill="#94a3b8">+ salary_type: enum</text>
+      <text x="218" y="112" fill="#94a3b8">+ authorized_headcount</text>
+      <line x1="210" y1="120" x2="365" y2="120" stroke="#334155"/>
+      <text x="218" y="134" fill="#60a5fa">+ headcounts()</text>
+      <text x="218" y="148" fill="#60a5fa">+ employees()</text>
+
+      <!-- HrPositionHeadcount -->
+      <rect x="420" y="20" width="170" height="110" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="420" y="20" width="170" height="22" rx="4" fill="#422006" stroke="#334155"/>
+      <text x="505" y="36" fill="#fde68a" text-anchor="middle" font-weight="700" font-size="8.5">HrPositionHeadcount</text>
+      <text x="428" y="56" fill="#94a3b8">+ position_id: int</text>
+      <text x="428" y="70" fill="#94a3b8">+ branch_id: int</text>
+      <text x="428" y="84" fill="#94a3b8">+ headcount: int</text>
+      <line x1="420" y1="90" x2="590" y2="90" stroke="#334155"/>
+      <text x="428" y="104" fill="#60a5fa">+ position()</text>
+      <text x="428" y="118" fill="#60a5fa">+ branch()</text>
+
+      <!-- HrPayroll -->
+      <rect x="10" y="210" width="150" height="65" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="10" y="210" width="150" height="22" rx="4" fill="#0c1a3a" stroke="#334155"/>
+      <text x="85" y="226" fill="#a5b4fc" text-anchor="middle" font-weight="700" font-size="9">HrPayroll</text>
+      <text x="18" y="246" fill="#94a3b8">+ period, perceptions</text>
+      <text x="18" y="260" fill="#94a3b8">+ deductions, net_pay</text>
+      <text x="18" y="274" fill="#94a3b8">+ cfdi_uuid</text>
+
+      <!-- HrJobOpening -->
+      <rect x="210" y="190" width="155" height="85" rx="4" fill="#0f172a" stroke="#334155"/>
+      <rect x="210" y="190" width="155" height="22" rx="4" fill="#4a1942" stroke="#334155"/>
+      <text x="287" y="206" fill="#d8b4fe" text-anchor="middle" font-weight="700" font-size="9">HrJobOpening</text>
+      <text x="218" y="226" fill="#94a3b8">+ position_id: int</text>
+      <text x="218" y="240" fill="#94a3b8">+ branch_id: int</text>
+      <text x="218" y="254" fill="#94a3b8">+ quantity: int</text>
+      <text x="218" y="268" fill="#94a3b8">+ status: enum</text>
+
+      <!-- Relaciones -->
+      <line x1="160" y1="90" x2="210" y2="90" stroke="#64748b" stroke-width="1.2" stroke-dasharray="5,3"/>
+      <line x1="365" y1="60" x2="420" y2="60" stroke="#64748b" stroke-width="1.2"/>
+      <line x1="85" y1="180" x2="85" y2="210" stroke="#64748b" stroke-width="1.2"/>
+      <line x1="287" y1="160" x2="287" y2="190" stroke="#64748b" stroke-width="1.2" stroke-dasharray="5,3"/>
+    </svg>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ 10. GESTIÓN DE RIESGOS -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 10</div>
+    <h2>Gestión de Riesgos</h2>
+    <p>Identificación, evaluación y plan de mitigación — ISO 9001:2015 cláusula 6.1</p>
+  </div>
+
+  <p>Se evalúa cada riesgo con base en su <strong>Probabilidad</strong> (1–5) y su <strong>Impacto</strong> (1–5). El <strong>Nivel de Riesgo</strong> = P × I. Nivel ≤ 6: Bajo — 7–14: Medio — ≥ 15: Alto.</p>
+
+  <table>
+    <thead>
+      <tr><th>#</th><th>Riesgo</th><th>Módulo afectado</th><th>P</th><th>I</th><th>NR</th><th>Nivel</th><th>Plan de mitigación</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>R01</td><td>Cambios en normativa CFDI del SAT</td><td>Ventas / Nómina</td>
+        <td>4</td><td>5</td><td>20</td><td><span class="badge badge-red">Alto</span></td>
+        <td>Monitoreo SAT + actualizaciones Facturapi. Suscripción a boletín fiscal.</td>
+      </tr>
+      <tr>
+        <td>R02</td><td>Pérdida de datos por falla de servidor</td><td>Todos</td>
+        <td>2</td><td>5</td><td>10</td><td><span class="badge badge-yellow">Medio</span></td>
+        <td>Respaldo automático diario (mysqldump + S3). Procedimiento de recuperación documentado.</td>
+      </tr>
+      <tr>
+        <td>R03</td><td>Acceso no autorizado al sistema</td><td>Todos</td>
+        <td>3</td><td>4</td><td>12</td><td><span class="badge badge-yellow">Medio</span></td>
+        <td>Roles y permisos granulares (Spatie). Contraseñas bcrypt. 2FA en roadmap v1.1.</td>
+      </tr>
+      <tr>
+        <td>R04</td><td>Error en cálculo de nómina (ISR/IMSS)</td><td>RRHH / Nómina</td>
+        <td>2</td><td>5</td><td>10</td><td><span class="badge badge-yellow">Medio</span></td>
+        <td>Pruebas unitarias en módulo nómina. Validación con contador externo antes de timbrado.</td>
+      </tr>
+      <tr>
+        <td>R05</td><td>Baja adopción del sistema por usuarios</td><td>Todos</td>
+        <td>3</td><td>3</td><td>9</td><td><span class="badge badge-yellow">Medio</span></td>
+        <td>Capacitación por módulo. Manual de usuario. Soporte TI disponible en horario laboral.</td>
+      </tr>
+      <tr>
+        <td>R06</td><td>Inconsistencia de inventario multi-sucursal</td><td>Inventario</td>
+        <td>3</td><td>4</td><td>12</td><td><span class="badge badge-yellow">Medio</span></td>
+        <td>Kardex PEPS con trazabilidad de movimientos. Alertas de stock mínimo. Auditoría mensual.</td>
+      </tr>
+      <tr>
+        <td>R07</td><td>Caída de API Facturapi</td><td>Ventas / Nómina</td>
+        <td>2</td><td>3</td><td>6</td><td><span class="badge badge-green">Bajo</span></td>
+        <td>Manejo de errores con reintento. Notificación al usuario. Cola de trabajos (Redis).</td>
+      </tr>
+      <tr>
+        <td>R08</td><td>Lentitud de consultas en bases de datos grandes</td><td>Inventario / Reportes</td>
+        <td>3</td><td>2</td><td>6</td><td><span class="badge badge-green">Bajo</span></td>
+        <td>Índices en columnas críticas. Cache Redis en consultas frecuentes. Paginación en vistas.</td>
+      </tr>
+      <tr>
+        <td>R09</td><td>Contratación fuera de headcount autorizado</td><td>RRHH / Vacantes</td>
+        <td>2</td><td>3</td><td>6</td><td><span class="badge badge-green">Bajo</span></td>
+        <td>Validación en sistema: no se puede crear vacante si plazas disponibles = 0.</td>
+      </tr>
+      <tr>
+        <td>R10</td><td>Errores en migración de datos históricos</td><td>Todos (inicial)</td>
+        <td>3</td><td>3</td><td>9</td><td><span class="badge badge-yellow">Medio</span></td>
+        <td>Migración por fases. Validación cruzada con registros anteriores. Ambiente de pruebas.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="info-box">
+    <div class="label">Revisión de riesgos</div>
+    La tabla de riesgos debe revisarse al menos cada 6 meses o ante cambios normativos significativos. Responsable: Representante de Calidad + Gerencia de TI.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ 11. INDICADORES DE CALIDAD -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 11</div>
+    <h2>Indicadores de Calidad</h2>
+    <p>KPIs del sistema — ISO 9001:2015 cláusula 9.1 / ISO/IEC 25010</p>
+  </div>
+
+  <h3>11.1 Calidad del Software (ISO/IEC 25010)</h3>
+  <table>
+    <thead><tr><th>Característica</th><th>Sub-característica</th><th>Indicador</th><th>Meta</th><th>Frecuencia</th></tr></thead>
+    <tbody>
+      <tr><td>Funcionalidad</td><td>Completitud funcional</td><td>% de requisitos implementados</td><td>≥ 95%</td><td>Por versión</td></tr>
+      <tr><td>Rendimiento</td><td>Tiempo de respuesta</td><td>Tiempo carga de pantallas (P95)</td><td>≤ 2 seg</td><td>Mensual</td></tr>
+      <tr><td>Rendimiento</td><td>Throughput</td><td>Transacciones simultáneas soportadas</td><td>≥ 50 usuarios</td><td>Semestral</td></tr>
+      <tr><td>Fiabilidad</td><td>Disponibilidad</td><td>Uptime del sistema</td><td>≥ 99%</td><td>Mensual</td></tr>
+      <tr><td>Fiabilidad</td><td>Tolerancia a fallos</td><td>MTTR (tiempo medio de recuperación)</td><td>≤ 4 horas</td><td>Por incidente</td></tr>
+      <tr><td>Seguridad</td><td>Confidencialidad</td><td>Accesos no autorizados detectados</td><td>0</td><td>Mensual</td></tr>
+      <tr><td>Usabilidad</td><td>Facilidad de aprendizaje</td><td>Tiempo para completar tarea principal</td><td>≤ 5 min</td><td>Por capacitación</td></tr>
+      <tr><td>Mantenibilidad</td><td>Modularidad</td><td>Cobertura de código por pruebas</td><td>≥ 70%</td><td>Por versión</td></tr>
+    </tbody>
+  </table>
+
+  <h3>11.2 KPIs de Proceso de Negocio</h3>
+  <table>
+    <thead><tr><th>Módulo</th><th>KPI</th><th>Fórmula / Fuente</th><th>Meta</th></tr></thead>
+    <tbody>
+      <tr><td>Ventas</td><td>Tasa de conversión cotización→orden</td><td>Órdenes / Cotizaciones emitidas × 100</td><td>≥ 40%</td></tr>
+      <tr><td>Ventas</td><td>Tiempo promedio de facturación</td><td>Desde orden confirmada hasta CFDI timbrado</td><td>≤ 24 h</td></tr>
+      <tr><td>Compras</td><td>Tiempo promedio OC</td><td>Desde requisición aprobada hasta OC generada</td><td>≤ 48 h</td></tr>
+      <tr><td>Inventario</td><td>Exactitud de inventario</td><td>Diferencia física vs. sistema / Total × 100</td><td>≥ 98%</td></tr>
+      <tr><td>RRHH</td><td>Tiempo de proceso de nómina</td><td>Horas desde inicio hasta timbrado</td><td>≤ 8 h</td></tr>
+      <tr><td>RRHH</td><td>Tiempo de cobertura de vacante</td><td>Días desde publicación hasta contratación</td><td>≤ 30 días</td></tr>
+      <tr><td>Proyectos</td><td>Proyectos dentro del presupuesto</td><td>Proyectos sin sobrecosto / Total × 100</td><td>≥ 85%</td></tr>
+      <tr><td>CRM</td><td>Tasa de cierre de oportunidades</td><td>Oportunidades ganadas / Total × 100</td><td>≥ 30%</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ 12. POLÍTICA DE CALIDAD -->
+<div class="page">
+  <div class="section-header">
+    <div class="num">Sección 12</div>
+    <h2>Política de Calidad del Software</h2>
+    <p>Compromiso organizacional con la calidad del sistema — ISO 9001:2015 cláusula 5.2</p>
+  </div>
+
+  <div class="info-box" style="border-left-color: #0a0a0a; background: #0f172a; color: #e2e8f0;">
+    <div class="label" style="color:#dc2626">Declaración de Política de Calidad</div>
+    <p style="color:#e2e8f0; font-size: 11pt; line-height: 1.8; margin-top: 8px;">
+      ProPower Electroconstrucciones S.A. de C.V. se compromete a desarrollar, mantener y mejorar continuamente su sistema ERP/CRM con los más altos estándares de calidad, seguridad y funcionalidad, garantizando que el sistema cumpla con los requisitos legales aplicables —incluyendo las disposiciones fiscales del SAT y la normativa laboral mexicana— y que satisfaga las necesidades de todos sus usuarios internos y externos, contribuyendo a la eficiencia operativa y al crecimiento sostenible de la organización.
+    </p>
+  </div>
+
+  <h3>Principios de Calidad del Sistema</h3>
+  <table>
+    <thead><tr><th>#</th><th>Principio</th><th>Cómo se aplica en el sistema</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Enfoque en el usuario</strong></td><td>Interfaces intuitivas con Livewire/Tailwind. Roles y permisos para mostrar solo lo relevante a cada usuario.</td></tr>
+      <tr><td>2</td><td><strong>Liderazgo</strong></td><td>La Dirección aprueba versiones y prioriza el backlog del sistema. Representante de calidad designado.</td></tr>
+      <tr><td>3</td><td><strong>Participación del personal</strong></td><td>Usuarios clave de cada área validan módulos antes de su liberación en producción.</td></tr>
+      <tr><td>4</td><td><strong>Enfoque a procesos</strong></td><td>Cada módulo replica el proceso real del negocio, documentado en los flujos de la Sección 7.</td></tr>
+      <tr><td>5</td><td><strong>Mejora continua</strong></td><td>Versionamiento semántico (SemVer). Backlog priorizado. Revisiones periódicas de indicadores.</td></tr>
+      <tr><td>6</td><td><strong>Toma de decisiones basada en evidencia</strong></td><td>Logs de sistema, KPIs en dashboard, reportes exportables para análisis por gerencia.</td></tr>
+      <tr><td>7</td><td><strong>Gestión de relaciones</strong></td><td>Integración con Facturapi (PAC) garantiza cumplimiento fiscal. Soporte técnico documentado.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Compromisos de Mejora Continua</h3>
+  <ul>
+    <li>Realizar revisiones de versión al menos cada trimestre con base en retroalimentación de usuarios.</li>
+    <li>Mantener la documentación técnica actualizada con cada versión mayor del sistema.</li>
+    <li>Aplicar parches de seguridad dentro de las 72 horas posteriores a su identificación.</li>
+    <li>Capacitar a los usuarios ante la incorporación de nuevos módulos o cambios significativos.</li>
+    <li>Evaluar anualmente el cumplimiento de los KPIs definidos en la Sección 11 y ajustar las metas.</li>
+    <li>Mantener un ambiente de pruebas (staging) separado del entorno de producción.</li>
+  </ul>
+
+  <h3>Firmas de Aprobación</h3>
+  <table>
+    <thead><tr><th>Rol</th><th>Nombre</th><th>Firma</th><th>Fecha</th></tr></thead>
+    <tbody>
+      <tr><td>Director General</td><td></td><td>_______________________</td><td>Mayo 2026</td></tr>
+      <tr><td>Gerente de TI / Desarrollo</td><td></td><td>_______________________</td><td>Mayo 2026</td></tr>
+      <tr><td>Representante de Calidad</td><td></td><td>_______________________</td><td>Mayo 2026</td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top: 48px; padding-top: 24px; border-top: 2px solid #e2e8f0; text-align: center; color: #94a3b8; font-size: 9pt;">
+    Documentación Técnica v1.0 — ProPower Electroconstrucciones S.A. de C.V. — Mayo 2026<br>
+    Generado con base en ISO 9001:2015 / ISO/IEC 25010 — Documento controlado
+  </div>
+</div>
+
+</body>
+</html>

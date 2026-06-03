@@ -28,10 +28,12 @@ class HrProspect extends Model
         'initial_notes',
         'interview_date',
         'interview_type',
+        'calendar_color',
         'interviewer_id',
         'scheduled_by_id',
         'employee_id',
         'status',
+        'test_type',
         'reminder_24h_sent',
         'reminder_1h_sent',
     ];
@@ -176,7 +178,9 @@ class HrProspect extends Model
 
     public function getSourceLabelAttribute(): string
     {
-        return self::SOURCES[$this->source] ?? $this->source;
+        return $this->source
+            ? self::SOURCES[$this->source] ?? $this->source
+            : 'Sin fuente';
     }
 
     public function getInterviewTypeLabelAttribute(): ?string

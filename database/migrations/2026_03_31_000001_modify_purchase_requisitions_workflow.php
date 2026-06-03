@@ -9,11 +9,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Cambiar status de ENUM a VARCHAR para poder agregar nuevos estados sin re-migrar
-        DB::statement("
-            ALTER TABLE purchase_requisitions
-            MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'submitted'
-        ");
+        // Cambiar status de ENUM a VARCHAR — solo MySQL lo soporta; SQLite ya almacena todo como TEXT
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE purchase_requisitions
+                MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'submitted'
+            ");
+        }
 
         Schema::table('purchase_requisitions', function (Blueprint $table) {
             $table->text('requester_notes')->nullable()->after('quote_response');
@@ -36,10 +38,12 @@ return new class extends Migration
             ]);
         });
 
-        DB::statement("
-            ALTER TABLE purchase_requisitions
-            MODIFY COLUMN status ENUM('draft','pending_quote','quoted','pending_approval','approved','rejected','cancelled')
-            NOT NULL DEFAULT 'draft'
-        ");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("
+                ALTER TABLE purchase_requisitions
+                MODIFY COLUMN status ENUM('draft','pending_quote','quoted','pending_approval','approved','rejected','cancelled')
+                NOT NULL DEFAULT 'draft'
+            ");
+        }
     }
 };

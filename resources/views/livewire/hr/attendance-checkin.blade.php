@@ -136,7 +136,7 @@
                                 const testLat = @js($latitude) || 19.4326; 
                                 const testLng = @js($longitude) || -99.1332;
                                 alert('Simulando ubicación en: ' + testLat + ', ' + testLng);
-                                @this.call('setCoordinates', parseFloat(testLat), parseFloat(testLng));
+                                @this.call('setCoordinates', parseFloat(testLat), parseFloat(testLng), 0);
                             }
                         </script>
                     </div>
@@ -277,7 +277,7 @@
             navigator.geolocation.getCurrentPosition(
                 function(pos) {
                     console.log('DEBUG: Ubicación obtenida con éxito');
-                    @this.call('setCoordinates', pos.coords.latitude, pos.coords.longitude);
+                    @this.call('setCoordinates', pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
                 },
                 function(err) {
                     console.error('DEBUG: Error código ' + err.code + ' - ' + err.message);
@@ -296,7 +296,7 @@
                     // Si falló por tiempo, intentar una vez más con baja precisión (más rápido)
                     if (err.code === 3) {
                         navigator.geolocation.getCurrentPosition(
-                            (p) => @this.call('setCoordinates', p.coords.latitude, p.coords.longitude),
+                            (p) => @this.call('setCoordinates', p.coords.latitude, p.coords.longitude, p.coords.accuracy),
                             () => {}, // Silencioso el segundo fallo
                             { enableHighAccuracy: false, timeout: 5000 }
                         );

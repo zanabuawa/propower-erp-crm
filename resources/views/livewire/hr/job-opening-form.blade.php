@@ -57,7 +57,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Puesto asociado *</label>
-                                <select wire:model="position_id"
+                                <select wire:model.live="position_id"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm font-bold text-slate-700">
                                     <option value="">— Seleccionar puesto —</option>
                                     @foreach($positions as $pos)
@@ -67,7 +67,7 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sucursal / Ubicación</label>
-                                <select wire:model="branch_id"
+                                <select wire:model.live="branch_id"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 text-sm font-bold text-slate-700">
                                     <option value="">— Todas las sucursales —</option>
                                     @foreach($branches as $br)
@@ -76,6 +76,35 @@
                                 </select>
                             </div>
                         </div>
+
+                        {{-- Slot info panel --}}
+                        @if($slotInfo)
+                        <div class="rounded-2xl border {{ ($slotInfo['remaining'] - $quantity) < 0 ? 'border-rose-100 bg-rose-50/60' : 'border-indigo-100 bg-indigo-50/60' }} p-4">
+                            <p class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3">Plantilla autorizada · {{ $position_id && $branch_id ? '' : '' }}</p>
+                            <div class="grid grid-cols-4 gap-2 text-center">
+                                <div>
+                                    <p class="text-xl font-black text-slate-700">{{ $slotInfo['headcount'] }}</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Autorizadas</p>
+                                </div>
+                                <div>
+                                    <p class="text-xl font-black text-emerald-600">{{ $slotInfo['filled'] }}</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ocupadas</p>
+                                </div>
+                                <div>
+                                    <p class="text-xl font-black text-amber-600">{{ $slotInfo['recruiting'] }}</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Reclutando</p>
+                                </div>
+                                <div>
+                                    <p class="text-xl font-black {{ $slotInfo['remaining'] > 0 ? 'text-indigo-700' : 'text-rose-600' }}">{{ $slotInfo['remaining'] }}</p>
+                                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Libres</p>
+                                </div>
+                            </div>
+                            @if($slotInfo['remaining'] === 0)
+                            <p class="mt-3 text-[10px] text-rose-600 font-bold text-center">Sin plazas libres para reclutamiento en esta sucursal.</p>
+                            @endif
+                        </div>
+                        @endif
+                        @error('quantity') <div class="p-3 rounded-2xl bg-rose-50 border border-rose-100"><p class="text-xs text-rose-700 font-medium">{{ $message }}</p></div> @enderror
 
                         <div class="space-y-2">
                             <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Descripción de la vacante</label>

@@ -4,7 +4,7 @@
     <x-page-header title="Kardex PEPS" description="Tarjeta de almacén — Primeras Entradas, Primeras Salidas">
         <x-slot:actions>
             <a wire:navigate href="{{ route('inventory.lots.index') }}"
-                class="inline-flex items-center gap-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-3 py-2 rounded-xl transition-all duration-200 text-gray-700 shadow-sm">
+                class="inline-flex items-center gap-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-3 py-2 rounded-xl transition-all duration-200 text-gray-700 shadow-sm cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
                 </svg>
@@ -27,7 +27,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                         </svg>
                         <span class="text-sm font-medium text-indigo-700 truncate">{{ $selectedProductName }}</span>
-                        <button wire:click="clearProduct" class="ml-auto text-indigo-400 hover:text-indigo-600 transition-colors" aria-label="Limpiar producto">
+                        <button wire:click="clearProduct" class="ml-auto text-indigo-400 hover:text-indigo-600 transition-colors cursor-pointer" aria-label="Limpiar producto">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
@@ -73,8 +73,8 @@
                 <select wire:model.live="filterDirection" aria-label="Dirección"
                     class="px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition-all hover:bg-gray-100 appearance-none">
                     <option value="">Entradas y salidas</option>
-                    <option value="in">Solo entradas</option>
-                    <option value="out">Solo salidas</option>
+                    <option value="in">↑ Solo entradas</option>
+                    <option value="out">↓ Solo salidas</option>
                 </select>
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -96,8 +96,18 @@
             </div>
         </div>
 
-        {{-- Fila 2: fechas + limpiar --}}
+        {{-- Fila 2: lote, fechas + limpiar --}}
         <div class="flex flex-wrap gap-3 items-center">
+
+            {{-- Filtro por lote --}}
+            <div class="relative">
+                <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+                <input wire:model.live.debounce.400ms="filterLot" type="text" placeholder="Filtrar por lote…"
+                    class="pl-8 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all w-44">
+            </div>
+
             <div class="flex items-center gap-2">
                 <label class="text-xs font-medium text-gray-500 whitespace-nowrap">Desde</label>
                 <input wire:model.live="dateFrom" type="date" aria-label="Fecha desde"
@@ -108,9 +118,19 @@
                 <input wire:model.live="dateTo" type="date" aria-label="Fecha hasta"
                     class="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
             </div>
+
+            @php
+                $activeFilters = collect([$productId, $warehouseId, $filterType, $filterDirection, $filterLot, $dateFrom, $dateTo])->filter()->count();
+            @endphp
             <button wire:click="clearFilters"
-                class="px-3 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-500 cursor-pointer">
-                Limpiar filtros
+                class="px-3 py-2 text-sm border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-500 cursor-pointer flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Limpiar
+                @if($activeFilters > 0)
+                    <span class="inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold bg-indigo-100 text-indigo-600 rounded-full">{{ $activeFilters }}</span>
+                @endif
             </button>
         </div>
     </div>
@@ -214,39 +234,42 @@
                 <table class="w-full text-xs min-w-[1100px]">
                     <thead>
                         <tr class="bg-gray-50 border-b border-gray-200">
-                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
-                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider">Artículo</th>
-                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider">Lote</th>
-                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider">Almacén</th>
-                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider">Tipo</th>
-                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider">Referencia</th>
+                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider text-[10px]">Fecha</th>
+                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider text-[10px]">Artículo</th>
+                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider text-[10px]">Lote</th>
+                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider text-[10px]">Almacén</th>
+                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider text-[10px]">Tipo</th>
+                            <th class="text-left px-4 py-3.5 font-semibold text-gray-600 uppercase tracking-wider text-[10px]">Referencia</th>
                             {{-- Entrada --}}
-                            <th class="text-right px-4 py-3.5 font-semibold text-green-700 bg-green-50/60 uppercase tracking-wider">Cant. entrada</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-green-700 bg-green-50/60 uppercase tracking-wider text-[10px]">Cant. entrada</th>
                             @can('view prices')
-                            <th class="text-right px-4 py-3.5 font-semibold text-green-700 bg-green-50/60 uppercase tracking-wider">P. obtención</th>
-                            <th class="text-right px-4 py-3.5 font-semibold text-green-700 bg-green-50/60 uppercase tracking-wider">Total entrada</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-green-700 bg-green-50/60 uppercase tracking-wider text-[10px]">P. obtención</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-green-700 bg-green-50/60 uppercase tracking-wider text-[10px]">Total entrada</th>
                             @endcan
                             {{-- Salida --}}
-                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider">Cant. salida</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider text-[10px]">Cant. salida</th>
                             @can('view prices')
-                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider">Costo PEPS</th>
-                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider">P. venta</th>
-                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider">Total venta</th>
-                            <th class="text-right px-4 py-3.5 font-semibold text-teal-700 bg-teal-50/60 uppercase tracking-wider">Utilidad</th>
-                            <th class="text-right px-4 py-3.5 font-semibold text-teal-700 bg-teal-50/60 uppercase tracking-wider">% Util.</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider text-[10px]">Costo PEPS</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider text-[10px]">P. venta</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-red-600 bg-red-50/60 uppercase tracking-wider text-[10px]">Total venta</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-teal-700 bg-teal-50/60 uppercase tracking-wider text-[10px]">Utilidad</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-teal-700 bg-teal-50/60 uppercase tracking-wider text-[10px]">% Util.</th>
                             @endcan
                             {{-- Saldo --}}
-                            <th class="text-right px-4 py-3.5 font-semibold text-gray-700 bg-gray-100 uppercase tracking-wider">Saldo cant.</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-gray-700 bg-gray-100 uppercase tracking-wider text-[10px]">Saldo cant.</th>
                             @can('view prices')
-                            <th class="text-right px-4 py-3.5 font-semibold text-gray-700 bg-gray-100 uppercase tracking-wider">Saldo valor</th>
+                            <th class="text-right px-4 py-3.5 font-semibold text-gray-700 bg-gray-100 uppercase tracking-wider text-[10px]">Saldo valor</th>
                             @endcan
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         @foreach($entries as $entry)
                             @php
-                                $typeInfo = \App\Models\PepsKardex::MOVEMENT_TYPES[$entry->movement_type] ?? ['label' => $entry->movement_type, 'color' => 'gray'];
+                                $typeInfo = \App\Models\PepsKardex::MOVEMENT_TYPES[$entry->movement_type] ?? ['label' => $entry->movement_type, 'direction' => 'out', 'color' => 'gray'];
                                 $isIn     = $entry->direction === 'in';
+                                $isDefective   = $entry->movement_type === 'defective';
+                                $isTransferLot = $entry->lot_number && preg_match('/T\d*$/', $entry->lot_number);
+
                                 $colorMap = [
                                     'green'  => 'bg-green-100 text-green-700',
                                     'red'    => 'bg-red-100 text-red-600',
@@ -257,32 +280,74 @@
                                     'gray'   => 'bg-gray-100 text-gray-500',
                                 ];
                                 $badgeClass = $colorMap[$typeInfo['color']] ?? 'bg-gray-100 text-gray-500';
+
+                                // Row background: defective → amber, regular in → light green, out → default
+                                $rowBg = $isDefective
+                                    ? 'bg-amber-50/40'
+                                    : ($isIn ? 'bg-green-50/20' : '');
                             @endphp
-                            <tr class="hover:bg-gray-50/70 transition-colors duration-150 {{ $isIn ? 'bg-green-50/20' : '' }}">
+                            <tr class="hover:bg-slate-50 transition-colors duration-150 {{ $rowBg }}">
+
+                                {{-- Fecha --}}
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     <span class="font-medium text-gray-800">{{ $entry->moved_at->format('d/m/Y') }}</span>
                                     <span class="block text-gray-400">{{ $entry->moved_at->format('H:i') }}</span>
                                 </td>
+
+                                {{-- Artículo --}}
                                 <td class="px-4 py-3">
                                     <p class="font-semibold text-gray-900">{{ $entry->product->name }}</p>
                                     <p class="text-gray-400 font-mono">{{ $entry->product->sku }}</p>
                                 </td>
-                                <td class="px-4 py-3 font-mono text-gray-600">{{ $entry->lot_number ?? '—' }}</td>
-                                <td class="px-4 py-3 text-gray-600">{{ $entry->warehouse->name }}</td>
+
+                                {{-- Lote --}}
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-0.5 rounded-lg {{ $badgeClass }} font-medium">{{ $typeInfo['label'] }}</span>
+                                    @if($entry->lot_number)
+                                        <span class="font-mono text-gray-700">{{ $entry->lot_number }}</span>
+                                        @if($isTransferLot)
+                                            <span class="ml-1 px-1 py-px text-[9px] rounded bg-violet-100 text-violet-600 font-bold tracking-wide align-middle">TRANSF</span>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-300">—</span>
+                                    @endif
                                 </td>
-                                <td class="px-4 py-3 font-mono text-gray-500">{{ $entry->reference ?? '—' }}</td>
+
+                                {{-- Almacén --}}
+                                <td class="px-4 py-3 text-gray-600">{{ $entry->warehouse->name }}</td>
+
+                                {{-- Tipo con icono de dirección --}}
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center gap-1.5">
+                                        @if($isIn)
+                                            <svg class="w-3 h-3 {{ $isDefective ? 'text-amber-500' : 'text-green-500' }} flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                                            </svg>
+                                        @else
+                                            <svg class="w-3 h-3 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                                            </svg>
+                                        @endif
+                                        <span class="px-2 py-0.5 rounded-lg {{ $badgeClass }} font-medium whitespace-nowrap">{{ $typeInfo['label'] }}</span>
+                                    </div>
+                                </td>
+
+                                {{-- Referencia + notas --}}
+                                <td class="px-4 py-3">
+                                    <span class="font-mono text-gray-500">{{ $entry->reference ?? '—' }}</span>
+                                    @if($entry->notes)
+                                        <p class="text-[10px] text-gray-400 mt-0.5 truncate max-w-[140px]" title="{{ $entry->notes }}">{{ $entry->notes }}</p>
+                                    @endif
+                                </td>
 
                                 {{-- Entradas --}}
-                                <td class="px-4 py-3 text-right font-semibold text-green-700 bg-green-50/30">
+                                <td class="px-4 py-3 text-right font-semibold {{ $isDefective ? 'text-amber-600 bg-amber-50/30' : 'text-green-700 bg-green-50/30' }}">
                                     {{ $isIn ? number_format($entry->quantity, 4) : '—' }}
                                 </td>
                                 @can('view prices')
-                                <td class="px-4 py-3 text-right text-green-600 bg-green-50/30">
+                                <td class="px-4 py-3 text-right {{ $isDefective ? 'text-amber-500 bg-amber-50/30' : 'text-green-600 bg-green-50/30' }}">
                                     {{ $isIn ? '$' . number_format($entry->unit_cost, 4) : '—' }}
                                 </td>
-                                <td class="px-4 py-3 text-right font-semibold text-green-700 bg-green-50/30">
+                                <td class="px-4 py-3 text-right font-semibold {{ $isDefective ? 'text-amber-600 bg-amber-50/30' : 'text-green-700 bg-green-50/30' }}">
                                     {{ $isIn ? '$' . number_format($entry->total_cost, 2) : '—' }}
                                 </td>
                                 @endcan

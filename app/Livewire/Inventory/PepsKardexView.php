@@ -30,6 +30,9 @@ class PepsKardexView extends Component
     public string $filterDirection = '';
 
     #[Url]
+    public string $filterLot = '';
+
+    #[Url]
     public string $dateFrom = '';
 
     #[Url]
@@ -52,7 +55,8 @@ class PepsKardexView extends Component
     public function updatedWarehouseId(): void  { $this->resetPage(); }
     public function updatedFilterType(): void   { $this->resetPage(); }
     public function updatedFilterDirection(): void { $this->resetPage(); }
-    public function updatedDateFrom(): void     { $this->resetPage(); }
+    public function updatedFilterLot(): void     { $this->resetPage(); }
+    public function updatedDateFrom(): void       { $this->resetPage(); }
     public function updatedDateTo(): void       { $this->resetPage(); }
 
     public function updatedProductSearch(): void
@@ -97,6 +101,7 @@ class PepsKardexView extends Component
         $this->warehouseId         = null;
         $this->filterType          = '';
         $this->filterDirection     = '';
+        $this->filterLot           = '';
         $this->dateFrom            = '';
         $this->dateTo              = '';
         $this->productSearch       = '';
@@ -114,6 +119,7 @@ class PepsKardexView extends Component
             ->when($this->warehouseId, fn($q) => $q->where('warehouse_id', $this->warehouseId))
             ->when($this->filterType, fn($q) => $q->where('movement_type', $this->filterType))
             ->when($this->filterDirection, fn($q) => $q->where('direction', $this->filterDirection))
+            ->when($this->filterLot, fn($q) => $q->where('lot_number', 'like', "%{$this->filterLot}%"))
             ->when($this->dateFrom, fn($q) => $q->whereDate('moved_at', '>=', $this->dateFrom))
             ->when($this->dateTo,   fn($q) => $q->whereDate('moved_at', '<=', $this->dateTo))
             ->orderBy('moved_at', 'desc')

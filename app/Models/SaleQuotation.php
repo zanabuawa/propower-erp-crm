@@ -16,13 +16,14 @@ class SaleQuotation extends Model
     protected $fillable = [
         'company_id', 'branch_id', 'customer_id', 'price_list_id', 'created_by',
         'folio', 'currency', 'status', 'approval_status', 'approval_id',
-        'subtotal', 'discount_amount', 'ieps', 'tax', 'total',
+        'subtotal', 'global_discount_pct', 'discount_amount', 'ieps', 'tax', 'total',
         'valid_days', 'valid_until', 'notes', 'terms',
     ];
 
     protected $casts = [
-        'subtotal'        => 'decimal:2',
-        'discount_amount' => 'decimal:2',
+        'subtotal'            => 'decimal:2',
+        'global_discount_pct' => 'decimal:4',
+        'discount_amount'     => 'decimal:2',
         'ieps'            => 'decimal:2',
         'tax'             => 'decimal:2',
         'total'           => 'decimal:2',

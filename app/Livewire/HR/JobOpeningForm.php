@@ -3,8 +3,11 @@
 namespace App\Livewire\HR;
 
 use App\Models\Branch;
+use App\Models\HrEmployee;
 use App\Models\HrJobOpening;
 use App\Models\HrPosition;
+use App\Models\HrPositionHeadcount;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -27,6 +30,9 @@ class JobOpeningForm extends Component
     public string  $closing_date   = '';
     public string  $status         = 'open';
 
+    // Computed slot info
+    public ?array $slotInfo = null;
+
     public function mount(?HrJobOpening $jobOpening = null): void
     {
         $this->published_at = now()->format('Y-m-d');
@@ -45,6 +51,53 @@ class JobOpeningForm extends Component
             $this->closing_date = $jobOpening->closing_date?->format('Y-m-d') ?? '';
             $this->status       = $jobOpening->status;
         }
+
+        $this->loadSlotInfo();
+    }
+
+    public function updatedPositionId(): void { $this->loadSlotInfo(); }
+    public function updatedBranchId(): void   { $this->loadSlotInfo(); }
+
+    private function loadSlotInfo(): void
+    {
+        if (!$this->position_id || !$this->branch_id) {
+            $this->slotInfo = null;
+            return;
+        }
+
+        $hc = HrPositionHeadcount::where('position_id', $this->position_id)
+            ->where('branch_id', $this->branch_id)
+            ->first();
+
+        if (!$hc) {
+            $this->slotInfo = null;
+            return;
+        }
+
+        $filled = HrEmployee::where('position_id', $this->position_id)
+            ->where('branch_id', $this->branch_id)
+            ->whereIn('status', ['active', 'on_leave'])
+            ->count();
+
+        // When editing, exclude current opening's quantity from recruiting count
+        $recruitingQuery = HrJobOpening::where('position_id', $this->position_id)
+            ->where('branch_id', $this->branch_id)
+            ->whereIn('status', ['open', 'paused']);
+
+        if ($this->jobOpening && $this->jobOpening->exists) {
+            $recruitingQuery->where('id', '!=', $this->jobOpening->id);
+        }
+
+        $recruiting = (int) $recruitingQuery->sum('quantity');
+        $available  = max(0, $hc->headcount - $filled);
+
+        $this->slotInfo = [
+            'headcount'  => $hc->headcount,
+            'filled'     => $filled,
+            'recruiting' => $recruiting,
+            'available'  => $available,
+            'remaining'  => max(0, $available - $recruiting),
+        ];
     }
 
     public function rules(): array
@@ -67,6 +120,12 @@ class JobOpeningForm extends Component
     public function save(): void
     {
         $this->validate();
+
+        // Enforce headcount limit if slot info exists
+        if ($this->slotInfo && $this->quantity > $this->slotInfo['remaining']) {
+            $this->addError('quantity', "La plantilla autorizada solo permite {$this->slotInfo['remaining']} plaza(s) disponibles para reclutamiento en esta sucursal.");
+            return;
+        }
 
         $data = [
             'title'        => $this->title,

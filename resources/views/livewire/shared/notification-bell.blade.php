@@ -1,12 +1,15 @@
-<div class="relative" wire:poll.30s="refreshCount">
+<div class="relative" wire:poll.15s="refreshCount">
     <button wire:click="toggle" class="relative p-1.5 text-gray-500 hover:text-gray-800 transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
         @if($count > 0)
-            <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-amber-400 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {{ $count > 9 ? '9+' : $count }}
+            <span class="absolute -top-0.5 -right-0.5 flex h-4 w-4">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-4 w-4 bg-amber-500 text-white text-[10px] font-bold items-center justify-center">
+                    {{ $count > 9 ? '9+' : $count }}
+                </span>
             </span>
         @endif
     </button>
@@ -31,7 +34,8 @@
                             || !empty($notification->data['transfer_id'])
                             || !empty($notification->data['asset_id'])
                             || !empty($notification->data['product_id'])
-                            || !empty($notification->data['customer_id']);
+                            || !empty($notification->data['customer_id'])
+                            || !empty($notification->data['employee_id']);
 
                         $typeIcon = match($type) {
                             'requisition_submitted'       => ['bg' => 'bg-amber-100',  'color' => 'text-amber-600',  'icon' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2'],
@@ -46,6 +50,7 @@
                             'no_stock'                    => ['bg' => 'bg-red-100',    'color' => 'text-red-600',    'icon' => 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z'],
                             'customer_anniversary'        => ['bg' => 'bg-pink-100',   'color' => 'text-pink-600',   'icon' => 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z'],
                             'incomplete_product'          => ['bg' => 'bg-orange-100', 'color' => 'text-orange-600', 'icon' => 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z'],
+                            'birthday'                    => ['bg' => 'bg-indigo-100', 'color' => 'text-indigo-600', 'icon' => 'M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 01-3 0c-.454-.303-.977-.454-1.5-.454M12 17v4m-2-2h4m-4-7V5a2 2 0 114 0v5m-4 0h4'],
                             default                       => ['bg' => 'bg-gray-100',   'color' => 'text-gray-500',   'icon' => 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'],
                         };
                     @endphp

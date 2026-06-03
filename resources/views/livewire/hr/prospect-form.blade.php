@@ -136,6 +136,19 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                            <div class="space-y-2 md:col-span-2">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tipo de examen a aplicar</label>
+                                <select wire:model="test_type"
+                                    class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 font-bold text-indigo-600">
+                                    <option value="">No requiere examen</option>
+                                    <option value="segurista">Segurista</option>
+                                    <option value="supervisor">Supervisor</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
                             <div class="space-y-2">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Fuente de reclutamiento</label>
                                 <select wire:model="source"
@@ -151,6 +164,28 @@
                                 <input wire:model="interview_date" type="datetime-local"
                                     class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
                             </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <div class="flex items-center justify-between gap-4 mb-3">
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Color en calendario</label>
+                                    <p class="text-[11px] text-slate-400 mt-1 ml-1">Identificador visual para agenda de entrevistas.</p>
+                                </div>
+                                <input wire:model.live="calendar_color" type="color"
+                                    class="h-10 w-14 cursor-pointer rounded-xl border border-slate-200 bg-white p-1">
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                @foreach(['#7c3aed', '#2563eb', '#0891b2', '#059669', '#d97706', '#dc2626', '#db2777', '#475569'] as $color)
+                                    <button type="button"
+                                            wire:click="$set('calendar_color', '{{ $color }}')"
+                                            class="h-8 w-8 rounded-full border transition-all {{ strtolower($calendar_color) === strtolower($color) ? 'ring-2 ring-offset-2 ring-slate-500 border-white' : 'border-slate-200 hover:scale-105' }}"
+                                            style="background-color: {{ $color }};"
+                                            aria-label="Seleccionar color {{ $color }}">
+                                    </button>
+                                @endforeach
+                            </div>
+                            @error('calendar_color') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1 mt-2">{{ $message }}</p> @enderror
                         </div>
                     </div>
                 </div>

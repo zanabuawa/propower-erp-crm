@@ -104,6 +104,14 @@ class OrderForm extends Component
         $this->addProduct($productId);
     }
 
+    #[On('products-picked')]
+    public function productsPicked(array $productIds): void
+    {
+        foreach ($productIds as $productId) {
+            $this->addProduct((int) $productId);
+        }
+    }
+
     public function addProduct(int $productId): void
     {
         $product = Product::find($productId);

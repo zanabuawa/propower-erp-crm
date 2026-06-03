@@ -2,7 +2,7 @@
     <x-page-header title="Reclutamiento - Prospectos" description="Gestión de candidatos y procesos de selección">
         <x-slot:actions>
             <div class="flex gap-2">
-                <a href="{{ route('hr.prospects.agenda') }}" wire:navigate
+                <a href="{{ route('agenda.index') }}" wire:navigate
                    class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-medium rounded-lg transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     Ver Agenda
@@ -42,6 +42,38 @@
 
     @if(session('success'))
         <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">{{ session('success') }}</div>
+    @endif
+
+    @if($currentJobOpening)
+        <div class="mb-5 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+                <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Reclutamiento para vacante</p>
+                <h2 class="text-lg font-black text-slate-800 mt-1">{{ $currentJobOpening->title }}</h2>
+                <p class="text-xs text-slate-500 mt-1">
+                    {{ $currentJobOpening->position?->name ?? 'Puesto no definido' }}
+                    @if($currentJobOpening->branch) · {{ $currentJobOpening->branch->name }} @endif
+                    · {{ $currentJobOpening->status_label }}
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="text-center rounded-xl bg-white/80 border border-indigo-100 px-4 py-2">
+                    <p class="text-[10px] font-black text-slate-400 uppercase">Activos</p>
+                    <p class="text-lg font-black text-indigo-600">{{ $currentJobOpening->active_prospects_count }}</p>
+                </div>
+                <div class="text-center rounded-xl bg-white/80 border border-indigo-100 px-4 py-2">
+                    <p class="text-[10px] font-black text-slate-400 uppercase">Contratados</p>
+                    <p class="text-lg font-black text-emerald-600">{{ $currentJobOpening->hired_prospects_count }} / {{ $currentJobOpening->quantity }}</p>
+                </div>
+                <a href="{{ route('hr.prospects.create', ['job_opening_id' => $currentJobOpening->id]) }}" wire:navigate
+                   class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-indigo-700">
+                    Agregar prospecto
+                </a>
+                <a href="{{ route('hr.job-openings.index') }}" wire:navigate
+                   class="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-indigo-600 border border-indigo-100 hover:bg-indigo-50">
+                    Volver a vacantes
+                </a>
+            </div>
+        </div>
     @endif
 
     {{-- Filtros --}}
@@ -122,6 +154,16 @@
                                 <p class="text-xs text-slate-400">
                                     {{ $prospect->email ?? '' }}{{ $prospect->phone ? ' · '.$prospect->phone : '' }}
                                 </p>
+                                @if($prospect->test_type)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600 uppercase tracking-wider mt-1 border border-indigo-100">
+                                        {{ $prospect->test_type }}
+                                    </span>
+                                @endif
+                                @if($prospect->jobOpening)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 uppercase tracking-wider mt-1 border border-emerald-100">
+                                        {{ $prospect->jobOpening->title }}
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     </td>
@@ -144,6 +186,9 @@
                     </td>
                     <td class="px-4 py-3 text-right space-x-2">
                         <div class="flex items-center justify-end gap-2">
+                            <a href="{{ route('hr.prospects.evaluation', $prospect) }}" wire:navigate class="p-1.5 text-slate-400 hover:text-indigo-600" title="Proceso de Evaluación">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            </a>
                             <a href="{{ route('hr.prospects.show', $prospect) }}" wire:navigate class="p-1.5 text-slate-400 hover:text-indigo-600" title="Ver detalles">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                             </a>

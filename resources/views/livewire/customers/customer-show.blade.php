@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div>
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
         <div class="flex items-center gap-3 flex-1">
@@ -412,7 +412,7 @@
                 <div class="bg-white rounded-xl border border-gray-200 p-5">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-sm font-medium text-gray-700">Actividades CRM</h3>
-                        <a wire:navigate href="{{ route('sales.crm.agenda') }}"
+                        <a wire:navigate href="{{ route('agenda.index') }}"
                             class="text-xs text-indigo-600 hover:underline">Ver agenda completa →</a>
                     </div>
                     <div class="space-y-3">

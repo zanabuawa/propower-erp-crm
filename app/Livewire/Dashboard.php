@@ -20,6 +20,13 @@ class Dashboard extends Component
 {
     public ?int $branchId = null;
 
+    public function mount()
+    {
+        if (!auth()->user()->can('view dashboard')) {
+            return $this->redirect(route('hr.portal'), navigate: true);
+        }
+    }
+
     public function render()
     {
         $user       = auth()->user();

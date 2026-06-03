@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto space-y-5">
+<div class="space-y-5">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

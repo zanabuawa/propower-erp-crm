@@ -1,3 +1,33 @@
+{{--
+    FORMULARIO DE OPORTUNIDAD (crear / editar)
+    ─────────────────────────────────────────────────────────────────
+    Una "oportunidad" es un negocio concreto que se está trabajando.
+    A diferencia del prospecto (contacto genérico), la oportunidad tiene
+    un valor, una etapa dentro del pipeline y una fecha estimada de cierre.
+
+    Flujo del pipeline:
+      Prospección → Calificación → Propuesta → Negociación → [Ganada / Perdida]
+
+    Campos principales:
+      • Título               — nombre del proyecto o negocio (ej. "Instalación nave industrial")
+      • Vinculado a          — se puede ligar a un Prospecto o a un Cliente existente
+      • Etapa de venta       — posición actual en el pipeline
+      • Probabilidad (%)     — estimación de cierre (0-100%)
+      • Valor estimado       — importe esperado del negocio
+      • Fecha est. de cierre — cuándo se espera cerrar
+      • Ejecutivo asignado   — responsable del seguimiento
+
+    Cuando la etapa es "Perdida" aparece un campo adicional:
+      • Motivo de pérdida    — precio, competencia, sin presupuesto, etc.
+
+    El valor ponderado (valor × probabilidad) se calcula automáticamente
+    y es visible en el Kanban y en la vista de detalle.
+
+    Componente Livewire: App\Livewire\Sales\CrmOpportunityForm
+    Rutas:
+      GET /ventas/crm/oportunidades/crear          → crear nueva
+      GET /ventas/crm/oportunidades/{id}/editar    → editar existente
+--}}
 <div class="min-h-screen bg-slate-50/50 -m-4 lg:-m-6">
     {{-- ── STICKY HEADER ────────────────────────────────────────────────── --}}
     <div class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 lg:px-8">
@@ -54,29 +84,15 @@
                         </div>
 
                         {{-- Vinculación --}}
-                        <div class="md:col-span-2 space-y-4">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Vinculado a:</label>
-                            <div class="flex p-1 bg-slate-100 rounded-xl w-fit mb-2">
-                                <button type="button" wire:click="$set('linked_type', 'prospect')" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all {{ $linked_type === 'prospect' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500' }}">Prospecto</button>
-                                <button type="button" wire:click="$set('linked_type', 'customer')" class="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all {{ $linked_type === 'customer' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500' }}">Cliente</button>
-                            </div>
-
+                        <div class="md:col-span-2 space-y-2">
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Cliente</label>
                             <div class="relative">
-                                @if($linked_type === 'prospect')
-                                    <select wire:model="prospect_id" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 appearance-none cursor-pointer transition-all">
-                                        <option value="">— Seleccionar Prospecto —</option>
-                                        @foreach($prospects as $p)
-                                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                        @endforeach
-                                    </select>
-                                @else
-                                    <select wire:model="customer_id" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-emerald-500/10 appearance-none cursor-pointer transition-all">
-                                        <option value="">— Seleccionar Cliente —</option>
-                                        @foreach($customers as $c)
-                                            <option value="{{ $c->id }}">{{ $c->name }}</option>
-                                        @endforeach
-                                    </select>
-                                @endif
+                                <select wire:model="customer_id" class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-emerald-500/10 appearance-none cursor-pointer transition-all">
+                                    <option value="">— Seleccionar Cliente —</option>
+                                    @foreach($customers as $c)
+                                        <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                    @endforeach
+                                </select>
                                 <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </div>

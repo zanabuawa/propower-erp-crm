@@ -1,4 +1,4 @@
-<div class="max-w-4xl space-y-6">
+<div class="space-y-6">
 
     {{-- Encabezado --}}
     <div class="flex items-start gap-3">

@@ -115,19 +115,21 @@
                                         : (float) $product->stocks->sum('quantity');
                                     $totalStock   = $displayStock;
                                     $lowStock     = !$isService && !$warehouseId && $totalStock <= $product->min_stock && $product->min_stock > 0;
+                                    $isSelected   = in_array($product->id, $selectedIds);
                                 @endphp
                                 <button
                                     type="button"
                                     wire:click="pick({{ $product->id }})"
                                     wire:loading.attr="disabled"
                                     wire:target="pick({{ $product->id }})"
-                                    class="group relative flex flex-col text-left border border-gray-200 rounded-xl
-                                           overflow-hidden hover:border-indigo-300 hover:shadow-md transition
+                                    class="group relative flex flex-col text-left border rounded-xl overflow-hidden transition
                                            focus:outline-none focus:ring-2 focus:ring-indigo-400
-                                           bg-white">
+                                           {{ $isSelected
+                                               ? 'border-indigo-400 shadow-md shadow-indigo-100'
+                                               : 'border-gray-200 hover:border-indigo-300 hover:shadow-md bg-white' }}">
 
                                     {{-- Imagen --}}
-                                    <div class="w-full aspect-square bg-gray-50 overflow-hidden flex-shrink-0">
+                                    <div class="w-full aspect-square bg-gray-50 overflow-hidden flex-shrink-0 relative">
                                         @if($isService)
                                             <div class="w-full h-full flex items-center justify-center bg-violet-50">
                                                 <svg class="w-8 h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +139,7 @@
                                             </div>
                                         @elseif($product->primaryImage)
                                             <img src="{{ Storage::url($product->primaryImage->path) }}"
-                                                class="w-full h-full object-cover group-hover:scale-105 transition duration-200">
+                                                class="w-full h-full object-cover {{ $isSelected ? '' : 'group-hover:scale-105' }} transition duration-200">
                                         @else
                                             <div class="w-full h-full flex items-center justify-center bg-gray-100">
                                                 <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,12 +156,32 @@
                                             {{ $isService ? 'SRV' : 'PRD' }}
                                         </span>
 
-                                        {{-- Stock badge --}}
-                                        @if(!$isService)
+                                        {{-- Stock badge (solo modo single o sin warehouse) --}}
+                                        @if(!$isService && !$multiSelect)
                                             <span class="absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded
                                                 {{ $lowStock ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700' }}">
                                                 {{ number_format($totalStock, 0) }}
                                             </span>
+                                        @endif
+
+                                        {{-- Overlay seleccionado (multi-select) --}}
+                                        @if($multiSelect && $isSelected)
+                                            <div class="absolute inset-0 bg-indigo-600/20 flex items-center justify-center">
+                                                <div class="w-9 h-9 bg-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                                                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        {{-- Hover overlay (single mode) --}}
+                                        @if(!$multiSelect)
+                                            <div class="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition flex items-center justify-center">
+                                                <span class="opacity-0 group-hover:opacity-100 transition bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                                                    + Agregar
+                                                </span>
+                                            </div>
                                         @endif
                                     </div>
 
@@ -186,18 +208,35 @@
                                             </p>
                                         @endif
                                     </div>
-
-                                    {{-- Hover overlay add --}}
-                                    <div class="absolute inset-0 bg-indigo-600/0 group-hover:bg-indigo-600/5 transition flex items-center justify-center">
-                                        <span class="transition bg-indigo-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
-                                            + Agregar
-                                        </span>
-                                    </div>
                                 </button>
                             @endforeach
                         </div>
                     @endif
                 </div>
+
+                {{-- Footer multi-select --}}
+                @if($multiSelect)
+                    <div class="px-5 py-4 border-t border-gray-100 bg-gray-50/60 flex-shrink-0 flex items-center justify-between gap-4">
+                        <p class="text-xs text-gray-500 font-medium">
+                            @if(count($selectedIds))
+                                <span class="font-black text-indigo-700">{{ count($selectedIds) }}</span> producto(s) seleccionado(s)
+                            @else
+                                Toca una tarjeta para seleccionar
+                            @endif
+                        </p>
+                        <div class="flex gap-3">
+                            <button type="button" wire:click="close"
+                                class="px-4 py-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">
+                                Cancelar
+                            </button>
+                            <button type="button" wire:click="confirm"
+                                @disabled(!count($selectedIds))
+                                class="px-5 py-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed shadow-sm">
+                                Agregar {{ count($selectedIds) ?: '' }} al formulario
+                            </button>
+                        </div>
+                    </div>
+                @endif
 
             </div>
         </div>

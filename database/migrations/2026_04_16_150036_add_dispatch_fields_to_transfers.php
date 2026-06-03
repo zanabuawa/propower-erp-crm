@@ -22,11 +22,13 @@ return new class extends Migration
         });
 
         // Add 'rejected' to status ENUM
-        DB::statement("ALTER TABLE stock_movements MODIFY COLUMN `status` ENUM(
-            'draft','confirmed','cancelled',
-            'requested','in_transit','completed','partially_received',
-            'rejected'
-        ) NOT NULL DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE stock_movements MODIFY COLUMN `status` ENUM(
+                'draft','confirmed','cancelled',
+                'requested','in_transit','completed','partially_received',
+                'rejected'
+            ) NOT NULL DEFAULT 'draft'");
+        }
     }
 
     public function down(): void
@@ -40,9 +42,11 @@ return new class extends Migration
             $table->dropColumn(['dispatch_notes', 'dispatched_by', 'dispatch_is_final']);
         });
 
-        DB::statement("ALTER TABLE stock_movements MODIFY COLUMN `status` ENUM(
-            'draft','confirmed','cancelled',
-            'requested','in_transit','completed','partially_received'
-        ) NOT NULL DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE stock_movements MODIFY COLUMN `status` ENUM(
+                'draft','confirmed','cancelled',
+                'requested','in_transit','completed','partially_received'
+            ) NOT NULL DEFAULT 'draft'");
+        }
     }
 };

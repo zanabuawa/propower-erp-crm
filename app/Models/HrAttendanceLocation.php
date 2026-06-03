@@ -56,19 +56,19 @@ class HrAttendanceLocation extends Model
     /**
      * Verifica si unas coordenadas están dentro del radio permitido.
      */
-    public function contains(float $lat, float $lng): bool
+    public function contains(float $lat, float $lng, float $toleranceMeters = 0): bool
     {
-        return $this->distanceTo($lat, $lng) <= $this->radius_meters;
+        return $this->distanceTo($lat, $lng) <= ($this->radius_meters + max(0, $toleranceMeters));
     }
 
     /**
      * Busca la primera zona activa de la empresa que contenga las coordenadas.
      */
-    public static function findContaining(int $companyId, float $lat, float $lng): ?self
+    public static function findContaining(int $companyId, float $lat, float $lng, float $toleranceMeters = 0): ?self
     {
         return self::where('company_id', $companyId)
             ->where('is_active', true)
             ->get()
-            ->first(fn($loc) => $loc->contains($lat, $lng));
+            ->first(fn($loc) => $loc->contains($lat, $lng, $toleranceMeters));
     }
 }

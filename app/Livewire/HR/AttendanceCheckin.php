@@ -24,6 +24,7 @@ class AttendanceCheckin extends Component
     public ?HrAttendanceLocation $detectedZone = null;
     public bool $locationValid = false;
     public ?float $currentDistance = null;
+    public ?float $locationAccuracy = null;
 
     // Today's attendance
     public ?HrAttendance $todayAttendance = null;
@@ -59,10 +60,11 @@ class AttendanceCheckin extends Component
     }
 
     // Called from JS after geolocation is obtained
-    public function setCoordinates(float $lat, float $lng): void
+    public function setCoordinates(float $lat, float $lng, ?float $accuracy = null): void
     {
         $this->latitude   = $lat;
         $this->longitude  = $lng;
+        $this->locationAccuracy = $accuracy;
         $this->geoStatus  = 'located';
 
         if (! $this->employee) {
@@ -72,11 +74,21 @@ class AttendanceCheckin extends Component
         $zone = HrAttendanceLocation::findContaining(
             auth()->user()->company_id,
             $lat,
-            $lng
+            $lng,
+            $this->gpsTolerance()
         );
 
         $this->detectedZone  = $zone;
         $this->locationValid = $zone !== null;
+    }
+
+    private function gpsTolerance(): float
+    {
+        if ($this->locationAccuracy === null) {
+            return 0;
+        }
+
+        return min(max($this->locationAccuracy, 0), 100);
     }
 
     public function geoDenied(): void
