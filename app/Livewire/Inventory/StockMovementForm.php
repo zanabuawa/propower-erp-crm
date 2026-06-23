@@ -239,7 +239,11 @@ class StockMovementForm extends Component
             $item->update(['quantity_before' => $quantityBefore, 'quantity_after' => $item->quantity]);
         }
 
-        // Afectación contable automática si hay cuenta configurada
+        $this->createAdjustmentFinanceTransaction($movement);
+    }
+
+    private function createAdjustmentFinanceTransaction(StockMovement $movement): void
+    {
         if ($movement->finance_account_id) {
             $totalValue = $movement->items->sum(fn($i) => abs((float)$i->quantity - (float)$i->quantity_before) * (float)$i->unit_price);
             if ($totalValue > 0) {
@@ -248,7 +252,7 @@ class StockMovementForm extends Component
                     'account_id'       => $movement->finance_account_id,
                     'registered_by'    => $movement->user_id,
                     'folio'            => $folio,
-                    'type'             => 'expense',
+                    'type'             => 'egreso',
                     'concept'          => 'Ajuste de inventario: ' . (StockMovement::ADJUSTMENT_REASONS[$movement->adjustment_reason] ?? $movement->adjustment_reason),
                     'category'         => 'inventario',
                     'amount'           => $totalValue,
@@ -256,7 +260,7 @@ class StockMovementForm extends Component
                     'exchange_rate'    => 1,
                     'transaction_date' => now()->toDateString(),
                     'reference'        => $movement->folio,
-                    'status'           => 'confirmed',
+                    'status'           => 'confirmado',
                     'notes'            => $movement->notes,
                 ]);
                 $movement->update(['finance_transaction_id' => $transaction->id]);
@@ -300,10 +304,12 @@ class StockMovementForm extends Component
                 );
 
                 $quantityBefore = (float) $stock->quantity;
+                $quantityAfter  = $quantityBefore;
                 $lotId          = null;
 
                 if (\in_array($this->type, ['entry', 'return'])) {
                     $stock->increment('quantity', $item['quantity']);
+                    $quantityAfter = (float) $stock->fresh()->quantity;
 
                     $movType = $this->type === 'return' ? 'return_sale' : 'purchase';
                     $lot     = $fifo->createLot(
@@ -322,6 +328,7 @@ class StockMovementForm extends Component
 
                 } elseif ($this->type === 'exit') {
                     $stock->decrement('quantity', $item['quantity']);
+                    $quantityAfter = (float) $stock->fresh()->quantity;
                     // Las salidas manuales no tienen precio de venta conocido;
                     // el kardex las registra como 'other' sin utilidad.
                     $fifo->consumeLots(
@@ -341,44 +348,49 @@ class StockMovementForm extends Component
 
                 } elseif ($this->type === 'adjustment') {
                     $diff = (float) $item['quantity'] - $quantityBefore;
-                    $stock->update(['quantity' => $item['quantity']]);
+                    $quantityAfter = (float) $item['quantity'];
 
-                    if ($diff > 0) {
-                        $lot   = $fifo->createLot(
-                            companyId:    $companyId,
-                            productId:    $item['product_id'],
-                            warehouseId:  $this->warehouse_id,
-                            quantity:     $diff,
-                            unitCost:     (float) $item['unit_price'],
-                            reference:    $folio,
-                            movementType: 'adjustment_in',
-                            movedAt:      now(),
-                        );
-                        $lotId = $lot->id;
-                    } elseif ($diff < 0) {
-                        $fifo->consumeLots(
-                            allocations:   $fifo->suggestAllocations(
-                                $item['product_id'],
-                                $this->warehouse_id,
-                                abs($diff)
-                            ),
-                            unitSalePrice: 0,
-                            movementType:  'adjustment_out',
-                            reference:     $folio,
-                            companyId:     $companyId,
-                            warehouseId:   $this->warehouse_id,
-                            movedAt:       now(),
-                        );
+                    if (! $needsOtp) {
+                        $stock->update(['quantity' => $item['quantity']]);
+                        $quantityAfter = (float) $stock->fresh()->quantity;
+
+                        if ($diff > 0) {
+                            $lot   = $fifo->createLot(
+                                companyId:    $companyId,
+                                productId:    $item['product_id'],
+                                warehouseId:  $this->warehouse_id,
+                                quantity:     $diff,
+                                unitCost:     (float) $item['unit_price'],
+                                reference:    $folio,
+                                movementType: 'adjustment_in',
+                                movedAt:      now(),
+                            );
+                            $lotId = $lot->id;
+                        } elseif ($diff < 0) {
+                            $fifo->consumeLots(
+                                allocations:   $fifo->suggestAllocations(
+                                    $item['product_id'],
+                                    $this->warehouse_id,
+                                    abs($diff)
+                                ),
+                                unitSalePrice: 0,
+                                movementType:  'adjustment_out',
+                                reference:     $folio,
+                                companyId:     $companyId,
+                                warehouseId:   $this->warehouse_id,
+                                movedAt:       now(),
+                            );
+                        }
                     }
 
                 } elseif ($this->type === 'transfer') {
                     $stock->decrement('quantity', $item['quantity']);
+                    $quantityAfter = (float) $stock->fresh()->quantity;
                     $destStock = Stock::firstOrCreate(
                         ['product_id' => $item['product_id'], 'warehouse_id' => $this->warehouse_destination_id],
                         ['quantity' => 0]
                     );
                     $destStock->increment('quantity', $item['quantity']);
-
                     // Salida del almacén origen
                     $fifo->consumeLots(
                         allocations:   $fifo->suggestAllocations(
@@ -416,12 +428,12 @@ class StockMovementForm extends Component
                     'quantity'                 => $item['quantity'],
                     'unit_price'               => $item['unit_price'],
                     'quantity_before'          => $quantityBefore,
-                    'quantity_after'           => $stock->fresh()->quantity,
+                    'quantity_after'           => $quantityAfter,
                 ]);
             }
             // Si el ajuste NO requiere aprobación, procesar afectación contable ahora
             if ($this->type === 'adjustment' && ! $needsOtp && $this->finance_account_id) {
-                $this->processConfirmedAdjustment($movement);
+                $this->createAdjustmentFinanceTransaction($movement);
             }
 
             if ($needsOtp) {

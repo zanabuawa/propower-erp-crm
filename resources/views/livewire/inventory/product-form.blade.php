@@ -428,30 +428,20 @@
                     <div class="p-6 lg:p-8 space-y-6">
                         <div class="space-y-2">
                             <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">SKU / Referencia Interna</label>
-                            <div class="flex gap-2">
-                                <input wire:model.live="sku" type="text"
-                                    class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-mono font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20"
-                                    placeholder="Auto-generado">
-                                <button type="button" wire:click="regenerateSku"
-                                    class="w-11 h-11 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500 hover:bg-indigo-100 hover:text-indigo-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                </button>
-                            </div>
+                            <input wire:model.live="sku" type="text" readonly tabindex="-1"
+                                class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm font-mono font-bold text-slate-500 cursor-not-allowed focus:ring-0"
+                                placeholder="Auto-generado">
+                            <p class="text-[10px] text-slate-400 font-medium">Generado automáticamente por el sistema.</p>
                             @error('sku') <p class="text-[10px] text-rose-500 font-medium">{{ $message }}</p> @enderror
                         </div>
 
                         @if($type === 'product')
                         <div class="space-y-2">
                             <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Código de Barras (EAN-13)</label>
-                            <div class="flex gap-2">
-                                <input wire:model="barcode" type="text"
-                                    class="flex-1 bg-slate-50 border-none rounded-xl px-4 py-3 text-sm font-mono font-bold text-slate-700 focus:ring-2 focus:ring-indigo-500/20"
-                                    placeholder="0000000000000">
-                                <button type="button" wire:click="regenerateBarcode"
-                                    class="w-11 h-11 flex items-center justify-center bg-slate-100 rounded-xl text-slate-500 hover:bg-indigo-100 hover:text-indigo-600 transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                </button>
-                            </div>
+                            <input wire:model="barcode" type="text" readonly tabindex="-1"
+                                class="w-full bg-slate-100 border-none rounded-xl px-4 py-3 text-sm font-mono font-bold text-slate-500 cursor-not-allowed focus:ring-0"
+                                placeholder="0000000000000">
+                            <p class="text-[10px] text-slate-400 font-medium">Identificador automático del producto.</p>
                         </div>
                         @endif
                     </div>

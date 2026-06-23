@@ -12,7 +12,7 @@ class SalesOpportunity extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'company_id', 'assigned_to', 'prospect_id', 'customer_id',
+        'company_id', 'assigned_to', 'customer_id',
         'title', 'stage', 'probability', 'estimated_value',
         'expected_close_date', 'description', 'lost_reason', 'won_at', 'lost_at',
     ];

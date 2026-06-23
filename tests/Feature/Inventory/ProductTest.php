@@ -59,6 +59,48 @@ class ProductTest extends TestCase
     }
 
     /** @test */
+    public function product_sku_and_barcode_are_generated_when_empty(): void
+    {
+        Livewire::test('App\Livewire\Inventory\ProductForm')
+            ->set('type', 'product')
+            ->set('name', 'Cable UTP Cat 6')
+            ->set('sku', '')
+            ->set('barcode', '')
+            ->set('purchase_price', '120')
+            ->set('profit_margin', '30')
+            ->set('min_stock', '5')
+            ->set('max_stock', '100')
+            ->call('save');
+
+        $product = Product::where('name', 'Cable UTP Cat 6')->first();
+
+        $this->assertNotNull($product);
+        $this->assertNotEmpty($product->sku);
+        $this->assertNotEmpty($product->barcode);
+    }
+
+    /** @test */
+    public function product_identifiers_ignore_user_supplied_values_on_create(): void
+    {
+        Livewire::test('App\Livewire\Inventory\ProductForm')
+            ->set('type', 'product')
+            ->set('name', 'Interruptor termomagnetico')
+            ->set('sku', 'SKU-USUARIO')
+            ->set('barcode', 'BARCODE-USUARIO')
+            ->set('purchase_price', '250')
+            ->set('profit_margin', '30')
+            ->set('min_stock', '1')
+            ->set('max_stock', '20')
+            ->call('save');
+
+        $product = Product::where('name', 'Interruptor termomagnetico')->first();
+
+        $this->assertNotNull($product);
+        $this->assertNotSame('SKU-USUARIO', $product->sku);
+        $this->assertNotSame('BARCODE-USUARIO', $product->barcode);
+    }
+
+    /** @test */
     public function can_create_service(): void
     {
         Livewire::test('App\Livewire\Inventory\ProductForm')
@@ -74,6 +116,27 @@ class ProductTest extends TestCase
             'name' => 'Instalación eléctrica',
             'type' => 'service',
         ]);
+    }
+
+    /** @test */
+    public function service_gets_sku_but_not_inventory_barcode(): void
+    {
+        Livewire::test('App\Livewire\Inventory\ProductForm')
+            ->set('type', 'service')
+            ->set('name', 'Instalacion de tablero')
+            ->set('sku', '')
+            ->set('barcode', '')
+            ->set('purchase_price', '0')
+            ->set('profit_margin', '50')
+            ->set('min_stock', '0')
+            ->set('max_stock', '0')
+            ->call('save');
+
+        $service = Product::where('name', 'Instalacion de tablero')->first();
+
+        $this->assertNotNull($service);
+        $this->assertNotEmpty($service->sku);
+        $this->assertNull($service->barcode);
     }
 
     /** @test */
@@ -123,6 +186,8 @@ class ProductTest extends TestCase
             'company_id'     => $this->user->company_id,
             'type'           => 'product',
             'name'           => 'Producto Viejo',
+            'sku'            => 'PRO-00001',
+            'barcode'        => '2000010000018',
             'purchase_price' => '100',
             'profit_margin'  => '30',
             'sale_price'     => '142.86',
@@ -139,6 +204,37 @@ class ProductTest extends TestCase
 
         $this->assertEquals('Producto Actualizado', $product->fresh()->name);
         $this->assertEquals('200.00', $product->fresh()->purchase_price);
+        $this->assertEquals('PRO-00001', $product->fresh()->sku);
+        $this->assertEquals('2000010000018', $product->fresh()->barcode);
+    }
+
+    /** @test */
+    public function product_identifiers_cannot_be_changed_on_update(): void
+    {
+        $product = Product::create([
+            'company_id'     => $this->user->company_id,
+            'type'           => 'product',
+            'name'           => 'Producto Protegido',
+            'sku'            => 'PRO-00002',
+            'barcode'        => '2000010000025',
+            'purchase_price' => '100',
+            'profit_margin'  => '30',
+            'sale_price'     => '142.86',
+            'min_stock'      => '0',
+            'max_stock'      => '0',
+            'is_active'      => true,
+        ]);
+
+        Livewire::test('App\Livewire\Inventory\ProductForm', ['product' => $product])
+            ->set('sku', 'SKU-HACKEADO')
+            ->set('barcode', 'BARCODE-HACKEADO')
+            ->set('purchase_price', '120')
+            ->call('save');
+
+        $product->refresh();
+
+        $this->assertEquals('PRO-00002', $product->sku);
+        $this->assertEquals('2000010000025', $product->barcode);
     }
 
     /** @test */

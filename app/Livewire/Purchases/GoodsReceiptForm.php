@@ -505,6 +505,8 @@ class GoodsReceiptForm extends Component
                 $qtyBefore = (float) $stock->quantity;
                 $stock->increment('quantity', $qty);
 
+                $lot = null;
+
                 // Crear lote PEPS para todos los tipos de recepción
                 if (in_array($this->reception_type, ['purchase', 'return', 'transfer', 'defective'])) {
                     $lotMovementType = match ($this->reception_type) {
@@ -513,7 +515,7 @@ class GoodsReceiptForm extends Component
                         'defective' => 'defective',
                         default     => 'purchase',
                     };
-                    $fifo->createLot(
+                    $lot = $fifo->createLot(
                         companyId:    $companyId,
                         productId:    $productId,
                         warehouseId:  $this->warehouse_id,
@@ -541,6 +543,7 @@ class GoodsReceiptForm extends Component
                 $movement->items()->create([
                     'product_id'      => $productId,
                     'warehouse_id'    => $this->warehouse_id,
+                    'lot_id'          => $lot?->id,
                     'quantity'        => $qty,
                     'unit_price'      => $landedUnitCost,
                     'quantity_before' => $qtyBefore,

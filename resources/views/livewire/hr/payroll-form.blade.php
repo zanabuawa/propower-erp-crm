@@ -76,13 +76,25 @@
                 <span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider">Parámetros de Cálculo</span>
             </div>
             <div class="p-6 lg:p-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
                     <div class="space-y-2">
                         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tipo de nómina</label>
                         <select wire:model.live="period_type"
                             class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 font-bold text-slate-700">
                             @foreach(\App\Models\HrPayroll::PERIOD_TYPES as $k => $v)
                                 <option value="{{ $k }}">{{ $v }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Empleado</label>
+                        <select wire:model.live="employee_id"
+                            class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200 font-bold text-slate-700">
+                            <option value="">Todos los empleados</option>
+                            @foreach($employeeOptions as $employee)
+                                <option value="{{ $employee->id }}">
+                                    {{ $employee->employee_number ? '#'.$employee->employee_number.' · ' : '' }}{{ $employee->full_name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -156,7 +168,7 @@
                         <thead>
                             <tr class="bg-slate-50/50 border-b border-slate-100">
                                 <th class="px-6 py-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50">Empleado</th>
-                                <th class="px-4 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Días</th>
+                                <th class="px-4 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Horas</th>
                                 <th class="px-4 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sal. Diario</th>
                                 <th class="px-4 py-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hrs Extra</th>
                                 <th class="px-4 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-widest">Percepciones</th>
@@ -175,9 +187,12 @@
                                         <p class="text-[10px] font-medium text-slate-400 uppercase tracking-tight">{{ $item['department'] }} · {{ $item['position'] }}</p>
                                     </td>
                                     <td class="px-4 py-4 text-center">
-                                        <input wire:change="updateItemField({{ $empId }}, 'days_worked', $event.target.value)"
-                                            type="number" step="0.5" min="0" value="{{ $item['days_worked'] }}"
+                                        <input wire:change="updateItemField({{ $empId }}, 'worked_hours', $event.target.value)"
+                                            type="number" step="0.5" min="0" value="{{ $item['worked_hours'] ?? round(($item['days_worked'] ?? 0) * 8, 2) }}"
                                             class="w-16 text-center text-xs font-bold px-2 py-1.5 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all">
+                                        <p class="mt-1 text-[9px] font-bold uppercase tracking-tight text-slate-300">
+                                            {{ number_format((float) ($item['days_worked'] ?? 0), 2) }} dias eq.
+                                        </p>
                                     </td>
                                     <td class="px-4 py-4 text-right text-xs font-mono font-bold text-slate-600">
                                         ${{ number_format($item['daily_salary'], 2) }}

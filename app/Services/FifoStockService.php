@@ -80,6 +80,7 @@ class FifoStockService
     ): ProductLot {
         $lotNumber = ProductLot::generateLotNumber($companyId, $productId);
         $barcode   = ProductLot::generateBarcode($companyId, $productId);
+        [$balanceQty, $balanceVal] = $this->lotBalance($productId, $warehouseId);
 
         $lot = ProductLot::create([
             'company_id'       => $companyId,
@@ -96,9 +97,6 @@ class FifoStockService
             'status'           => 'active',
             'notes'            => $notes ?: null,
         ]);
-
-        // Saldo corrido en este almacén
-        [$balanceQty, $balanceVal] = $this->currentBalance($productId, $warehouseId);
 
         $this->recordKardex(
             companyId:     $companyId,
@@ -152,6 +150,8 @@ class FifoStockService
             $lot = ProductLot::find($alloc['lot_id']);
             if (!$lot) continue;
 
+            [$balanceQty, $balanceVal] = $this->lotBalance($lot->product_id, $warehouseId);
+
             // Decrementar cantidad del lote
             $lot->quantity = max(0, (float) $lot->quantity - $qty);
             $lot->save();
@@ -164,8 +164,6 @@ class FifoStockService
                 $totalRev   = $unitSalePrice > 0 ? round($qty * $unitSalePrice, 2) : null;
                 $profit     = ($totalRev !== null) ? round($totalRev - $totalCost, 2) : null;
                 $profitPct  = ($profit !== null && $totalCost > 0) ? round($profit / $totalCost * 100, 4) : null;
-
-                [$balanceQty, $balanceVal] = $this->currentBalance($lot->product_id, $warehouseId);
 
                 $this->recordKardex(
                     companyId:    $companyId,
@@ -275,6 +273,7 @@ class FifoStockService
                 $destinationWarehouseId
             );
             $barcode = ProductLot::generateBarcode($companyId, $productId);
+            [$balanceQty, $balanceVal] = $this->lotBalance($productId, $destinationWarehouseId);
 
             $newLot = ProductLot::create([
                 'company_id'       => $companyId,
@@ -291,8 +290,6 @@ class FifoStockService
                 'status'           => 'active',
                 'notes'            => $notes ?: null,
             ]);
-
-            [$balanceQty, $balanceVal] = $this->currentBalance($productId, $destinationWarehouseId);
 
             $this->recordKardex(
                 companyId:    $companyId,
@@ -344,6 +341,25 @@ class FifoStockService
     }
 
     // ── Interno: crear asiento en kardex ─────────────────────────────────────
+
+    private function lotBalance(int $productId, int $warehouseId): array
+    {
+        $lots = ProductLot::where('product_id', $productId)
+            ->where('warehouse_id', $warehouseId)
+            ->where('quantity', '>', 0)
+            ->get(['quantity', 'unit_cost']);
+
+        $quantity = 0.0;
+        $value = 0.0;
+
+        foreach ($lots as $lot) {
+            $lotQuantity = (float) $lot->quantity;
+            $quantity += $lotQuantity;
+            $value += $lotQuantity * (float) $lot->unit_cost;
+        }
+
+        return [round($quantity, 4), round($value, 2)];
+    }
 
     private function recordKardex(
         int        $companyId,

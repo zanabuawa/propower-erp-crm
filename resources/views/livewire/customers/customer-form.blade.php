@@ -91,7 +91,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aniversario / Fundación</label>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Aniversario como cliente con la empresa</label>
                             <input wire:model="anniversary_date" type="date"
                                 class="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-sm font-bold text-slate-700 focus:ring-4 focus:ring-indigo-500/10 transition-all">
                         </div>
@@ -103,7 +103,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Logo de la Empresa</label>
+                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Imagen / logo del cliente</label>
                             <div class="flex items-center gap-4">
                                 <input wire:model="image" type="file" accept="image/*"
                                     class="flex-1 text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 transition-all">
@@ -113,6 +113,7 @@
                                     </div>
                                 @endif
                             </div>
+                            @error('image') <p class="text-[10px] text-rose-500 font-bold mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
                 </div>
@@ -338,4 +339,3 @@
         </form>
     </div>
 </div>
-

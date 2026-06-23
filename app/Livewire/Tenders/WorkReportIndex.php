@@ -17,6 +17,9 @@ class WorkReportIndex extends Component
     use WithPagination;
 
     public string $search = '';
+    public ?int $filterProject = null;
+    public ?int $contextProjectId = null;
+    public bool $embedded = false;
     public bool $showModal = false;
     public ?int $editingId = null;
 
@@ -24,12 +27,22 @@ class WorkReportIndex extends Component
     public ?int $tender_id = null;
     public string $week_start = '';
     public string $week_end = '';
-    public int $progress_pct = 0;
-    public string $activities = '';
-    public string $issues = '';
-    public string $next_week_plan = '';
-    public string $weather_conditions = '';
-    public int $workers_count = 0;
+
+    public function mount(?Project $project = null, bool $embedded = false): void
+    {
+        $this->embedded = $embedded;
+        $projectId = $project?->id ?: (request()->integer('project_id') ?: null);
+
+        if ($projectId) {
+            $companyId = auth()->user()->company_id;
+            $exists = Project::whereKey($projectId)
+                ->whereHas('branch', fn ($query) => $query->where('company_id', $companyId))
+                ->exists();
+
+            $this->filterProject = $exists ? $projectId : null;
+            $this->contextProjectId = $project?->id && $exists ? $project->id : null;
+        }
+    }
 
     public function updatedSearch(): void { $this->resetPage(); }
 
@@ -38,31 +51,30 @@ class WorkReportIndex extends Component
         $this->resetForm();
         $this->week_start = now()->startOfWeek()->format('Y-m-d');
         $this->week_end   = now()->endOfWeek()->format('Y-m-d');
+        $this->project_id  = $this->filterProject;
         if ($id) {
-            $r = WorkReport::findOrFail($id);
+            $r = WorkReport::query()
+                ->when($this->contextProjectId, fn ($query) => $query->where('project_id', $this->contextProjectId))
+                ->findOrFail($id);
             $this->editingId          = $id;
             $this->project_id         = $r->project_id;
             $this->tender_id          = $r->tender_id;
             $this->week_start         = $r->week_start->format('Y-m-d');
             $this->week_end           = $r->week_end->format('Y-m-d');
-            $this->progress_pct       = $r->progress_pct;
-            $this->activities         = $r->activities ?? '';
-            $this->issues             = $r->issues ?? '';
-            $this->next_week_plan     = $r->next_week_plan ?? '';
-            $this->weather_conditions = $r->weather_conditions ?? '';
-            $this->workers_count      = $r->workers_count;
         }
         $this->showModal = true;
     }
 
     public function save(): void
     {
+        if ($this->contextProjectId) {
+            $this->project_id = $this->contextProjectId;
+        }
+
         $this->validate([
             'project_id'   => 'required|exists:projects,id',
             'week_start'   => 'required|date',
             'week_end'     => 'required|date|after_or_equal:week_start',
-            'progress_pct' => 'required|integer|min:0|max:100',
-            'activities'   => 'nullable|string',
         ]);
 
         $data = [
@@ -70,17 +82,15 @@ class WorkReportIndex extends Component
             'tender_id'          => $this->tender_id ?: null,
             'week_start'         => $this->week_start,
             'week_end'           => $this->week_end,
-            'progress_pct'       => $this->progress_pct,
-            'activities'         => $this->activities ?: null,
-            'issues'             => $this->issues ?: null,
-            'next_week_plan'     => $this->next_week_plan ?: null,
-            'weather_conditions' => $this->weather_conditions ?: null,
-            'workers_count'      => $this->workers_count,
+            'progress_pct'       => 0,
             'created_by'         => auth()->id(),
         ];
 
         if ($this->editingId) {
-            WorkReport::findOrFail($this->editingId)->update($data);
+            WorkReport::query()
+                ->when($this->contextProjectId, fn ($query) => $query->where('project_id', $this->contextProjectId))
+                ->findOrFail($this->editingId)
+                ->update($data);
         } else {
             WorkReport::create($data);
         }
@@ -92,26 +102,32 @@ class WorkReportIndex extends Component
 
     public function delete(int $id): void
     {
-        WorkReport::findOrFail($id)->delete();
+        WorkReport::query()
+            ->when($this->contextProjectId, fn ($query) => $query->where('project_id', $this->contextProjectId))
+            ->findOrFail($id)
+            ->delete();
         session()->flash('success', 'Reporte eliminado.');
     }
 
     private function resetForm(): void
     {
         $this->editingId = null; $this->project_id = null; $this->tender_id = null;
-        $this->week_start = ''; $this->week_end = ''; $this->progress_pct = 0;
-        $this->activities = ''; $this->issues = ''; $this->next_week_plan = '';
-        $this->weather_conditions = ''; $this->workers_count = 0;
+        $this->week_start = ''; $this->week_end = '';
     }
 
     public function render()
     {
+        if ($this->contextProjectId) {
+            $this->filterProject = $this->contextProjectId;
+        }
+
         $companyId = auth()->user()->company_id;
         $reports = WorkReport::whereHas('project', fn($q) => $q->whereHas('branch', fn($bq) => $bq->where('company_id', $companyId)))
             ->when($this->search, fn($q) => $q->whereHas('project', fn($q2) => $q2->where('name', 'like', '%' . $this->search . '%')))
+            ->when($this->filterProject, fn($q) => $q->where('project_id', $this->filterProject))
             ->with(['project', 'tender', 'createdBy'])
             ->latest('week_start')
-            ->paginate(15);
+            ->paginate(15, pageName: 'weeklyReportsPage');
 
         return view('livewire.tenders.work-report-index', [
             'reports'  => $reports,

@@ -80,6 +80,9 @@
                                 <td class="px-6 py-4">
                                     <p class="text-sm font-bold text-slate-700">{{ $c->contract_number ?? 'FOL-'.$c->id }}</p>
                                     <p class="text-[10px] font-medium text-indigo-500 uppercase tracking-widest">{{ $c->type_label }}</p>
+                                    @if($c->template)
+                                        <p class="text-[10px] font-semibold text-slate-400 truncate mt-0.5">{{ $c->template->name }}</p>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col">
@@ -100,6 +103,13 @@
                                 </td>
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex justify-end gap-2">
+                                        <a href="{{ route('hr.contracts.template.print', $c) }}?print=1" target="_blank"
+                                           class="p-2 rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-white hover:shadow-sm transition-all"
+                                           title="Imprimir plantilla">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2m-12 0h12v4H6v-4z"/>
+                                            </svg>
+                                        </a>
                                         @can('edit hr')
                                             <a wire:navigate href="{{ route('hr.contracts.edit', $c) }}" 
                                                class="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all">

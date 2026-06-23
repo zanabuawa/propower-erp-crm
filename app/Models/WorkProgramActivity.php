@@ -10,14 +10,17 @@ class WorkProgramActivity extends Model
 {
     protected $fillable = [
         'program_id', 'parent_id', 'name', 'unit', 'quantity',
-        'start_date', 'end_date', 'progress_pct', 'sort_order',
+        'start_date', 'end_date', 'actual_start_date', 'actual_end_date',
+        'actual_notes', 'progress_pct', 'sort_order',
     ];
 
     protected $casts = [
-        'start_date'   => 'date',
-        'end_date'     => 'date',
-        'progress_pct' => 'integer',
-        'quantity'     => 'float',
+        'start_date'        => 'date',
+        'end_date'          => 'date',
+        'actual_start_date' => 'date',
+        'actual_end_date'   => 'date',
+        'progress_pct'      => 'integer',
+        'quantity'          => 'float',
     ];
 
     public function program(): BelongsTo    { return $this->belongsTo(WorkProgram::class, 'program_id'); }
@@ -28,5 +31,11 @@ class WorkProgramActivity extends Model
     {
         if (! $this->start_date || ! $this->end_date) return null;
         return $this->start_date->diffInDays($this->end_date) + 1;
+    }
+
+    public function getActualDurationDaysAttribute(): ?int
+    {
+        if (! $this->actual_start_date || ! $this->actual_end_date) return null;
+        return $this->actual_start_date->diffInDays($this->actual_end_date) + 1;
     }
 }

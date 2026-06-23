@@ -48,7 +48,7 @@ class CrmPipelineIndex extends Component
             ->where('company_id', $companyId)
             ->when(!$this->showWonLost, fn($q) => $q->whereNotIn('stage', ['won', 'lost']))
             ->when($this->filterUser, fn($q) => $q->where('assigned_to', $this->filterUser))
-            ->with(['prospect', 'customer', 'assignedTo'])
+            ->with(['customer', 'assignedTo'])
             ->withCount('activities')
             ->orderBy('expected_close_date')
             ->get();

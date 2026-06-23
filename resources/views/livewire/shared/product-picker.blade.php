@@ -32,7 +32,7 @@
                     </svg>
                     <div class="flex-1">
                         <h2 class="text-base font-semibold text-gray-900">
-                            {{ $warehouseId ? 'Productos disponibles' : 'Catálogo de productos' }}
+                            {{ $warehouseId ? 'Productos disponibles' : 'Catálogo de productos y servicios' }}
                         </h2>
                         @if($warehouse)
                             <p class="text-xs text-gray-400 mt-0.5">Almacén: {{ $warehouse->name }}</p>
@@ -219,7 +219,7 @@
                     <div class="px-5 py-4 border-t border-gray-100 bg-gray-50/60 flex-shrink-0 flex items-center justify-between gap-4">
                         <p class="text-xs text-gray-500 font-medium">
                             @if(count($selectedIds))
-                                <span class="font-black text-indigo-700">{{ count($selectedIds) }}</span> producto(s) seleccionado(s)
+                                <span class="font-black text-indigo-700">{{ count($selectedIds) }}</span> referencia(s) seleccionada(s)
                             @else
                                 Toca una tarjeta para seleccionar
                             @endif

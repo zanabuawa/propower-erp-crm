@@ -119,7 +119,7 @@
                     <tr class="border-b border-gray-100 bg-gray-50/60">
                         <th class="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Folio</th>
                         <th class="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Asunto</th>
-                        <th class="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Cliente</th>
+                        <th class="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Origen</th>
                         <th class="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Tipo</th>
                         <th class="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Prioridad</th>
                         <th class="text-left px-4 py-3 font-semibold text-gray-600 text-xs uppercase tracking-wide">Estado</th>
@@ -145,7 +145,13 @@
                             @endif
                         </td>
                         <td class="px-4 py-3 text-gray-600 whitespace-nowrap">
-                            {{ $ticket->customer?->name ?? '—' }}
+                            @if($ticket->customer)
+                                {{ $ticket->customer->name }}
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100">
+                                    Interno
+                                </span>
+                            @endif
                         </td>
                         <td class="px-4 py-3">
                             {{-- Colores definidos en CrmTicket::TYPE_COLORS --}}

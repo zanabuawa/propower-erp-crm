@@ -59,9 +59,7 @@ class AttendanceForm extends Component
 
         $workedHours = null;
         if ($this->check_in && $this->check_out) {
-            $in  = \Carbon\Carbon::createFromFormat('H:i', $this->check_in);
-            $out = \Carbon\Carbon::createFromFormat('H:i', $this->check_out);
-            $workedHours = round($in->diffInMinutes($out) / 60, 2);
+            $workedHours = HrAttendance::calculateWorkedHours($this->date, $this->check_in, $this->check_out);
         }
 
         $data = [

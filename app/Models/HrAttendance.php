@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Traits\BelongsToCompany;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -102,5 +104,21 @@ class HrAttendance extends Model
     public function getStatusLabelAttribute(): string
     {
         return self::STATUSES[$this->status] ?? $this->status;
+    }
+
+    public static function calculateWorkedHours(string|CarbonInterface $date, string $checkIn, string $checkOut): float
+    {
+        $workDate = $date instanceof CarbonInterface
+            ? $date->copy()
+            : Carbon::parse($date);
+
+        $in = Carbon::parse($workDate->toDateString().' '.$checkIn);
+        $out = Carbon::parse($workDate->toDateString().' '.$checkOut);
+
+        if ($out->lessThan($in)) {
+            $out->addDay();
+        }
+
+        return round(max(0, $in->diffInMinutes($out, false)) / 60, 2);
     }
 }

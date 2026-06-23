@@ -157,7 +157,7 @@
     {{-- Links rápidos a módulos ──────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
         @foreach([
-            ['route' => 'sales.dashboard',      'label' => 'Dashboard Ventas',   'icon' => '📈', 'color' => 'emerald'],
+            ['route' => 'sales.report',         'label' => 'Reporte Ventas',     'icon' => '📈', 'color' => 'emerald'],
             ['route' => 'finance.dashboard',     'label' => 'Finanzas',           'icon' => '🏦', 'color' => 'indigo'],
             ['route' => 'hr.analytics',          'label' => 'RRHH Analytics',     'icon' => '👥', 'color' => 'violet'],
             ['route' => 'projects.analytics',    'label' => 'Proyectos',          'icon' => '📐', 'color' => 'amber'],

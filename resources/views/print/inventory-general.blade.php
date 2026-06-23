@@ -216,6 +216,7 @@
 
     {{-- ── Filtros activos ─────────────────────────────────────── --}}
     <div class="filters">
+        <div class="filter-chip">Tipo: <span>{{ $typeFilterLabel }}</span></div>
         <div class="filter-chip">Estado: <span>{{ $stockFilterLabel }}</span></div>
         @if($category)
             <div class="filter-chip">Categoría: <span>{{ $category->name }}</span></div>
@@ -230,12 +231,12 @@
             <div class="kpi-value">{{ number_format($products->count()) }}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">Sin existencias</div>
-            <div class="kpi-value red">{{ $outCount }}</div>
+            <div class="kpi-label">Servicios</div>
+            <div class="kpi-value" style="color:#7c3aed;">{{ $serviceCount }}</div>
         </div>
         <div class="kpi">
-            <div class="kpi-label">Stock bajo</div>
-            <div class="kpi-value amber">{{ $lowCount }}</div>
+            <div class="kpi-label">Sin existencias / bajo</div>
+            <div class="kpi-value amber">{{ $outCount }} / {{ $lowCount }}</div>
         </div>
         <div class="kpi">
             <div class="kpi-label">Valor total (costo)</div>
@@ -250,6 +251,7 @@
                 <th>#</th>
                 <th>Producto</th>
                 <th>SKU</th>
+                <th>Tipo</th>
                 <th>Categoría</th>
                 <th class="right">Existencias</th>
                 <th class="right">Mínimo</th>
@@ -263,25 +265,29 @@
             @php $row = 0; @endphp
             @forelse($products as $p)
                 @php
+                    $isService = $p->type === 'service';
                     $qty   = $p->total_qty;
-                    $isOut = $qty <= 0;
-                    $isLow = $qty > 0 && $qty <= $p->min_stock;
+                    $isOut = !$isService && $qty <= 0;
+                    $isLow = !$isService && $qty > 0 && $qty <= $p->min_stock;
                     $row++;
                 @endphp
                 <tr>
                     <td class="mono">{{ $row }}</td>
                     <td class="bold">{{ $p->name }}</td>
                     <td class="mono">{{ $p->sku ?? '—' }}</td>
+                    <td>{{ $isService ? 'Servicio' : 'Producto' }}</td>
                     <td>{{ $p->category?->name ?? 'Sin categoría' }}</td>
                     <td class="right num {{ $isOut ? 'out' : ($isLow ? 'low' : 'ok') }}">
-                        {{ number_format($qty, 2) }}
+                        {{ $isService ? 'N/A' : number_format($qty, 2) }}
                     </td>
-                    <td class="right" style="color:#9ca3af;">{{ number_format($p->min_stock, 2) }}</td>
+                    <td class="right" style="color:#9ca3af;">{{ $isService ? 'N/A' : number_format($p->min_stock, 2) }}</td>
                     <td class="right">${{ number_format($p->purchase_price, 2) }}</td>
                     <td class="right">${{ number_format($p->sale_price, 2) }}</td>
-                    <td class="right bold">${{ number_format($qty * (float)$p->purchase_price, 2) }}</td>
+                    <td class="right bold">{{ $isService ? 'N/A' : '$' . number_format($qty * (float)$p->purchase_price, 2) }}</td>
                     <td class="center">
-                        @if($isOut)
+                        @if($isService)
+                            <span class="badge ok">Servicio</span>
+                        @elseif($isOut)
                             <span class="badge out">Agotado</span>
                         @elseif($isLow)
                             <span class="badge low">Stock bajo</span>
@@ -292,17 +298,17 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="10" style="text-align:center;padding:20px;color:#9ca3af;">
-                        No hay productos con los filtros seleccionados.
+                    <td colspan="11" style="text-align:center;padding:20px;color:#9ca3af;">
+                        No hay productos o servicios con los filtros seleccionados.
                     </td>
                 </tr>
             @endforelse
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="4" style="font-size:11px;">TOTAL</td>
+                <td colspan="5" style="font-size:11px;">TOTAL</td>
                 <td class="right" style="font-size:13px;color:#ef4444;">
-                    {{ number_format($products->sum('total_qty'), 2) }}
+                    {{ number_format($products->filter(fn($p) => $p->type !== 'service')->sum('total_qty'), 2) }}
                 </td>
                 <td colspan="3"></td>
                 <td class="right" style="font-size:13px;color:#ef4444;">

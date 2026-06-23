@@ -65,6 +65,26 @@
                                 @error('email') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">{{ $message }}</p> @enderror
                             </div>
 
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Fecha de Nacimiento (Edad)</label>
+                                    <input wire:model="birth_date" type="date"
+                                        class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
+                                    @error('birth_date') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sexo</label>
+                                    <select wire:model="gender"
+                                        class="w-full px-4 py-3 rounded-2xl border-slate-200 bg-slate-50/30 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/5 transition-all duration-200">
+                                        <option value="">Seleccionar...</option>
+                                        @foreach(\App\Models\HrEmployee::GENDERS as $key => $label)
+                                            <option value="{{ $key }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('gender') <p class="text-[10px] font-bold text-red-500 uppercase tracking-wider ml-1">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
                                 <div class="space-y-2">
                                     <label class="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">

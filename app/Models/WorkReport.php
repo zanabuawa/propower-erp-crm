@@ -10,7 +10,7 @@ class WorkReport extends Model
     protected $fillable = [
         'project_id', 'tender_id', 'week_start', 'week_end',
         'progress_pct', 'activities', 'issues', 'next_week_plan',
-        'weather_conditions', 'workers_count', 'created_by',
+        'custom_body', 'weather_conditions', 'workers_count', 'created_by',
     ];
 
     protected $casts = [

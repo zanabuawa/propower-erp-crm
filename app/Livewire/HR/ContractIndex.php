@@ -22,7 +22,7 @@ class ContractIndex extends Component
 
     public function render()
     {
-        $contracts = HrContract::with(['employee', 'createdBy'])
+        $contracts = HrContract::with(['employee', 'createdBy', 'template'])
             ->when($this->search, fn($q) => $q->whereHas('employee', fn($q2) =>
                 $q2->where('first_name', 'like', "%{$this->search}%")
                    ->orWhere('last_name', 'like', "%{$this->search}%")

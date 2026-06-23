@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\Supplier;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
@@ -123,22 +124,6 @@ class ProductForm extends Component
     }
 
     // ── Regeneradores ────────────────────────────────────────────────────────
-    public function regenerateSku(): void
-    {
-        $companyId = auth()->user()->company_id;
-        if ($companyId && strlen($this->name) >= 1) {
-            $this->sku = Product::generateSku($this->name, $companyId);
-        }
-    }
-
-    public function regenerateBarcode(): void
-    {
-        $companyId = auth()->user()->company_id;
-        if ($companyId) {
-            $this->barcode = Product::generateBarcode($companyId);
-        }
-    }
-
     // ── Imágenes ─────────────────────────────────────────────────────────────
     public function removeExistingImage(int $imageId): void
     {
@@ -226,16 +211,33 @@ class ProductForm extends Component
     // ── Validación y guardado ────────────────────────────────────────────────
     public function rules(): array
     {
+        $companyId = auth()->user()->company_id;
+        $productId = $this->product?->id;
+
         return [
             'type'               => 'required|in:product,service',
             'name'               => 'required|string|max:255',
             'category_id'        => 'nullable|exists:categories,id',
             'subcategory_id'     => 'nullable|exists:categories,id',
             'supplier_id'        => 'nullable|exists:suppliers,id',
-            'sku'                => 'nullable|string|max:100',
+            'sku'                => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products', 'sku')
+                    ->where('company_id', $companyId)
+                    ->ignore($productId),
+            ],
             'sat_product_code'   => 'nullable|string|max:20',
             'sat_unit_code'      => 'nullable|string|max:10',
-            'barcode'            => 'nullable|string|max:100',
+            'barcode'            => [
+                'nullable',
+                'string',
+                'max:100',
+                Rule::unique('products', 'barcode')
+                    ->where('company_id', $companyId)
+                    ->ignore($productId),
+            ],
             'description'        => 'nullable|string',
             'brand'              => 'nullable|string|max:100',
             'model'              => 'nullable|string|max:100',
@@ -251,6 +253,20 @@ class ProductForm extends Component
 
     public function save(): void
     {
+        $companyId = auth()->user()->company_id;
+
+        if ($this->product?->exists) {
+            $this->sku = $this->product->sku ?: Product::generateSku($this->name, $companyId);
+            $this->barcode = $this->type === 'product'
+                ? ($this->product->barcode ?: Product::generateBarcode($companyId))
+                : '';
+        } else {
+            $this->sku = Product::generateSku($this->name, $companyId);
+            $this->barcode = $this->type === 'product'
+                ? Product::generateBarcode($companyId)
+                : '';
+        }
+
         $this->validate();
 
         $purchasePrice = (float) $this->purchase_price;
@@ -259,7 +275,7 @@ class ProductForm extends Component
         $salePrice     = $marginDiv > 0 ? round($purchasePrice / $marginDiv, 2) : 0;
 
         $data = [
-            'company_id'         => auth()->user()->company_id,
+            'company_id'         => $companyId,
             'type'               => $this->type,
             'name'               => $this->name,
             'category_id'        => $this->category_id,

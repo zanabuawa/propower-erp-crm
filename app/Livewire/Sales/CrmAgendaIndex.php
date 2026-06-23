@@ -90,7 +90,6 @@ class CrmAgendaIndex extends Component
 
         $data = [
             'assigned_to'  => $this->activityAssigned ?: null,
-            'prospect_id'  => null,
             'customer_id'  => $this->linkedId ?: null,
             'type'         => $this->activityType,
             'title'        => $this->activityTitle,

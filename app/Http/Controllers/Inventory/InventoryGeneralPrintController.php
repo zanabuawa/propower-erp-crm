@@ -31,22 +31,28 @@ class InventoryGeneralPrintController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->filled('type_filter')) {
+            $query->where('type', $request->type_filter);
+        }
+
         $products = $query->orderBy('name')->get()->map(function (Product $p) {
-            $p->total_qty = $p->stocks->sum('quantity');
+            $p->total_qty = $p->type === 'service' ? null : $p->stocks->sum('quantity');
             return $p;
         });
 
         if ($request->stock_filter === 'out') {
-            $products = $products->filter(fn($p) => $p->total_qty <= 0);
+            $products = $products->filter(fn($p) => $p->type !== 'service' && $p->total_qty <= 0);
         } elseif ($request->stock_filter === 'low') {
-            $products = $products->filter(fn($p) => $p->total_qty > 0 && $p->total_qty <= $p->min_stock);
+            $products = $products->filter(fn($p) => $p->type !== 'service' && $p->total_qty > 0 && $p->total_qty <= $p->min_stock);
         } elseif ($request->stock_filter === 'ok') {
-            $products = $products->filter(fn($p) => $p->total_qty > $p->min_stock);
+            $products = $products->filter(fn($p) => $p->type !== 'service' && $p->total_qty > $p->min_stock);
         }
 
-        $totalValue = $products->sum(fn($p) => $p->total_qty * (float) $p->purchase_price);
-        $outCount   = $products->filter(fn($p) => $p->total_qty <= 0)->count();
-        $lowCount   = $products->filter(fn($p) => $p->total_qty > 0 && $p->total_qty <= $p->min_stock)->count();
+        $stockProducts = $products->filter(fn($p) => $p->type !== 'service');
+        $serviceCount = $products->filter(fn($p) => $p->type === 'service')->count();
+        $totalValue = $stockProducts->sum(fn($p) => $p->total_qty * (float) $p->purchase_price);
+        $outCount   = $stockProducts->filter(fn($p) => $p->total_qty <= 0)->count();
+        $lowCount   = $stockProducts->filter(fn($p) => $p->total_qty > 0 && $p->total_qty <= $p->min_stock)->count();
 
         $category = $request->filled('category_id')
             ? Category::find($request->category_id)
@@ -59,11 +65,17 @@ class InventoryGeneralPrintController extends Controller
             default => 'Todos',
         };
 
+        $typeFilterLabel = match($request->type_filter) {
+            'product' => 'Productos',
+            'service' => 'Servicios',
+            default => 'Productos y servicios',
+        };
+
         $company = Company::find($companyId);
 
         return view('print.inventory-general', compact(
             'products', 'totalValue', 'outCount', 'lowCount',
-            'category', 'stockFilterLabel', 'company'
+            'serviceCount', 'category', 'stockFilterLabel', 'typeFilterLabel', 'company'
         ));
     }
 }

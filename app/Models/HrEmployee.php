@@ -211,6 +211,11 @@ class HrEmployee extends Model
         return round($this->hire_date->diffInDays(now()) / 365, 1);
     }
 
+    public function getAgeAttribute(): ?int
+    {
+        return $this->birth_date ? (int) floor($this->birth_date->diffInYears(now())) : null;
+    }
+
     public function getStatusColorAttribute(): string
     {
         return self::STATUS_COLORS[$this->status] ?? 'bg-gray-100 text-gray-600';

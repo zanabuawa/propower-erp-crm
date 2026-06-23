@@ -58,6 +58,27 @@ class CrmTicketTest extends TestCase
     }
 
     /** @test */
+    public function can_create_internal_company_ticket(): void
+    {
+        Livewire::test('App\Livewire\Sales\CrmTicketForm')
+            ->set('ticket_scope', 'internal')
+            ->set('subject', 'Falla en aire acondicionado de oficina')
+            ->set('type', 'internal')
+            ->set('priority', 'medium')
+            ->set('customer_id', $this->customer->id)
+            ->call('save');
+
+        $this->assertDatabaseHas('crm_tickets', [
+            'subject'         => 'Falla en aire acondicionado de oficina',
+            'type'            => 'internal',
+            'customer_id'     => null,
+            'sale_order_id'   => null,
+            'sale_invoice_id' => null,
+            'company_id'      => $this->user->company_id,
+        ]);
+    }
+
+    /** @test */
     public function subject_is_required(): void
     {
         Livewire::test('App\Livewire\Sales\CrmTicketForm')

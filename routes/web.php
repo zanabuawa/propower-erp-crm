@@ -44,6 +44,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/signature', [ProfileController::class, 'updateSignature'])->name('profile.signature.update');
+    Route::delete('/profile/signature', [ProfileController::class, 'destroySignature'])->name('profile.signature.destroy');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // ── Empresas ─────────────────────────────────────────────────────────────
@@ -192,7 +194,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/ventas/notas-credito/crear', \App\Livewire\Sales\CreditNoteForm::class)->name('sales.credit-notes.create');
     });
     Route::middleware('can:view sales')->group(function () {
-        Route::get('/ventas/dashboard', \App\Livewire\Sales\SalesDashboard::class)->name('sales.dashboard');
         Route::get('/ventas/reporte', \App\Livewire\Sales\SalesReport::class)->name('sales.report');
         Route::get('/ventas/cotizaciones', \App\Livewire\Sales\QuotationIndex::class)->name('sales.index');
         Route::get('/ventas/ordenes', \App\Livewire\Sales\OrderIndex::class)->name('sales.orders.index');
@@ -251,6 +252,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/proyectos/{project}/recursos', \App\Livewire\Projects\ProjectMaterials::class)->name('projects.materials');
         Route::get('/proyectos/{project}/tiempos', \App\Livewire\Projects\ProjectTimeTracking::class)->name('projects.time-tracking');
         Route::get('/proyectos/{project}/financiero', \App\Livewire\Projects\ProjectFinancial::class)->name('projects.financial');
+        Route::get('/proyectos/{project}/control-obra', \App\Livewire\Tenders\ProjectWorkControl::class)->middleware('can:view tenders')->name('projects.work-control');
     });
     Route::middleware('can:edit projects')->get('/proyectos/{project}/editar', \App\Livewire\Projects\ProjectForm::class)->name('projects.edit');
 
@@ -271,10 +273,20 @@ Route::middleware('auth')->group(function () {
 
     // ── Control de Obras ─────────────────────────────────────────────────────
     Route::middleware('can:view tenders')->group(function () {
+        Route::get('/obras/proyectos', \App\Livewire\Tenders\WorkProjectIndex::class)->name('works.projects.index');
+        Route::get('/obras/proyectos/{project}', \App\Livewire\Tenders\ProjectWorkControl::class)->name('works.projects.show');
         Route::get('/obras/permisos', \App\Livewire\Tenders\WorkPermitIndex::class)->name('works.permits.index');
         Route::get('/obras/reportes-semanales', \App\Livewire\Tenders\WorkReportIndex::class)->name('works.reports.index');
+        Route::get('/obras/reportes-semanales/{report}/formato', \App\Livewire\Tenders\WorkReportDocumentEditor::class)->name('works.reports.format');
+        Route::get('/obras/reportes-semanales/{report}/imprimir', [\App\Http\Controllers\Tenders\WorkDocumentPrintController::class, 'weekly'])->name('works.reports.print');
         Route::get('/obras/reportes-fotograficos', \App\Livewire\Tenders\WorkPhotoReportIndex::class)->name('works.photo-reports.index');
+        Route::get('/obras/reportes-fotograficos/{report}/formato', \App\Livewire\Tenders\WorkPhotoReportDocumentEditor::class)->name('works.photo-reports.format');
+        Route::get('/obras/reportes-fotograficos/{report}/imprimir', [\App\Http\Controllers\Tenders\WorkDocumentPrintController::class, 'photo'])->name('works.photo-reports.print');
+        Route::get('/obras/incidencias', \App\Livewire\Tenders\WorkIncidentReportIndex::class)->name('works.incident-reports.index');
+        Route::get('/obras/incidencias/{report}/imprimir', [\App\Http\Controllers\Tenders\WorkDocumentPrintController::class, 'incident'])->name('works.incident-reports.print');
+        Route::get('/obras/proyectos/{project}/bitacora/imprimir', [\App\Http\Controllers\Tenders\WorkDocumentPrintController::class, 'logbook'])->name('works.logbook.print');
         Route::get('/obras/libranzas', \App\Livewire\Tenders\WorkLibranzaIndex::class)->name('works.libranzas.index');
+        Route::get('/obras/programa/{project}/gantt/imprimir', [\App\Http\Controllers\Tenders\WorkDocumentPrintController::class, 'gantt'])->name('works.program.gantt.print');
         Route::get('/obras/programa/{project}', \App\Livewire\Tenders\WorkProgramIndex::class)->name('works.program.index');
     });
 
@@ -307,7 +319,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/rrhh/puestos/crear', \App\Livewire\HR\PositionForm::class)->name('hr.positions.create');
         Route::get('/rrhh/puestos/{position}/editar', \App\Livewire\HR\PositionForm::class)->name('hr.positions.edit');
         Route::get('/rrhh/contratos', \App\Livewire\HR\ContractIndex::class)->name('hr.contracts.index');
+        Route::get('/rrhh/contratos/plantillas', \App\Livewire\HR\ContractTemplateIndex::class)->name('hr.contract-templates.index');
+        Route::get('/rrhh/contratos/plantillas/crear', \App\Livewire\HR\ContractTemplateForm::class)->name('hr.contract-templates.create');
+        Route::get('/rrhh/contratos/plantillas/{template}/editar', \App\Livewire\HR\ContractTemplateForm::class)->name('hr.contract-templates.edit');
         Route::get('/rrhh/contratos/crear', \App\Livewire\HR\ContractForm::class)->name('hr.contracts.create');
+        Route::get('/rrhh/contratos/{contract}/plantilla', \App\Http\Controllers\HR\ContractTemplatePrintController::class)->name('hr.contracts.template.print');
         Route::get('/rrhh/contratos/{contract}/editar', \App\Livewire\HR\ContractForm::class)->name('hr.contracts.edit');
         Route::get('/rrhh/asistencias', \App\Livewire\HR\AttendanceIndex::class)->name('hr.attendances.index');
         Route::get('/rrhh/asistencias/imprimir', \App\Http\Controllers\HR\AttendancePrintController::class)->name('hr.attendances.print');
@@ -315,6 +331,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/rrhh/asistencias/{attendance}/editar', \App\Livewire\HR\AttendanceForm::class)->name('hr.attendances.edit');
         Route::get('/rrhh/nominas', \App\Livewire\HR\PayrollIndex::class)->name('hr.payrolls.index');
         Route::get('/rrhh/nominas/imprimir', \App\Http\Controllers\HR\PayrollsPrintController::class)->name('hr.payrolls.print');
+        Route::get('/rrhh/nominas/complementos', \App\Livewire\HR\PayrollComplementIndex::class)->name('hr.payrolls.complements');
+        Route::get('/rrhh/nominas/recibo-ejemplo/{employee}', \App\Http\Controllers\HR\PayrollReceiptExampleController::class)->name('hr.payrolls.receipt.example');
         Route::get('/rrhh/nominas/{payroll}', \App\Livewire\HR\PayrollShow::class)->name('hr.payrolls.show');
         Route::get('/rrhh/permisos', \App\Livewire\HR\LeaveIndex::class)->name('hr.leaves.index');
         Route::get('/rrhh/permisos/crear', \App\Livewire\HR\LeaveForm::class)->name('hr.leaves.create');

@@ -112,9 +112,8 @@ class AttendanceCheckin extends Component
 
         if ($att && $att->check_in && ! $att->check_out) {
             // Register check-out
-            $checkIn  = \Carbon\Carbon::parse($att->check_in);
             $checkOut = now();
-            $worked   = round($checkIn->diffInMinutes($checkOut) / 60, 2);
+            $worked   = HrAttendance::calculateWorkedHours($att->date ?? today(), $att->check_in, $checkOut->format('H:i:s'));
 
             // Expected hours from contract (for overtime calculation)
             $expectedHours = $this->activeContract

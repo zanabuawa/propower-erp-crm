@@ -3,7 +3,6 @@
 namespace App\Livewire\Sales;
 
 use App\Models\SalesOpportunity;
-use App\Models\SalesProspect;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -122,7 +121,7 @@ class CrmAnalytics extends Component
             ->whereNotNull('expected_close_date')
             ->where('expected_close_date', '<=', now()->addDays(30))
             ->orderBy('expected_close_date')
-            ->with(['customer', 'prospect', 'assignedTo'])
+            ->with(['customer', 'assignedTo'])
             ->limit(8)
             ->get();
 

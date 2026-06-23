@@ -308,6 +308,8 @@ class EmployeeForm extends Component
             'salary'        => 'required|numeric|min:0',
             'salary_period' => 'required|in:' . implode(',', array_keys(HrEmployee::SALARY_PERIODS)),
             'status'        => 'required|in:' . implode(',', array_keys(HrEmployee::STATUSES)),
+            'gender'        => 'nullable|in:' . implode(',', array_keys(HrEmployee::GENDERS)),
+            'birth_date'    => 'nullable|date|before:today',
             'rfc'           => 'nullable|string|max:13',
             'curp'          => 'nullable|string|max:18',
             'nss'           => 'nullable|string|max:11',
@@ -368,6 +370,7 @@ class EmployeeForm extends Component
 
         if ($this->employee && $this->employee->exists) {
             $this->employee->update($data);
+            $this->syncLinkedUserProfile($this->employee->refresh());
             session()->flash('success', 'Empleado actualizado correctamente.');
         } else {
             $employee = HrEmployee::create($data);
@@ -430,6 +433,8 @@ class EmployeeForm extends Component
             ['email' => $employee->email],
             [
                 'name'       => $employee->full_name,
+                'birth_date' => $employee->birth_date,
+                'gender'     => $employee->gender,
                 'password'   => Hash::make(Str::random(16)),
                 'company_id' => $employee->company_id,
                 'branch_id'  => $employee->branch_id,
@@ -439,6 +444,7 @@ class EmployeeForm extends Component
 
         // Vincular empleado ↔ usuario
         $employee->update(['user_id' => $user->id]);
+        $this->syncLinkedUserProfile($employee->refresh());
 
         if (! $roleName) {
             return;
@@ -460,6 +466,19 @@ class EmployeeForm extends Component
                 $admin->notify(new NewRoleCreatedNotification($roleName, $employee->full_name));
             }
         }
+    }
+
+    private function syncLinkedUserProfile(HrEmployee $employee): void
+    {
+        if (! $employee->user_id) {
+            return;
+        }
+
+        $employee->user?->forceFill([
+            'name' => $employee->full_name,
+            'birth_date' => $employee->birth_date,
+            'gender' => $employee->gender,
+        ])->save();
     }
 
     private function syncJobOpeningAfterHire(\App\Models\HrProspect $prospect): void

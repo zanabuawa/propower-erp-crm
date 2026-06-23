@@ -64,4 +64,37 @@ class ProductIndexTest extends TestCase
 
         $this->assertDatabaseHas('products', ['id' => $product->id]);
     }
+
+    /** @test */
+    public function product_catalog_shows_services_without_stock(): void
+    {
+        Product::create([
+            'company_id' => $this->company->id,
+            'name'       => 'Instalacion electrica',
+            'sku'        => 'INS-00001',
+            'type'       => 'service',
+            'is_active'  => true,
+        ]);
+
+        Livewire::test('App\Livewire\Inventory\ProductIndex')
+            ->assertSee('Instalacion electrica')
+            ->assertSee('Servicio');
+    }
+
+    /** @test */
+    public function inventory_general_shows_services_as_non_stock_items(): void
+    {
+        Product::create([
+            'company_id' => $this->company->id,
+            'name'       => 'Dictamen tecnico',
+            'sku'        => 'DIC-00001',
+            'type'       => 'service',
+            'is_active'  => true,
+        ]);
+
+        Livewire::test('App\Livewire\Inventory\InventoryGeneral')
+            ->assertSee('Dictamen tecnico')
+            ->assertSee('Servicio')
+            ->assertSee('N/A');
+    }
 }

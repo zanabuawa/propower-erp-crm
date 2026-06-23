@@ -127,10 +127,6 @@ class CrmOpportunityShow extends Component
         $customerId = $this->opportunity->customer_id;
 
         // Si está vinculada a un prospecto convertido, usar el cliente
-        if (!$customerId && $this->opportunity->prospect?->converted_to_customer_id) {
-            $customerId = $this->opportunity->prospect->converted_to_customer_id;
-        }
-
         $params = [];
         if ($customerId) {
             // Redirigir a form de cotización con customer pre-seleccionado

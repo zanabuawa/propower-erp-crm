@@ -6,6 +6,7 @@ use App\Models\HrAttendance;
 use App\Models\HrAttendanceLocation;
 use App\Models\HrEmployee;
 use App\Models\HrEvaluationProcess;
+use App\Services\HrPayrollCalculator;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -122,11 +123,11 @@ class EmployeePortal extends Component
         if (!$this->todayAttendance || $this->todayAttendance->check_out || !$this->locationValid) return;
 
         $checkOutTime = now();
-        $checkInTime = Carbon::parse($this->todayAttendance->check_in);
-        
-        // Calcular horas trabajadas
-        $diffInMinutes = $checkOutTime->diffInMinutes($checkInTime);
-        $workedHours = round($diffInMinutes / 60, 2);
+        $workedHours = HrAttendance::calculateWorkedHours(
+            $this->todayAttendance->date ?? today(),
+            $this->todayAttendance->check_in,
+            $checkOutTime->toTimeString()
+        );
 
         $this->todayAttendance->update([
             'check_out'    => $checkOutTime->toTimeString(),
@@ -247,6 +248,41 @@ class EmployeePortal extends Component
             })
             ->values();
 
-        return view('livewire.hr.employee-portal', compact('recentAttendances', 'evaluationSummary'));
+        $payrollItems = $this->employee
+            ? $this->employee->payrollItems()
+                ->with('payroll')
+                ->whereHas('payroll', fn ($query) => $query->whereIn('status', ['paid', 'stamped']))
+                ->latest()
+                ->take(8)
+                ->get()
+            : collect();
+
+        $payrollEstimate = null;
+        $payrollEstimatePeriod = null;
+
+        if ($this->employee) {
+            $estimateStart = now()->copy()->startOfWeek()->format('Y-m-d');
+            $estimateEnd = now()->copy()->endOfWeek()->format('Y-m-d');
+            $estimateItems = app(HrPayrollCalculator::class)->calculate(
+                $this->employee->company_id,
+                $estimateStart,
+                $estimateEnd,
+                $this->employee->id,
+            );
+
+            $payrollEstimate = $estimateItems[$this->employee->id] ?? null;
+            $payrollEstimatePeriod = [
+                'start' => $estimateStart,
+                'end' => $estimateEnd,
+            ];
+        }
+
+        return view('livewire.hr.employee-portal', compact(
+            'recentAttendances',
+            'evaluationSummary',
+            'payrollItems',
+            'payrollEstimate',
+            'payrollEstimatePeriod',
+        ));
     }
 }

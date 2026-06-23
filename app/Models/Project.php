@@ -160,6 +160,31 @@ class Project extends Model
         return $this->hasMany(StockMovement::class);
     }
 
+    public function workPermits(): HasMany
+    {
+        return $this->hasMany(WorkPermit::class);
+    }
+
+    public function workReports(): HasMany
+    {
+        return $this->hasMany(WorkReport::class);
+    }
+
+    public function workPhotoReports(): HasMany
+    {
+        return $this->hasMany(WorkPhotoReport::class);
+    }
+
+    public function workIncidentReports(): HasMany
+    {
+        return $this->hasMany(WorkIncidentReport::class);
+    }
+
+    public function workPrograms(): HasMany
+    {
+        return $this->hasMany(WorkProgram::class);
+    }
+
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'project_members')

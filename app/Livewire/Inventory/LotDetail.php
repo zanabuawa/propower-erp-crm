@@ -13,6 +13,12 @@ class LotDetail extends Component
 
     public function mount(ProductLot $lot): void
     {
+        if (! $lot->barcode) {
+            $lot->update([
+                'barcode' => ProductLot::generateBarcode($lot->company_id, $lot->product_id),
+            ]);
+        }
+
         $this->lot = $lot->load([
             'product',
             'warehouse',

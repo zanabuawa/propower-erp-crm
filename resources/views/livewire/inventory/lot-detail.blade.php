@@ -182,16 +182,15 @@
         @endif
     </div>
 
-</div>
-
 {{-- QR con qrcode.js desde CDN --}}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer onload="initLotQrCode()"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    function initLotQrCode() {
         const el = document.getElementById('qrcode');
         if (el && typeof QRCode !== 'undefined') {
+            el.innerHTML = '';
             new QRCode(el, {
-                text: '{{ $lot->barcode }}',
+                text: @js($lot->barcode),
                 width: 160,
                 height: 160,
                 colorDark: '#1e293b',
@@ -199,7 +198,10 @@
                 correctLevel: QRCode.CorrectLevel.H,
             });
         }
-    });
+    }
+
+    document.addEventListener('DOMContentLoaded', initLotQrCode);
+    document.addEventListener('livewire:navigated', initLotQrCode);
 </script>
 
 <style>
@@ -212,3 +214,5 @@
         .lg\\:col-span-2 { display: none !important; }
     }
 </style>
+
+</div>

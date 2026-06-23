@@ -105,6 +105,9 @@
                     <dt class="text-slate-500">Nacimiento</dt>
                     <dd class="text-slate-700 flex items-center gap-2">
                         {{ $employee->birth_date?->format('d/m/Y') ?? '—' }}
+                        @if($employee->age !== null)
+                            <span class="text-xs text-slate-400">({{ $employee->age }} anos)</span>
+                        @endif
                         @if($employee->notify_birthday)
                             <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-pink-50 text-pink-600 text-[10px] font-bold uppercase tracking-wider border border-pink-100" title="Recordatorio de cumpleaños activado">
                                 <svg class="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18zm-3-9V9a2 2 0 00-2-2H8a2 2 0 00-2 2v3h12z"/></svg>

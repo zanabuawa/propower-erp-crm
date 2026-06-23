@@ -8,6 +8,7 @@ use App\Models\HrEmployeeBonus;
 use App\Models\HrEmployeeLoan;
 use App\Models\HrPayroll;
 use App\Models\HrPayrollItem;
+use App\Services\HrPayrollCalculator;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -22,6 +23,7 @@ class PayrollForm extends Component
     public string $period_start = '';
     public string $period_end   = '';
     public string $notes        = '';
+    public string $employee_id  = '';
 
     /** @var array<int, array> Items editables por employee_id */
     public array $items = [];
@@ -57,101 +59,30 @@ class PayrollForm extends Component
         $this->items = [];
     }
 
+    public function updatedEmployeeId(): void
+    {
+        $this->calculated = false;
+        $this->items = [];
+    }
+
     public function calculate(): void
     {
         $this->validate([
-            'period_type'  => 'required|in:weekly,biweekly,monthly',
+            'period_type' => 'required|in:weekly,biweekly,monthly',
             'period_start' => 'required|date',
-            'period_end'   => 'required|date|after_or_equal:period_start',
+            'period_end' => 'required|date|after_or_equal:period_start',
+            'employee_id' => 'nullable|exists:hr_employees,id',
         ]);
 
-        $start     = Carbon::parse($this->period_start);
-        $end       = Carbon::parse($this->period_end);
         $companyId = auth()->user()->company_id;
+        $employeeId = $this->employee_id !== '' ? (int) $this->employee_id : null;
 
-        $employees = HrEmployee::where('company_id', $companyId)
-            ->where('status', 'active')
-            ->with(['activeContract', 'department', 'position'])
-            ->get();
-
-        // Asistencias del periodo agrupadas por empleado
-        $attendances = HrAttendance::where('company_id', $companyId)
-            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-            ->whereIn('status', ['present', 'late', 'half_day', 'leave'])
-            ->select(
-                'employee_id',
-                DB::raw('COUNT(*) as days_worked'),
-                DB::raw('SUM(worked_hours) as total_hours'),
-                DB::raw('SUM(overtime_hours) as overtime_hours')
-            )
-            ->groupBy('employee_id')
-            ->get()
-            ->keyBy('employee_id');
-
-        // Cuotas de préstamos activos
-        $loans = HrEmployeeLoan::where('company_id', $companyId)
-            ->where('status', 'active')
-            ->select('employee_id', DB::raw('SUM(installment_amount) as total_installment'))
-            ->groupBy('employee_id')
-            ->get()
-            ->keyBy('employee_id');
-
-        // Bonos pendientes aplicables en el periodo
-        $bonuses = HrEmployeeBonus::where('company_id', $companyId)
-            ->where('is_applied', false)
-            ->where('apply_at', '<=', $end->toDateString())
-            ->select('employee_id', DB::raw('SUM(amount) as total_bonus'))
-            ->groupBy('employee_id')
-            ->get()
-            ->keyBy('employee_id');
-
-        $this->items = [];
-
-        foreach ($employees as $emp) {
-            $dailySalary  = $this->resolveDailySalary($emp);
-            $att          = $attendances->get($emp->id);
-            $daysWorked   = $att ? (float) $att->days_worked    : 0;
-            $overtimeHrs  = $att ? (float) $att->overtime_hours : 0;
-            $loanPayment  = $loans->has($emp->id)   ? (float) $loans->get($emp->id)->total_installment : 0;
-            $bonusAmount  = $bonuses->has($emp->id) ? (float) $bonuses->get($emp->id)->total_bonus     : 0;
-
-            $baseSalary     = round($dailySalary * $daysWorked, 2);
-            $overtimeAmount = round($overtimeHrs * $dailySalary / 8 * 2, 2); // doble según LFT
-            $grossSalary    = $baseSalary + $overtimeAmount + $bonusAmount;
-
-            $periodDays   = max($daysWorked, 1);
-            $monthlyGross = $dailySalary * 30;
-            $ispt         = $this->estimateISPT($monthlyGross, $periodDays / 30);
-            $sdi          = (float) ($emp->daily_salary_imss ?? $dailySalary * 1.0493);
-            $imssEmployee = round($sdi * $periodDays * 0.02375, 2);
-            $employerImss = round($sdi * $periodDays * 0.0778, 2);
-
-            $totalDeductions = $ispt + $imssEmployee + $loanPayment;
-            $netSalary       = max(0, round($grossSalary - $totalDeductions, 2));
-
-            $this->items[$emp->id] = [
-                'employee_id'      => $emp->id,
-                'full_name'        => $emp->full_name,
-                'department'       => $emp->department?->name ?? '—',
-                'position'         => $emp->position?->name   ?? '—',
-                'days_worked'      => $daysWorked,
-                'overtime_hours'   => $overtimeHrs,
-                'daily_salary'     => round($dailySalary, 2),
-                'base_salary'      => $baseSalary,
-                'overtime_amount'  => $overtimeAmount,
-                'bonus_amount'     => $bonusAmount,
-                'food_voucher'     => 0,
-                'gross_salary'     => $grossSalary,
-                'ispt'             => $ispt,
-                'imss_employee'    => $imssEmployee,
-                'infonavit_payment'=> 0,
-                'loan_payment'     => $loanPayment,
-                'total_deductions' => $totalDeductions,
-                'employer_imss'    => $employerImss,
-                'net_salary'       => $netSalary,
-                'from_checador'    => $att !== null,
-            ];
-        }
+        $this->items = app(HrPayrollCalculator::class)->calculate(
+            $companyId,
+            $this->period_start,
+            $this->period_end,
+            $employeeId,
+        );
 
         $this->calculated = true;
     }
@@ -177,8 +108,20 @@ class PayrollForm extends Component
         $this->items[$empId][$field] = (float) $value;
         $item = &$this->items[$empId];
 
-        $item['base_salary']     = round($item['daily_salary'] * $item['days_worked'], 2);
-        $item['overtime_amount'] = round($item['overtime_hours'] * $item['daily_salary'] / 8 * 2, 2);
+        if ($field === 'days_worked') {
+            $item['worked_hours'] = round($item['days_worked'] * 8, 2);
+        }
+
+        $workedHours = max(0, (float) ($item['worked_hours'] ?? ($item['days_worked'] * 8)));
+        $overtimeHours = max(0, (float) ($item['overtime_hours'] ?? 0));
+        $hourlySalary = (float) $item['daily_salary'] / 8;
+        $regularHours = max(0, $workedHours - $overtimeHours);
+
+        $item['worked_hours'] = round($workedHours, 2);
+        $item['regular_hours'] = round($regularHours, 2);
+        $item['days_worked'] = round($workedHours / 8, 2);
+        $item['base_salary'] = round($hourlySalary * $regularHours, 2);
+        $item['overtime_amount'] = round($overtimeHours * $hourlySalary * 2, 2);
         $item['gross_salary']    = round(
             $item['base_salary'] + $item['overtime_amount'] + $item['bonus_amount'] + $item['food_voucher'],
             2
@@ -188,6 +131,20 @@ class PayrollForm extends Component
             2
         );
         $item['net_salary'] = max(0, round($item['gross_salary'] - $item['total_deductions'], 2));
+
+        if ($field === 'bonus_amount') {
+            $item['other_perceptions'] = $item['bonus_amount'] > 0
+                ? [['concept' => 'Complemento manual', 'amount' => $item['bonus_amount'], 'source' => 'manual']]
+                : [];
+            $item['bonus_ids'] = [];
+        }
+
+        if ($field === 'loan_payment') {
+            $item['other_deductions'] = $item['loan_payment'] > 0
+                ? [['concept' => 'Descuento manual', 'amount' => $item['loan_payment'], 'source' => 'manual']]
+                : [];
+            $item['loan_ids'] = [];
+        }
     }
 
     public function save(): void
@@ -236,16 +193,15 @@ class PayrollForm extends Component
                     'employer_imss'     => $item['employer_imss'],
                     'net_salary'        => $item['net_salary'],
                     'status'            => 'pending',
-                    'other_perceptions' => $item['bonus_amount'] > 0
-                        ? [['concept' => 'Bonos', 'amount' => $item['bonus_amount']]]
-                        : null,
+                    'other_perceptions' => $item['other_perceptions'] ?? null,
+                    'other_deductions'  => $item['other_deductions'] ?? null,
                 ]);
 
                 // Marcar bonos como aplicados
                 if ($item['bonus_amount'] > 0) {
-                    HrEmployeeBonus::where('employee_id', $item['employee_id'])
+                    HrEmployeeBonus::whereIn('id', $item['bonus_ids'] ?? [])
+                        ->where('employee_id', $item['employee_id'])
                         ->where('is_applied', false)
-                        ->where('apply_at', '<=', $this->period_end)
                         ->update(['is_applied' => true, 'payroll_item_id' => $savedItem->id]);
                 }
 
@@ -320,6 +276,13 @@ class PayrollForm extends Component
             'employees'  => count($this->items),
         ];
 
-        return view('livewire.hr.payroll-form', compact('totals'));
+        $employeeOptions = HrEmployee::where('company_id', auth()->user()->company_id)
+            ->where('status', 'active')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'employee_number', 'first_name', 'last_name', 'second_last_name']);
+
+        return view('livewire.hr.payroll-form', compact('totals', 'employeeOptions'));
     }
 }
+

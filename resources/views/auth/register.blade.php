@@ -16,6 +16,25 @@
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
+        <!-- Birth Date (Age) -->
+        <div class="mt-4">
+            <x-input-label for="birth_date" :value="__('Fecha de Nacimiento')" />
+            <x-text-input id="birth_date" class="block mt-1 w-full" type="date" name="birth_date" :value="old('birth_date')" />
+            <x-input-error :messages="$errors->get('birth_date')" class="mt-2" />
+        </div>
+
+        <!-- Gender (Sex) -->
+        <div class="mt-4">
+            <x-input-label for="gender" :value="__('Sexo')" />
+            <select id="gender" name="gender" class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm block mt-1 w-full">
+                <option value="">{{ __('Seleccionar...') }}</option>
+                @foreach(\App\Models\HrEmployee::GENDERS as $key => $label)
+                    <option value="{{ $key }}" {{ old('gender') == $key ? 'selected' : '' }}>{{ __($label) }}</option>
+                @endforeach
+            </select>
+            <x-input-error :messages="$errors->get('gender')" class="mt-2" />
+        </div>
+
         <!-- Password -->
         <div class="mt-4">
             <x-input-label for="password" :value="__('Password')" />

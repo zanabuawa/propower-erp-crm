@@ -145,6 +145,7 @@ class CustomerForm extends Component
             'tax_regime'       => 'nullable|string|max:10',
             'cfdi_use'         => 'nullable|string|max:10',
             'anniversary_date' => 'nullable|date',
+            'image'            => 'nullable|image|max:5120',
             'address'          => 'nullable|string|max:255',
             'city'             => 'nullable|string|max:100',
             'state'            => 'nullable|string|max:100',

@@ -1,4 +1,5 @@
-<div class="min-h-screen bg-slate-50/50 -m-4 lg:-m-6">
+<div class="{{ $embedded ? 'space-y-4' : 'min-h-screen bg-slate-50/50 -m-4 lg:-m-6' }}">
+    @if(!$embedded)
     <div class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 py-3 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between gap-4">
             <div>
@@ -14,8 +15,22 @@
             @endcan
         </div>
     </div>
+    @else
+    <div class="flex items-center justify-between gap-4">
+        <div>
+            <h2 class="text-sm font-semibold text-slate-800">Reportes fotograficos</h2>
+            <p class="text-xs text-slate-400">Carga evidencia visual ligada al proyecto.</p>
+        </div>
+        @can('manage work reports')
+        <button type="button" wire:click="openModal()"
+            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all">
+            Nuevo reporte
+        </button>
+        @endcan
+    </div>
+    @endif
 
-    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-4">
+    <div class="{{ $embedded ? 'space-y-4' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-4' }}">
         @if(session('success'))
             <div class="p-4 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-2xl text-sm font-bold">{{ session('success') }}</div>
         @endif
@@ -45,16 +60,37 @@
                         <div class="flex items-start justify-between gap-2">
                             <div class="flex-1 min-w-0">
                                 <p class="font-black text-slate-800 text-xs truncate">{{ $r->title }}</p>
-                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $r->project?->name }} &bull; {{ $r->report_date->format('d/m/Y') }}</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">
+                                    {{ $r->project?->name }} &bull;
+                                    @if($r->week_start && $r->week_end)
+                                        Semana {{ $r->week_start->format('d/m/Y') }} - {{ $r->week_end->format('d/m/Y') }}
+                                    @else
+                                        {{ $r->report_date->format('d/m/Y') }}
+                                    @endif
+                                </p>
                                 @if($r->location) <p class="text-[10px] text-slate-400 mt-0.5">📍 {{ $r->location }}</p> @endif
                                 <p class="text-[10px] text-indigo-600 mt-1">{{ count($photos) }} foto(s)</p>
                             </div>
-                            <div class="flex items-center gap-1 shrink-0">
-                                <button wire:click="openModal({{ $r->id }})" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50">
+                            <div class="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                                <a wire:navigate href="{{ route('works.photo-reports.format', $r) }}"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-100 bg-emerald-50 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5l5 5v11a2 2 0 01-2 2z"/></svg>
+                                    Formato
+                                </a>
+                                <a href="{{ route('works.photo-reports.print', $r) }}" target="_blank"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-100 bg-indigo-50 text-xs font-bold text-indigo-700 hover:bg-indigo-100 transition-colors">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z"/></svg>
+                                    Imprimir
+                                </a>
+                                <button type="button" wire:click="openModal({{ $r->id }})"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-100 bg-amber-50 text-xs font-bold text-amber-700 hover:bg-amber-100 transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6-6"/></svg>
+                                    Editar
                                 </button>
-                                <button wire:click="delete({{ $r->id }})" wire:confirm="¿Eliminar reporte?" class="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50">
+                                <button type="button" wire:click="delete({{ $r->id }})" wire:confirm="¿Eliminar reporte?"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-100 bg-red-50 text-xs font-bold text-red-700 hover:bg-red-100 transition-colors">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    Eliminar
                                 </button>
                             </div>
                         </div>
@@ -74,6 +110,7 @@
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 space-y-4 max-h-[90vh] overflow-y-auto">
             <h3 class="text-base font-black text-slate-800">{{ $editingId ? 'Editar' : 'Nuevo' }} Reporte Fotográfico</h3>
             <div class="space-y-3">
+                @if(!$contextProjectId)
                 <div>
                     <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Proyecto *</label>
                     <select wire:model="project_id" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
@@ -84,18 +121,32 @@
                     </select>
                     @error('project_id') <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>
+                @endif
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha *</label>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha del reporte *</label>
                         <input wire:model="report_date" type="date" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        @error('report_date') <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
                         <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ubicación</label>
                         <input wire:model="location" type="text" placeholder="Área / zona..." class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Semana inicio *</label>
+                        <input wire:model="week_start" type="date" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        @error('week_start') <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Semana fin *</label>
+                        <input wire:model="week_end" type="date" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        @error('week_end') <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
                 <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Título *</label>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Concepto *</label>
                     <input wire:model="title" type="text" class="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold">
                     @error('title') <p class="text-[10px] text-red-500 mt-1">{{ $message }}</p> @enderror
                 </div>

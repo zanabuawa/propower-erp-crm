@@ -303,11 +303,22 @@ x-init="init()">
                 @canany(['view inventory', 'create inventory', 'edit inventory', 'delete inventory'])
                 <x-sidebar-menu id="inv" label="Inventario" icon="inventory" :routes="['inventory.*']">
                     @can('view inventory')
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Control de existencias</span>
+                    </div>
                     <x-sidebar-subitem route="inventory.index" label="Productos y servicios" />
                     <x-sidebar-subitem route="inventory.general" label="Existencias generales" />
                     <x-sidebar-subitem route="inventory.warehouse-stock" label="Existencias por almacén" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Catálogos y almacenes</span>
+                    </div>
                     <x-sidebar-subitem route="inventory.categories.index" label="Categorías" />
                     <x-sidebar-subitem route="inventory.warehouses.index" label="Almacenes" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Control de movimientos</span>
+                    </div>
                     <x-sidebar-subitem route="inventory.movements.index" label="Movimientos" />
                     <x-sidebar-subitem route="inventory.transfers.index" label="Transferencias" />
                     <x-sidebar-subitem route="inventory.lots.index" label="Lotes PEPS" />
@@ -319,11 +330,22 @@ x-init="init()">
                 @canany(['view purchases', 'create purchases', 'edit purchases', 'delete purchases'])
                 <x-sidebar-menu id="buy" label="Compras" icon="purchases" :routes="['purchases.*']">
                     @can('view purchases')
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Proceso de compra</span>
+                    </div>
                     <x-sidebar-subitem route="purchases.index" label="Requisiciones" />
                     <x-sidebar-subitem route="purchases.orders.index" label="Órdenes de compra" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Recepción y documentos</span>
+                    </div>
                     <x-sidebar-subitem route="purchases.goods-receipts.index" label="Recepción de mercancías" />
                     <x-sidebar-subitem route="purchases.invoices.index" label="Facturas de proveedor" />
                     <x-sidebar-subitem route="purchases.credit-notes.index" label="Notas de crédito" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Reportes</span>
+                    </div>
                     <x-sidebar-subitem route="purchases.report" label="Reporte de compras" />
                     @endcan
                 </x-sidebar-menu>
@@ -332,12 +354,22 @@ x-init="init()">
                 @canany(['view sales', 'create sales', 'edit sales', 'delete sales'])
                 <x-sidebar-menu id="sales" label="Ventas" icon="sales" :routes="['sales.*']">
                     @can('view sales')
-                    <x-sidebar-subitem route="sales.dashboard" label="Dashboard ventas" />
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Indicadores</span>
+                    </div>
                     <x-sidebar-subitem route="sales.report" label="Reporte de ventas" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Operación comercial</span>
+                    </div>
                     <x-sidebar-subitem route="sales.index" label="Cotizaciones" />
                     <x-sidebar-subitem route="sales.orders.index" label="Órdenes de venta" />
                     <x-sidebar-subitem route="sales.invoices.index" label="Facturas" />
                     <x-sidebar-subitem route="sales.credit-notes.index" label="Notas de crédito" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Precios y descuentos</span>
+                    </div>
                     <x-sidebar-subitem route="sales.price-lists.index" label="Listas de precios" />
                     <x-sidebar-subitem route="sales.discount-approvals.index" label="Autorizaciones desc." />
                     @endcan
@@ -358,9 +390,20 @@ x-init="init()">
 
                 <x-sidebar-menu id="crm" label="CRM" icon="contacts"
                     :routes="['sales.crm.*', 'contacts.*', 'suppliers.*']">
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Pipeline</span>
+                    </div>
                     <x-sidebar-subitem route="sales.crm.pipeline" label="Oportunidades" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Contactos</span>
+                    </div>
                     <x-sidebar-subitem route="contacts.index" label="Clientes" />
                     <x-sidebar-subitem route="suppliers.index" label="Proveedores" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Seguimiento</span>
+                    </div>
                     <x-sidebar-subitem route="sales.crm.tickets.index" label="Tickets" />
                     <x-sidebar-subitem route="sales.crm.campaigns.index" label="Campañas" />
                 </x-sidebar-menu>
@@ -396,7 +439,7 @@ x-init="init()">
                 </div>
 
                 <x-sidebar-menu id="tenders" label="Licitaciones" icon="tenders"
-                    :routes="['tenders.*','works.permits.index','works.reports.index','works.photo-reports.index','works.libranzas.index']">
+                    :routes="['tenders.*','works.*']">
                     @canany(['view tenders', 'create tenders', 'edit tenders'])
                     <div class="px-3 pt-2 pb-1">
                         <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Licitaciones</span>
@@ -418,6 +461,9 @@ x-init="init()">
                     <div class="px-3 pt-4 pb-1">
                         <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Control de Obra</span>
                     </div>
+                    @can('view tenders')
+                    <x-sidebar-subitem route="works.projects.index" label="Proyectos en obra" />
+                    @endcan
                     @can('manage work permits')
                     <x-sidebar-subitem route="works.permits.index" label="Permisos de trabajo" />
                     @endcan
@@ -444,7 +490,7 @@ x-init="init()">
                 </div>
 
                 <x-sidebar-menu id="hr" label="Recursos humanos" icon="hr"
-                    :routes="['hr.employees.*','hr.prospects.*','hr.departments.*','hr.positions.*','hr.contracts.*','hr.attendances.*','hr.attendance.locations*','hr.payrolls.*','hr.leaves.*','hr.vacations.*','hr.job-openings.*','hr.incidents.*','hr.evaluations.*','hr.test-templates.*']">
+                    :routes="['hr.employees.*','hr.prospects.*','hr.departments.*','hr.positions.*','hr.contracts.*','hr.contract-templates.*','hr.attendances.*','hr.attendance.locations*','hr.payrolls.*','hr.payroll.concepts*','hr.leaves.*','hr.vacations.*','hr.job-openings.*','hr.incidents.*','hr.evaluations.*','hr.test-templates.*']">
                     @can('view hr')
                     <div class="px-3 pt-2 pb-1">
                         <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Reclutamiento</span>
@@ -459,6 +505,7 @@ x-init="init()">
                     <x-sidebar-subitem route="hr.departments.index" label="Departamentos" />
                     <x-sidebar-subitem route="hr.positions.index" label="Puestos laborales" />
                     <x-sidebar-subitem route="hr.contracts.index" label="Contratos" />
+                    <x-sidebar-subitem route="hr.contract-templates.index" label="Plantillas de contrato" />
 
                     <div class="px-3 pt-4 pb-1">
                         <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Asistencia</span>
@@ -473,6 +520,8 @@ x-init="init()">
                         <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Nómina</span>
                     </div>
                     <x-sidebar-subitem route="hr.payrolls.index" label="Nóminas" />
+                    <x-sidebar-subitem route="hr.payrolls.complements" label="Complementos" />
+                    <x-sidebar-subitem route="hr.payroll.concepts" label="Conceptos" />
 
                     {{-- Sistema de Evaluación Sub-Header --}}
                     <div class="px-3 pt-4 pb-1">
@@ -500,18 +549,33 @@ x-init="init()">
                 </div>
                 <x-sidebar-menu id="fin" label="Finanzas" icon="finance" :routes="['finance.*']">
                     @can('view finance')
+                    <div class="px-3 pt-2 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Visión general</span>
+                    </div>
                     <x-sidebar-subitem route="finance.dashboard" label="Gestión financiera" />
                     <x-sidebar-subitem route="finance.reports.index" label="Reportes y análisis" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Cobranza y pagos</span>
+                    </div>
                     <x-sidebar-subitem route="finance.collections.dashboard" label="Dashboard cobranza" />
                     <x-sidebar-subitem route="finance.aging.index" label="Antigüedad CxC" />
                     <x-sidebar-subitem route="finance.ap-aging.index" label="Antigüedad CxP" />
                     <x-sidebar-subitem route="finance.reminders.index" label="Recordatorios de pago" />
                     <x-sidebar-subitem route="finance.scheduled-payments.index" label="Pagos programados" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Cierre y bancos</span>
+                    </div>
                     <x-sidebar-subitem route="finance.period-close.index" label="Cierre mensual" />
                     <x-sidebar-subitem route="finance.bank-statement.index" label="Extracto bancario" />
                     <x-sidebar-subitem route="finance.bank-reconciliation.index" label="Conciliación bancaria" />
                     <x-sidebar-subitem route="finance.reconciliation.index" label="Conciliación CxC" />
                     <x-sidebar-subitem route="finance.ap-reconciliation.index" label="Conciliación CxP" />
+
+                    <div class="px-3 pt-4 pb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-white/20">Operación financiera</span>
+                    </div>
                     <x-sidebar-subitem route="finance.accounts.index" label="Cuentas" />
                     <x-sidebar-subitem route="finance.transactions.index" label="Transacciones" />
                     <x-sidebar-subitem route="finance.budgets.index" label="Presupuestos" />
@@ -647,6 +711,10 @@ x-init="init()">
                     <p class="text-[12px] font-medium text-white/80 leading-tight truncate">
                         {{ auth()->user()->name }}
                     </p>
+                    <a href="{{ route('profile.edit') }}" wire:navigate
+                       class="block text-[11px] text-white/45 hover:text-indigo-400 transition-colors duration-150 cursor-pointer">
+                        Perfil y seguridad
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit"

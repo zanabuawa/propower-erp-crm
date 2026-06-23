@@ -245,7 +245,7 @@ class ReceiptForm extends Component
                         'defective' => 'defective',
                         default     => 'purchase',
                     };
-                    $fifo->createLot(
+                    $lot = $fifo->createLot(
                         companyId:    $companyId,
                         productId:    $item['product_id'],
                         warehouseId:  $warehouseId,
@@ -273,6 +273,7 @@ class ReceiptForm extends Component
                     $movement->items()->create([
                         'product_id'      => $item['product_id'],
                         'warehouse_id'    => $warehouseId,
+                        'lot_id'          => $lot->id,
                         'quantity'        => $qty,
                         'unit_price'      => $landedUnitCost,
                         'quantity_before' => $quantityBefore,

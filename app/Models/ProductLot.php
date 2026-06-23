@@ -69,10 +69,16 @@ class ProductLot extends Model
     public static function generateBarcode(int $companyId, int $productId): string
     {
         $seq = static::where('company_id', $companyId)->count() + 1;
-        return 'LOTE'
-            . str_pad($companyId, 4, '0', STR_PAD_LEFT)
-            . str_pad($productId, 5, '0', STR_PAD_LEFT)
-            . str_pad($seq, 6, '0', STR_PAD_LEFT);
+
+        do {
+            $barcode = 'LOTE'
+                . str_pad($companyId, 4, '0', STR_PAD_LEFT)
+                . str_pad($productId, 5, '0', STR_PAD_LEFT)
+                . str_pad($seq, 6, '0', STR_PAD_LEFT);
+            $seq++;
+        } while (static::where('barcode', $barcode)->exists());
+
+        return $barcode;
     }
 
     /**

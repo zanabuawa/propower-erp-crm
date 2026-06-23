@@ -1,7 +1,7 @@
 <div>
-    <x-page-header title="Inventario general" description="Existencias totales de todos los almacenes">
+    <x-page-header title="Inventario general" description="Catálogo de productos y servicios, con existencias totales por producto">
         <x-slot:actions>
-            <a href="{{ route('inventory.general.print', ['search' => $search, 'category_id' => $category_id, 'stock_filter' => $stock_filter]) }}"
+            <a href="{{ route('inventory.general.print', ['search' => $search, 'category_id' => $category_id, 'type_filter' => $type_filter, 'stock_filter' => $stock_filter]) }}"
                 target="_blank"
                 class="inline-flex items-center gap-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-3 py-2 rounded-xl transition-all duration-200 text-gray-700 shadow-sm mr-2">
                 <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,7 +21,7 @@
 
     {{-- KPIs --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {{-- Total productos --}}
+        {{-- Total referencias --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex items-start gap-4">
             <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,8 +29,20 @@
                 </svg>
             </div>
             <div>
-                <p class="text-xs font-medium text-gray-500">Total productos</p>
+                <p class="text-xs font-medium text-gray-500">Productos y servicios</p>
                 <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ $totalProducts }}</p>
+            </div>
+        </div>
+        {{-- Servicios --}}
+        <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex items-start gap-4">
+            <div class="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+            </div>
+            <div>
+                <p class="text-xs font-medium text-gray-500">Servicios</p>
+                <p class="text-2xl font-bold text-violet-500 mt-0.5">{{ $totalServices }}</p>
             </div>
         </div>
         {{-- Sin existencias --}}
@@ -57,23 +69,11 @@
                 <p class="text-2xl font-bold text-amber-500 mt-0.5">{{ $lowStock }}</p>
             </div>
         </div>
-        {{-- Valor en inventario --}}
-        <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm flex items-start gap-4">
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <div>
-                <p class="text-xs font-medium text-gray-500">Valor en inventario</p>
-                <p class="text-2xl font-bold text-indigo-600 mt-0.5">${{ number_format($totalStockValue, 2) }}</p>
-            </div>
-        </div>
     </div>
 
     {{-- Filtros --}}
     <div class="bg-white rounded-2xl border border-gray-200 p-5 mb-6 shadow-sm">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div class="relative sm:col-span-1">
                 <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -82,6 +82,17 @@
                     placeholder="Buscar por nombre, SKU o código..."
                     aria-label="Buscar productos"
                     class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all">
+            </div>
+            <div class="relative">
+                <select wire:model.live="type_filter" aria-label="Filtrar por tipo"
+                    class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition-all hover:bg-gray-100 appearance-none">
+                    <option value="">Productos y servicios</option>
+                    <option value="product">Solo productos</option>
+                    <option value="service">Solo servicios</option>
+                </select>
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
             </div>
             <div class="relative">
                 <select wire:model.live="category_id" aria-label="Filtrar por categoría"
@@ -98,7 +109,7 @@
             <div class="relative">
                 <select wire:model.live="stock_filter" aria-label="Filtrar por estado de stock"
                     class="w-full px-4 py-2.5 pr-10 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer transition-all hover:bg-gray-100 appearance-none">
-                    <option value="">Todos los estados</option>
+                    <option value="">Todos los estados de stock</option>
                     <option value="ok">Stock normal</option>
                     <option value="low">Stock bajo</option>
                     <option value="out">Sin existencias</option>
@@ -118,6 +129,7 @@
                     <tr class="border-b border-gray-200 bg-gray-50">
                         <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wider px-5 py-4">Producto</th>
                         <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wider px-5 py-4 hidden sm:table-cell">SKU</th>
+                        <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wider px-5 py-4 hidden sm:table-cell">Tipo</th>
                         <th class="text-left text-xs text-gray-600 font-semibold uppercase tracking-wider px-5 py-4 hidden md:table-cell">Categoría</th>
                         <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wider px-5 py-4">Existencias</th>
                         <th class="text-right text-xs text-gray-600 font-semibold uppercase tracking-wider px-5 py-4 hidden md:table-cell">Mín.</th>
@@ -132,9 +144,10 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($products as $product)
                         @php
+                            $isService = $product->type === 'service';
                             $qty = $product->total_qty;
-                            $isOut = $qty <= 0;
-                            $isLow = $qty > 0 && $qty <= $product->min_stock;
+                            $isOut = !$isService && $qty <= 0;
+                            $isLow = !$isService && $qty > 0 && $qty <= $product->min_stock;
                         @endphp
                         <tr class="hover:bg-gray-50/70 transition-colors duration-150">
                             <td class="px-5 py-4">
@@ -150,6 +163,11 @@
                                 </p>
                             </td>
                             <td class="px-5 py-4 text-gray-500 font-mono text-xs hidden sm:table-cell">{{ $product->sku ?? '—' }}</td>
+                            <td class="px-5 py-4 hidden sm:table-cell">
+                                <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-medium {{ $isService ? 'bg-violet-100 text-violet-700' : 'bg-indigo-100 text-indigo-700' }}">
+                                    {{ $isService ? 'Servicio' : 'Producto' }}
+                                </span>
+                            </td>
                             <td class="px-5 py-4 hidden md:table-cell">
                                 @if($product->category)
                                     <div class="flex items-center gap-1.5">
@@ -161,20 +179,29 @@
                                 @endif
                             </td>
                             <td class="px-5 py-4 text-right">
-                                <span class="font-bold text-base {{ $isOut ? 'text-red-500' : ($isLow ? 'text-amber-500' : 'text-gray-900') }}">
-                                    {{ number_format($qty, 2) }}
-                                </span>
+                                @if($isService)
+                                    <span class="text-xs text-gray-400 italic">N/A</span>
+                                @else
+                                    <span class="font-bold text-base {{ $isOut ? 'text-red-500' : ($isLow ? 'text-amber-500' : 'text-gray-900') }}">
+                                        {{ number_format($qty, 2) }}
+                                    </span>
+                                @endif
                             </td>
-                            <td class="px-5 py-4 text-right text-gray-400 text-xs hidden md:table-cell">{{ number_format($product->min_stock, 2) }}</td>
+                            <td class="px-5 py-4 text-right text-gray-400 text-xs hidden md:table-cell">{{ $isService ? 'N/A' : number_format($product->min_stock, 2) }}</td>
                             @can('view prices')
                             <td class="px-5 py-4 text-right text-gray-600 hidden lg:table-cell">${{ number_format($product->purchase_price, 2) }}</td>
                             <td class="px-5 py-4 text-right text-gray-800 hidden lg:table-cell">${{ number_format($product->sale_price, 2) }}</td>
                             <td class="px-5 py-4 text-right font-medium text-indigo-600 hidden sm:table-cell">
-                                ${{ number_format($qty * (float)$product->purchase_price, 2) }}
+                                {{ $isService ? 'N/A' : '$' . number_format($qty * (float)$product->purchase_price, 2) }}
                             </td>
                             @endcan
                             <td class="px-5 py-4 text-center">
-                                @if($isOut)
+                                @if($isService)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-violet-50 text-violet-600 border border-violet-100">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-violet-500"></span>
+                                        Servicio
+                                    </span>
+                                @elseif($isOut)
                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-red-50 text-red-600 border border-red-100">
                                         <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                                         Sin stock
@@ -194,8 +221,8 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="px-5 py-12 text-center">
-                                <x-empty-state message="No se encontraron productos con los filtros aplicados." />
+                            <td colspan="10" class="px-5 py-12 text-center">
+                                <x-empty-state message="No se encontraron productos o servicios con los filtros aplicados." />
                             </td>
                         </tr>
                     @endforelse

@@ -15,10 +15,12 @@ class InventoryGeneral extends Component
 
     public string $search      = '';
     public string $category_id = '';
+    public string $type_filter = '';
     public string $stock_filter = ''; // 'low', 'out', 'ok'
 
     public function updatingSearch(): void    { $this->resetPage(); }
     public function updatingCategoryId(): void { $this->resetPage(); }
+    public function updatingTypeFilter(): void { $this->resetPage(); }
     public function updatingStockFilter(): void { $this->resetPage(); }
 
     public function render()
@@ -41,31 +43,38 @@ class InventoryGeneral extends Component
             $query->where('category_id', $this->category_id);
         }
 
+        if ($this->type_filter) {
+            $query->where('type', $this->type_filter);
+        }
+
         // We fetch all to filter by computed stock, then paginate manually via collection
         // For large catalogs this should be a DB sum subquery; kept simple for now.
         $products = $query->orderBy('name')->get()->map(function (Product $p) {
-            $p->total_qty = $p->stocks->sum('quantity');
+            $p->total_qty = $p->type === 'service' ? null : $p->stocks->sum('quantity');
             return $p;
         });
 
         if ($this->stock_filter === 'out') {
-            $products = $products->filter(fn($p) => $p->total_qty <= 0);
+            $products = $products->filter(fn($p) => $p->type !== 'service' && $p->total_qty <= 0);
         } elseif ($this->stock_filter === 'low') {
-            $products = $products->filter(fn($p) => $p->total_qty > 0 && $p->total_qty <= $p->min_stock);
+            $products = $products->filter(fn($p) => $p->type !== 'service' && $p->total_qty > 0 && $p->total_qty <= $p->min_stock);
         } elseif ($this->stock_filter === 'ok') {
-            $products = $products->filter(fn($p) => $p->total_qty > $p->min_stock);
+            $products = $products->filter(fn($p) => $p->type !== 'service' && $p->total_qty > $p->min_stock);
         }
 
         // Summary totals
         $totalProducts  = $products->count();
-        $outOfStock     = $products->filter(fn($p) => $p->total_qty <= 0)->count();
-        $lowStock       = $products->filter(fn($p) => $p->total_qty > 0 && $p->total_qty <= $p->min_stock)->count();
-        $totalStockValue = $products->sum(fn($p) => $p->total_qty * (float) $p->purchase_price);
+        $totalServices  = $products->filter(fn($p) => $p->type === 'service')->count();
+        $stockProducts  = $products->filter(fn($p) => $p->type !== 'service');
+        $outOfStock     = $stockProducts->filter(fn($p) => $p->total_qty <= 0)->count();
+        $lowStock       = $stockProducts->filter(fn($p) => $p->total_qty > 0 && $p->total_qty <= $p->min_stock)->count();
+        $totalStockValue = $stockProducts->sum(fn($p) => $p->total_qty * (float) $p->purchase_price);
 
         return view('livewire.inventory.inventory-general', [
             'products'        => $products->paginate(15),
             'categories'      => Category::where('company_id', $companyId)->where('is_active', true)->orderBy('name')->get(),
             'totalProducts'   => $totalProducts,
+            'totalServices'   => $totalServices,
             'outOfStock'      => $outOfStock,
             'lowStock'        => $lowStock,
             'totalStockValue' => $totalStockValue,

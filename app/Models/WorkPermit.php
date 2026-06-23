@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class WorkPermit extends Model
 {
@@ -34,6 +35,7 @@ class WorkPermit extends Model
     protected $fillable = [
         'project_id', 'tender_id', 'type', 'description',
         'issued_by', 'valid_from', 'valid_until', 'status', 'notes',
+        'document_path', 'document_original_name',
     ];
 
     protected $casts = [
@@ -48,5 +50,10 @@ class WorkPermit extends Model
     public function getIsExpiredAttribute(): bool
     {
         return $this->status === 'activo' && $this->valid_until->isPast();
+    }
+
+    public function getDocumentUrlAttribute(): ?string
+    {
+        return $this->document_path ? Storage::url($this->document_path) : null;
     }
 }

@@ -18,6 +18,8 @@ class UserForm extends Component
     public ?User $user = null;
     public string $name = '';
     public string $email = '';
+    public ?string $birth_date = null;
+    public ?string $gender = null;
     public string $password = '';
     public string $password_confirmation = '';
     public ?int $company_id = null;
@@ -38,6 +40,8 @@ class UserForm extends Component
 
             $this->name       = $this->user->name;
             $this->email      = $this->user->email;
+            $this->birth_date = $this->user->birth_date?->format('Y-m-d');
+            $this->gender     = $this->user->gender;
             $this->company_id = $this->user->company_id;
             $this->branch_id  = $this->user->branch_id;
             $this->is_active  = (bool) $this->user->is_active;
@@ -177,6 +181,8 @@ class UserForm extends Component
         return [
             'name'                   => 'required|string|max:255',
             'email'                  => 'required|email|unique:users,email,' . ($this->user?->id ?? 'NULL'),
+            'birth_date'             => 'nullable|date',
+            'gender'                 => 'nullable|string|max:30',
             'password'               => $passwordRule,
             'company_id'             => 'nullable|exists:companies,id',
             'branch_id'              => 'nullable|exists:branches,id',
@@ -194,6 +200,8 @@ class UserForm extends Component
         $data = [
             'name'       => $this->name,
             'email'      => $this->email,
+            'birth_date' => $this->birth_date,
+            'gender'     => $this->gender,
             'company_id' => $this->company_id,
             'branch_id'  => $this->branch_id,
             'is_active'  => $this->is_active,
@@ -205,6 +213,16 @@ class UserForm extends Component
 
         if ($this->user?->exists) {
             $this->user->update($data);
+
+            // Sync with HrEmployee if linked
+            $employee = \App\Models\HrEmployee::where('user_id', $this->user->id)->first();
+            if ($employee) {
+                $employee->update([
+                    'birth_date' => $this->birth_date,
+                    'gender'     => $this->gender,
+                ]);
+            }
+
             $this->user->syncRoles([$this->role]);
             $this->user->syncPermissions($this->selectedPermissions);
             session()->flash('success', 'Usuario actualizado correctamente.');

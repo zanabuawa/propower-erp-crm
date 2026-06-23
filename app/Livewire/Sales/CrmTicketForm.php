@@ -19,6 +19,7 @@ class CrmTicketForm extends Component
     public string $description    = '';
     public string $type           = 'support';
     public string $priority       = 'medium';
+    public string $ticket_scope   = 'customer';
     public string $customer_id    = '';
     public string $assigned_to    = '';
     public string $sale_order_id  = '';
@@ -33,6 +34,7 @@ class CrmTicketForm extends Component
             $this->description      = $ticket->description ?? '';
             $this->type             = $ticket->type;
             $this->priority         = $ticket->priority;
+            $this->ticket_scope     = $ticket->customer_id ? 'customer' : 'internal';
             $this->customer_id      = (string) ($ticket->customer_id ?? '');
             $this->assigned_to      = (string) ($ticket->assigned_to ?? '');
             $this->sale_order_id    = (string) ($ticket->sale_order_id ?? '');
@@ -40,7 +42,22 @@ class CrmTicketForm extends Component
             $this->due_at           = $ticket->due_at?->format('Y-m-d') ?? '';
         } else {
             $this->assigned_to = (string) auth()->id();
-            if (request('customer_id')) $this->customer_id = request('customer_id');
+            if (request('customer_id')) {
+                $this->ticket_scope = 'customer';
+                $this->customer_id = request('customer_id');
+            }
+        }
+    }
+
+    public function updatedTicketScope(): void
+    {
+        if ($this->ticket_scope === 'internal') {
+            $this->customer_id = '';
+            $this->sale_order_id = '';
+            $this->sale_invoice_id = '';
+            $this->type = 'internal';
+        } elseif ($this->type === 'internal') {
+            $this->type = 'support';
         }
     }
 
@@ -56,8 +73,9 @@ class CrmTicketForm extends Component
         return [
             'subject'         => 'required|string|max:255',
             'description'     => 'nullable|string',
-            'type'            => 'required|in:support,warranty,complaint,inquiry,return',
+            'type'            => 'required|in:internal,support,warranty,complaint,inquiry,return',
             'priority'        => 'required|in:low,medium,high,urgent',
+            'ticket_scope'    => 'required|in:customer,internal',
             'customer_id'     => 'nullable|exists:customers,id',
             'assigned_to'     => 'nullable|exists:users,id',
             'sale_order_id'   => 'nullable|exists:sale_orders,id',
@@ -71,7 +89,16 @@ class CrmTicketForm extends Component
         $data = $this->validate();
         $cid  = auth()->user()->company_id;
 
-        $data['customer_id']     = $data['customer_id']     ?: null;
+        unset($data['ticket_scope']);
+
+        if ($this->ticket_scope === 'internal') {
+            $data['customer_id'] = null;
+            $data['sale_order_id'] = null;
+            $data['sale_invoice_id'] = null;
+        } else {
+            $data['customer_id'] = $data['customer_id'] ?: null;
+        }
+
         $data['assigned_to']     = $data['assigned_to']     ?: null;
         $data['sale_order_id']   = $data['sale_order_id']   ?: null;
         $data['sale_invoice_id'] = $data['sale_invoice_id'] ?: null;

@@ -98,8 +98,26 @@
 
             {{-- References --}}
             <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-4">
-                <h3 class="text-sm font-semibold text-gray-700">Referencias (opcional)</h3>
+                <h3 class="text-sm font-semibold text-gray-700">Origen del ticket</h3>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="flex items-start gap-3 rounded-xl border {{ $ticket_scope === 'customer' ? 'border-indigo-300 bg-indigo-50' : 'border-gray-200 bg-white' }} p-4 cursor-pointer transition">
+                        <input wire:model.live="ticket_scope" type="radio" value="customer" class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+                        <span>
+                            <span class="block text-sm font-semibold text-gray-800">Cliente externo</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">Soporte, garantía, queja o consulta ligada a un cliente.</span>
+                        </span>
+                    </label>
+                    <label class="flex items-start gap-3 rounded-xl border {{ $ticket_scope === 'internal' ? 'border-violet-300 bg-violet-50' : 'border-gray-200 bg-white' }} p-4 cursor-pointer transition">
+                        <input wire:model.live="ticket_scope" type="radio" value="internal" class="mt-0.5 text-violet-600 focus:ring-violet-500">
+                        <span>
+                            <span class="block text-sm font-semibold text-gray-800">Interno de la empresa</span>
+                            <span class="block text-xs text-gray-500 mt-0.5">Para oficina, instalaciones, equipo, mantenimiento o solicitudes internas.</span>
+                        </span>
+                    </label>
+                </div>
+
+                @if($ticket_scope === 'customer')
                 <div>
                     <label class="block text-xs font-medium text-gray-600 mb-1">Cliente</label>
                     <select wire:model.live="customer_id" class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 outline-none">
@@ -109,8 +127,14 @@
                         @endforeach
                     </select>
                 </div>
+                @else
+                    <div class="rounded-xl bg-violet-50 border border-violet-100 p-4">
+                        <p class="text-sm font-semibold text-violet-800">Ticket interno</p>
+                        <p class="text-xs text-violet-600 mt-1">No se vinculará a cliente, orden ni factura. Quedará registrado para seguimiento interno de {{ auth()->user()->company?->name ?? 'la empresa' }}.</p>
+                    </div>
+                @endif
 
-                @if($customer_id)
+                @if($ticket_scope === 'customer' && $customer_id)
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-gray-600 mb-1">Orden de venta</label>

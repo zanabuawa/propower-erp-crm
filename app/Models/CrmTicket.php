@@ -26,6 +26,7 @@ class CrmTicket extends Model
     ];
 
     const TYPES = [
+        'internal'  => 'Interno',
         'support'   => 'Soporte técnico',
         'warranty'  => 'Garantía',
         'complaint' => 'Queja',
@@ -34,6 +35,7 @@ class CrmTicket extends Model
     ];
 
     const TYPE_COLORS = [
+        'internal'  => 'bg-violet-50 text-violet-700 border-violet-100',
         'support'   => 'bg-blue-50 text-blue-700 border-blue-100',
         'warranty'  => 'bg-amber-50 text-amber-700 border-amber-100',
         'complaint' => 'bg-red-50 text-red-700 border-red-100',

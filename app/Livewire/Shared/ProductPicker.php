@@ -18,7 +18,7 @@ class ProductPicker extends Component
     public bool   $multiSelect = false;
     public array  $selectedIds = [];
 
-    /** When set, only products with stock > 0 in this warehouse are shown
+    /** When set, only stockable products with stock > 0 in this warehouse are shown
      *  and stock quantity is displayed instead of price. */
     #[Reactive]
     public ?int $warehouseId = null;
@@ -72,10 +72,11 @@ class ProductPicker extends Component
             $query = Product::query()
                 ->where('company_id', auth()->user()->company_id)
                 ->where('is_active', true)
-                ->when($this->search, fn($q) => $q
-                    ->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('sku', 'like', "%{$this->search}%")
-                    ->orWhere('barcode', 'like', "%{$this->search}%"))
+                ->when($this->search, fn($q) => $q->where(function ($q) {
+                    $q->where('name', 'like', "%{$this->search}%")
+                        ->orWhere('sku', 'like', "%{$this->search}%")
+                        ->orWhere('barcode', 'like', "%{$this->search}%");
+                }))
                 ->when($this->categoryId, fn($q) => $q->where('category_id', $this->categoryId))
                 ->when(!$this->warehouseId, fn($q) => $q  // supplier filter only in standard mode
                     ->when($this->supplierId, fn($q) => $q->where('supplier_id', $this->supplierId)))

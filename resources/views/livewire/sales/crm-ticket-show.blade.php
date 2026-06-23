@@ -91,11 +91,13 @@
                 {{-- Metadatos en cuadrícula: cliente, creador, fechas, referencias --}}
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500">
                     <div>
-                        <p class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-0.5">Cliente</p>
+                        <p class="font-semibold text-gray-700 text-xs uppercase tracking-wide mb-0.5">Origen</p>
                         @if($ticket->customer)
                             <p class="text-gray-800">{{ $ticket->customer->name }}</p>
                         @else
-                            <p>—</p>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-violet-50 text-violet-700 border border-violet-100">
+                                Interno de la empresa
+                            </span>
                         @endif
                     </div>
                     <div>

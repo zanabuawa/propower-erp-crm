@@ -14,11 +14,11 @@ class HrContract extends Model
     protected $table = 'hr_contracts';
 
     protected $fillable = [
-        'company_id', 'employee_id', 'contract_number', 'type',
+        'company_id', 'employee_id', 'hr_contract_template_id', 'contract_number', 'type',
         'start_date', 'end_date', 'salary', 'salary_period',
         'work_shift', 'work_hours_per_week', 'benefits',
         'entry_time', 'exit_time', 'work_days', 'saturday_hours', 'tolerance_minutes',
-        'status', 'file_path', 'notes', 'created_by',
+        'status', 'file_path', 'notes', 'print_custom_clauses', 'print_pages', 'created_by',
     ];
 
     protected $casts = [
@@ -28,6 +28,7 @@ class HrContract extends Model
         'benefits'           => 'array',
         'work_hours_per_week'=> 'integer',
         'work_days'          => 'array',
+        'print_pages'        => 'array',
         'saturday_hours'     => 'decimal:2',
         'tolerance_minutes'  => 'integer',
     ];
@@ -69,6 +70,11 @@ class HrContract extends Model
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(HrContractTemplate::class, 'hr_contract_template_id');
     }
 
     // ── Accessors ──────────────────────────────────────────────────────────────
@@ -124,6 +130,46 @@ class HrContract extends Model
         return $checkin->gt($deadline);
     }
 
+    public function getWorkDaysLabelAttribute(): string
+    {
+        $labels = [
+            1 => 'lunes',
+            2 => 'martes',
+            3 => 'miercoles',
+            4 => 'jueves',
+            5 => 'viernes',
+            6 => 'sabado',
+            7 => 'domingo',
+        ];
+
+        $days = collect($this->work_days ?? [1, 2, 3, 4, 5])
+            ->map(fn ($day) => $labels[(int) $day] ?? null)
+            ->filter()
+            ->values();
+
+        if ($days->isEmpty()) {
+            return 'sin dias definidos';
+        }
+
+        if ($days->count() === 1) {
+            return $days->first();
+        }
+
+        return $days->slice(0, -1)->implode(', ').' y '.$days->last();
+    }
+
+    public function getScheduleLabelAttribute(): string
+    {
+        $entry = $this->entry_time ? substr($this->entry_time, 0, 5) : null;
+        $exit = $this->exit_time ? substr($this->exit_time, 0, 5) : null;
+
+        if (! $entry || ! $exit) {
+            return 'horario pendiente de definir';
+        }
+
+        return "de {$entry} a {$exit} horas";
+    }
+
     public function getStatusColorAttribute(): string
     {
         return self::STATUS_COLORS[$this->status] ?? 'bg-gray-100 text-gray-600';
@@ -137,5 +183,10 @@ class HrContract extends Model
     public function getTypeLabelAttribute(): string
     {
         return self::TYPES[$this->type] ?? $this->type;
+    }
+
+    public function getPrintPagesForEditingAttribute(): array
+    {
+        return array_pad(array_slice($this->print_pages ?: HrContractTemplate::defaultPrintPages(), 0, 5), 5, '');
     }
 }
